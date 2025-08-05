@@ -1,0 +1,186 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PHP_VERSION: 8.2
+  NODE_VERSION: 18
+
+jobs:
+  # 程式碼品質檢查
+  code-quality:
+    name: 程式碼品質檢查
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 檢出程式碼
+        uses: actions/checkout@v4
+        
+      - name: 設定 PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, mysql, gd
+          coverage: xdebug
+          
+      - name: 快取 Composer 依賴
+        uses: actions/cache@v3
+        with:
+          path: ~/.composer/cache/files
+          key: dependencies-composer-${{ hashFiles('composer.lock') }}
+          
+      - name: 安裝 Composer 依賴
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 安裝 NPM 依賴
+        run: npm ci
+        
+      - name: 編譯前端資源
+        run: npm run build
+        
+      - name: 複製環境設定檔
+        run: cp .env.example .env
+        
+      - name: 生成應用程式金鑰
+        run: php artisan key:generate
+        
+      - name: 建立 SQLite 資料庫
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+          
+      - name: 執行資料庫遷移
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+          
+      - name: 執行資料庫種子
+        run: php artisan db:seed --force
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+          
+      # PHP 程式碼風格檢查
+      - name: PHP 程式碼風格檢查 (PHP CS Fixer)
+        run: |
+          if [ ! -f .php-cs-fixer.php ]; then
+            echo "建立 PHP CS Fixer 設定檔..."
+            cat > .php-cs-fixer.php << 'EOF'
+          <?php
+          
+          $finder = PhpCsFixer\Finder::create()
+              ->in(__DIR__)
+              ->exclude(['bootstrap', 'storage', 'vendor'])
+              ->name('*.php')
+              ->notName('*.blade.php')
+              ->ignoreDotFiles(true)
+              ->ignoreVCS(true);
+          
+          return (new PhpCsFixer\Config())
+              ->setRules([
+                  '@PSR12' => true,
+                  'array_syntax' => ['syntax' => 'short'],
+                  'ordered_imports' => ['sort_algorithm' => 'alpha'],
+                  'no_unused_imports' => true,
+                  'not_operator_with_successor_space' => true,
+                  'trailing_comma_in_multiline' => true,
+                  'phpdoc_scalar' => true,
+                  'unary_operator_spaces' => true,
+                  'binary_operator_spaces' => true,
+                  'blank_line_before_statement' => [
+                      'statements' => ['break', 'continue', 'declare', 'return', 'throw', 'try'],
+                  ],
+                  'phpdoc_single_line_var_spacing' => true,
+                  'phpdoc_var_without_name' => true,
+              ])
+              ->setFinder($finder);
+          EOF
+          fi
+          ./vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
+          
+      # PHPStan 靜態分析
+      - name: PHPStan 靜態分析
+        run: |
+          if [ ! -f phpstan.neon ]; then
+            echo "建立 PHPStan 設定檔..."
+            cat > phpstan.neon << 'EOF'
+          parameters:
+              level: 5
+              paths:
+                  - app
+                  - config
+                  - database
+                  - routes
+              excludePaths:
+                  - app/Console/Kernel.php
+                  - app/Exceptions/Handler.php
+                  - app/Http/Kernel.php
+              ignoreErrors:
+                  - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder#'
+                  - '#Call to an undefined method Illuminate\\Database\\Query\\Builder#'
+          EOF
+          fi
+          ./vendor/bin/phpstan analyse --memory-limit=2G
+          
+      # 執行測試
+      - name: 執行 PHPUnit 測試
+        run: php artisan test --coverage --min=80
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
+  # 安全性掃描
+  security-scan:
+    name: 安全性掃描
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    steps:
+      - name: 檢出程式碼
+        uses: actions/checkout@v4
+        
+      - name: 設定 PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          
+      - name: 安裝 Composer 依賴
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        
+      # Composer 安全性檢查
+      - name: Composer 安全性檢查
+        run: composer audit
+
+  # Docker 映像建置測試
+  docker-build:
+    name: Docker 映像建置測試
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    steps:
+      - name: 檢出程式碼
+        uses: actions/checkout@v4
+        
+      - name: 設定 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: 建置 Docker 映像
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/php/Dockerfile.prod
+          push: false
+          tags: laravel-admin:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
