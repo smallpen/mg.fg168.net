@@ -21,7 +21,12 @@ RUN apk add --no-cache \
     redis \
     chromium \
     chromium-chromedriver \
-    xvfb
+    xvfb \
+    autoconf \
+    gcc \
+    g++ \
+    make \
+    pkgconfig
 
 # 安裝 PHP 擴展
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \

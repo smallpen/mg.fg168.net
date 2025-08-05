@@ -20,7 +20,12 @@ RUN apk add --no-cache \
     mysql-client \
     redis \
     supervisor \
-    nginx
+    nginx \
+    autoconf \
+    gcc \
+    g++ \
+    make \
+    pkgconfig
 
 # 安裝 PHP 擴展
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \

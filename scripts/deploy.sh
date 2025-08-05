@@ -54,7 +54,7 @@ show_usage() {
 check_requirements() {
     log_info "檢查必要工具..."
     
-    local tools=("docker" "docker-compose" "git" "curl")
+    local tools=("docker" "git" "curl")
     for tool in "${tools[@]}"; do
         if ! command -v $tool &> /dev/null; then
             log_error "$tool 未安裝或不在 PATH 中"
@@ -87,22 +87,22 @@ run_tests() {
     log_info "執行測試套件..."
     
     # 建立測試資料庫
-    docker-compose -f docker-compose.test.yml up -d mysql redis
+    docker compose -f docker-compose.test.yml up -d mysql redis
     sleep 10
     
     # 執行測試
-    docker-compose -f docker-compose.test.yml run --rm app php artisan test
+    docker compose -f docker-compose.test.yml run --rm app php artisan test
     
     if [ $? -eq 0 ]; then
         log_success "所有測試通過"
     else
         log_error "測試失敗，停止部署"
-        docker-compose -f docker-compose.test.yml down
+        docker compose -f docker-compose.test.yml down
         exit 1
     fi
     
     # 清理測試環境
-    docker-compose -f docker-compose.test.yml down
+    docker compose -f docker-compose.test.yml down
 }
 
 # 建立備份
@@ -121,10 +121,10 @@ create_backup() {
     
     # 備份資料庫
     if [ "$env" = "production" ]; then
-        docker-compose -f docker-compose.prod.yml exec -T mysql mysqldump \
+        docker compose -f docker-compose.prod.yml exec -T mysql mysqldump \
             -u root -p$MYSQL_ROOT_PASSWORD laravel_admin > $backup_dir/database.sql
     else
-        docker-compose -f docker-compose.staging.yml exec -T mysql mysqldump \
+        docker compose -f docker-compose.staging.yml exec -T mysql mysqldump \
             -u root -p$STAGING_MYSQL_ROOT_PASSWORD laravel_admin_staging > $backup_dir/database.sql
     fi
     
@@ -150,11 +150,11 @@ deploy_staging() {
     
     # 建置和啟動服務
     log_info "建置 Docker 映像..."
-    docker-compose -f docker-compose.staging.yml build --no-cache
+    docker compose -f docker-compose.staging.yml build --no-cache
     
     log_info "啟動服務..."
-    docker-compose -f docker-compose.staging.yml down
-    docker-compose -f docker-compose.staging.yml up -d
+    docker compose -f docker-compose.staging.yml down
+    docker compose -f docker-compose.staging.yml up -d
     
     # 等待服務啟動
     log_info "等待服務啟動..."
@@ -162,13 +162,13 @@ deploy_staging() {
     
     # 執行遷移和快取清理
     log_info "執行資料庫遷移..."
-    docker-compose -f docker-compose.staging.yml exec -T app php artisan migrate --force
+    docker compose -f docker-compose.staging.yml exec -T app php artisan migrate --force
     
     log_info "清理和快取設定..."
-    docker-compose -f docker-compose.staging.yml exec -T app php artisan config:cache
-    docker-compose -f docker-compose.staging.yml exec -T app php artisan route:cache
-    docker-compose -f docker-compose.staging.yml exec -T app php artisan view:cache
-    docker-compose -f docker-compose.staging.yml exec -T app php artisan queue:restart
+    docker compose -f docker-compose.staging.yml exec -T app php artisan config:cache
+    docker compose -f docker-compose.staging.yml exec -T app php artisan route:cache
+    docker compose -f docker-compose.staging.yml exec -T app php artisan view:cache
+    docker compose -f docker-compose.staging.yml exec -T app php artisan queue:restart
     
     log_success "測試環境部署完成"
 }
@@ -196,10 +196,10 @@ deploy_production() {
     log_info "執行零停機部署..."
     
     # 建置新映像
-    docker-compose -f docker-compose.prod.yml build --no-cache app
+    docker compose -f docker-compose.prod.yml build --no-cache app
     
     # 啟動新容器（擴展到 2 個實例）
-    docker-compose -f docker-compose.prod.yml up -d --scale app=2 app
+    docker compose -f docker-compose.prod.yml up -d --scale app=2 app
     
     # 等待新容器準備就緒
     log_info "等待新容器準備就緒..."
@@ -207,20 +207,20 @@ deploy_production() {
     
     # 執行遷移
     log_info "執行資料庫遷移..."
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
+    docker compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
     
     # 清理快取
     log_info "清理和快取設定..."
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan route:cache
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan view:cache
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan queue:restart
+    docker compose -f docker-compose.prod.yml exec -T app php artisan config:cache
+    docker compose -f docker-compose.prod.yml exec -T app php artisan route:cache
+    docker compose -f docker-compose.prod.yml exec -T app php artisan view:cache
+    docker compose -f docker-compose.prod.yml exec -T app php artisan queue:restart
     
     # 重新載入 Nginx
-    docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
+    docker compose -f docker-compose.prod.yml exec nginx nginx -s reload
     
     # 縮減到單一實例
-    docker-compose -f docker-compose.prod.yml up -d --scale app=1 app
+    docker compose -f docker-compose.prod.yml up -d --scale app=1 app
     
     # 清理舊映像
     docker image prune -f
@@ -288,9 +288,9 @@ rollback() {
     
     # 停止服務
     if [ "$env" = "production" ]; then
-        docker-compose -f docker-compose.prod.yml down
+        docker compose -f docker-compose.prod.yml down
     else
-        docker-compose -f docker-compose.staging.yml down
+        docker compose -f docker-compose.staging.yml down
     fi
     
     # 恢復程式碼
@@ -313,9 +313,9 @@ rollback() {
     
     # 重新啟動服務
     if [ "$env" = "production" ]; then
-        docker-compose -f docker-compose.prod.yml up -d
+        docker compose -f docker-compose.prod.yml up -d
     else
-        docker-compose -f docker-compose.staging.yml up -d
+        docker compose -f docker-compose.staging.yml up -d
     fi
     
     # 等待服務啟動
@@ -325,10 +325,10 @@ rollback() {
     if [ -f "$backup_dir/database.sql" ]; then
         log_info "恢復資料庫..."
         if [ "$env" = "production" ]; then
-            docker-compose -f docker-compose.prod.yml exec -T mysql mysql \
+            docker compose -f docker-compose.prod.yml exec -T mysql mysql \
                 -u root -p$MYSQL_ROOT_PASSWORD laravel_admin < $backup_dir/database.sql
         else
-            docker-compose -f docker-compose.staging.yml exec -T mysql mysql \
+            docker compose -f docker-compose.staging.yml exec -T mysql mysql \
                 -u root -p$STAGING_MYSQL_ROOT_PASSWORD laravel_admin_staging < $backup_dir/database.sql
         fi
     fi

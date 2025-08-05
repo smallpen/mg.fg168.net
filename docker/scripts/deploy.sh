@@ -81,7 +81,7 @@ set_permissions() {
 build_images() {
     log_info "建置 Docker 映像..."
     
-    docker-compose -f docker-compose.prod.yml build --no-cache
+    docker compose -f docker-compose.prod.yml build --no-cache
     
     log_info "映像建置完成"
 }
@@ -90,7 +90,7 @@ build_images() {
 start_services() {
     log_info "啟動服務..."
     
-    docker-compose -f docker-compose.prod.yml up -d
+    docker compose -f docker-compose.prod.yml up -d
     
     log_info "等待服務啟動..."
     sleep 30
@@ -102,7 +102,7 @@ start_services() {
 run_migrations() {
     log_info "執行資料庫遷移..."
     
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
+    docker compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
     
     log_info "資料庫遷移完成"
 }
@@ -111,7 +111,7 @@ run_migrations() {
 run_seeders() {
     log_info "執行資料庫種子..."
     
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan db:seed --force
+    docker compose -f docker-compose.prod.yml exec -T app php artisan db:seed --force
     
     log_info "資料庫種子完成"
 }
@@ -121,18 +121,18 @@ optimize_application() {
     log_info "最佳化應用程式..."
     
     # 清除快取
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan cache:clear
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan config:clear
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan route:clear
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan view:clear
+    docker compose -f docker-compose.prod.yml exec -T app php artisan cache:clear
+    docker compose -f docker-compose.prod.yml exec -T app php artisan config:clear
+    docker compose -f docker-compose.prod.yml exec -T app php artisan route:clear
+    docker compose -f docker-compose.prod.yml exec -T app php artisan view:clear
     
     # 建立快取
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan route:cache
-    docker-compose -f docker-compose.prod.yml exec -T app php artisan view:cache
+    docker compose -f docker-compose.prod.yml exec -T app php artisan config:cache
+    docker compose -f docker-compose.prod.yml exec -T app php artisan route:cache
+    docker compose -f docker-compose.prod.yml exec -T app php artisan view:cache
     
     # 最佳化 Composer 自動載入
-    docker-compose -f docker-compose.prod.yml exec -T app composer dump-autoload --optimize
+    docker compose -f docker-compose.prod.yml exec -T app composer dump-autoload --optimize
     
     log_info "應用程式最佳化完成"
 }
@@ -149,7 +149,7 @@ health_check() {
     fi
     
     # 檢查應用程式
-    if docker-compose -f docker-compose.prod.yml exec -T app php artisan tinker --execute="echo 'OK';" > /dev/null 2>&1; then
+    if docker compose -f docker-compose.prod.yml exec -T app php artisan tinker --execute="echo 'OK';" > /dev/null 2>&1; then
         log_info "應用程式健康檢查通過"
     else
         log_warn "應用程式健康檢查失敗"
@@ -161,7 +161,7 @@ health_check() {
 # 顯示服務狀態
 show_status() {
     log_info "服務狀態："
-    docker-compose -f docker-compose.prod.yml ps
+    docker compose -f docker-compose.prod.yml ps
 }
 
 # 主要部署流程

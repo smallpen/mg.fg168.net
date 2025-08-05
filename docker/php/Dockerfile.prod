@@ -18,7 +18,12 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     libzip-dev \
     mysql-client \
-    supervisor
+    supervisor \
+    autoconf \
+    gcc \
+    g++ \
+    make \
+    pkgconfig
 
 # 安裝 PHP 擴充套件
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
