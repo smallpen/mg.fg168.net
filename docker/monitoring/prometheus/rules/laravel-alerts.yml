@@ -1,0 +1,146 @@
+# Laravel Admin 系統警報規則
+
+groups:
+  - name: laravel-admin-alerts
+    rules:
+      # 應用程式健康檢查失敗
+      - alert: LaravelAppDown
+        expr: up{job="laravel-health"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Laravel 應用程式無法存取"
+          description: "Laravel 應用程式已經無法存取超過 1 分鐘"
+
+      # 高錯誤率
+      - alert: HighErrorRate
+        expr: rate(nginx_http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP 5xx 錯誤率過高"
+          description: "過去 5 分鐘內 HTTP 5xx 錯誤率超過 10%"
+
+      # 回應時間過長
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(nginx_http_request_duration_seconds_bucket[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "回應時間過長"
+          description: "95% 的請求回應時間超過 2 秒"
+
+      # CPU 使用率過高
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU 使用率過高"
+          description: "CPU 使用率超過 80% 已持續 5 分鐘"
+
+      # 記憶體使用率過高
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "記憶體使用率過高"
+          description: "記憶體使用率超過 85% 已持續 5 分鐘"
+
+      # 磁碟空間不足
+      - alert: LowDiskSpace
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "磁碟空間不足"
+          description: "磁碟使用率超過 90%"
+
+      # 資料庫連線失敗
+      - alert: MySQLDown
+        expr: up{job="mysql-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MySQL 資料庫無法連線"
+          description: "MySQL 資料庫已經無法連線超過 1 分鐘"
+
+      # Redis 連線失敗
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis 無法連線"
+          description: "Redis 已經無法連線超過 1 分鐘"
+
+      # 容器重啟過於頻繁
+      - alert: ContainerRestartingTooOften
+        expr: increase(container_start_time_seconds[1h]) > 3
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "容器重啟過於頻繁"
+          description: "容器 {{ $labels.name }} 在過去 1 小時內重啟超過 3 次"
+
+      # 佇列任務積壓
+      - alert: QueueBacklog
+        expr: redis_list_length{key=~"queues:.*"} > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "佇列任務積壓"
+          description: "佇列 {{ $labels.key }} 中有超過 100 個待處理任務"
+
+      # SSL 憑證即將過期
+      - alert: SSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL 憑證即將過期"
+          description: "SSL 憑證將在 30 天內過期"
+
+  - name: laravel-admin-performance
+    rules:
+      # 資料庫查詢時間過長
+      - alert: SlowDatabaseQueries
+        expr: mysql_global_status_slow_queries > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "資料庫查詢速度緩慢"
+          description: "慢查詢數量超過 10 個"
+
+      # 連線數過多
+      - alert: TooManyConnections
+        expr: mysql_global_status_threads_connected > 80
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "資料庫連線數過多"
+          description: "MySQL 連線數超過 80"
+
+      # 快取命中率過低
+      - alert: LowCacheHitRate
+        expr: redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total) < 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "快取命中率過低"
+          description: "Redis 快取命中率低於 80%"

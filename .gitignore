@@ -1,0 +1,86 @@
+# Laravel
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Temporary files
+*.tmp
+*.temp
+
+# Cache
+.cache/
+*.cache
+
+# Build artifacts
+/build
+/dist

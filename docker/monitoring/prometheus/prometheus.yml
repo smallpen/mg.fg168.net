@@ -1,0 +1,85 @@
+# Prometheus 設定檔
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# 警報規則檔案
+rule_files:
+  - "rules/*.yml"
+
+# 警報管理器設定
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# 監控目標設定
+scrape_configs:
+  # Prometheus 自身監控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter (系統指標)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # cAdvisor (容器指標)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Redis 指標
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # MySQL 指標
+  - job_name: 'mysql-exporter'
+    static_configs:
+      - targets: ['mysql-exporter:9104']
+    scrape_interval: 30s
+
+  # Nginx 指標
+  - job_name: 'nginx-exporter'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    scrape_interval: 30s
+
+  # Laravel 應用程式指標 (如果有實作自定義指標端點)
+  - job_name: 'laravel-app'
+    static_configs:
+      - targets: ['app:9000']
+    scrape_interval: 60s
+    metrics_path: /metrics
+    scrape_timeout: 30s
+
+  # 健康檢查監控
+  - job_name: 'laravel-health'
+    static_configs:
+      - targets: ['nginx:80']
+    scrape_interval: 30s
+    metrics_path: /health/detailed
+    scrape_timeout: 10s
+
+# 遠端寫入設定 (可選，用於長期儲存)
+# remote_write:
+#   - url: "https://your-remote-storage/api/v1/write"
+#     basic_auth:
+#       username: "your-username"
+#       password: "your-password"
+
+# 遠端讀取設定 (可選)
+# remote_read:
+#   - url: "https://your-remote-storage/api/v1/read"
+#     basic_auth:
+#       username: "your-username"
+#       password: "your-password"

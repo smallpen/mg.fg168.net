@@ -1,0 +1,223 @@
+version: '3.8'
+
+services:
+  # Prometheus 監控系統
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: laravel_admin_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/rules:/etc/prometheus/rules
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Grafana 視覺化儀表板
+  grafana:
+    image: grafana/grafana:latest
+    container_name: laravel_admin_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  # Node Exporter (系統指標)
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: laravel_admin_node_exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # cAdvisor (容器指標)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: laravel_admin_cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Redis Exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: laravel_admin_redis_exporter
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - redis
+
+  # MySQL Exporter
+  mysql-exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: laravel_admin_mysql_exporter
+    ports:
+      - "9104:9104"
+    environment:
+      - DATA_SOURCE_NAME=exporter:${MYSQL_EXPORTER_PASSWORD}@(mysql:3306)/
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - mysql
+
+  # Nginx Exporter
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: laravel_admin_nginx_exporter
+    ports:
+      - "9113:9113"
+    command:
+      - '-nginx.scrape-uri=http://nginx:8080/nginx_status'
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - nginx
+
+  # Elasticsearch (日誌儲存)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: laravel_admin_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Logstash (日誌處理)
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.8.0
+    container_name: laravel_admin_logstash
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - elasticsearch
+
+  # Kibana (日誌視覺化)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: laravel_admin_kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - elasticsearch
+
+  # Filebeat (日誌收集)
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.8.0
+    container_name: laravel_admin_filebeat
+    user: root
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ../storage/logs:/var/log/laravel:ro
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - logstash
+
+  # AlertManager (警報管理)
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: laravel_admin_alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+    external: true
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  alertmanager_data:
+    driver: local

@@ -1,0 +1,119 @@
+# AlertManager 設定檔
+
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@your-domain.com'
+  smtp_auth_username: 'alerts@your-domain.com'
+  smtp_auth_password: 'your-email-password'
+
+# 警報路由規則
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+  routes:
+    # 嚴重警報立即通知
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      repeat_interval: 5m
+    
+    # 一般警告
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      repeat_interval: 30m
+
+# 接收器設定
+receivers:
+  # 預設接收器
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://127.0.0.1:5001/'
+
+  # 嚴重警報接收器
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'admin@your-domain.com'
+        subject: '🚨 [CRITICAL] Laravel Admin 系統警報'
+        body: |
+          警報名稱: {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}
+          
+          詳細資訊:
+          {{ range .Alerts }}
+          - 警報: {{ .Annotations.summary }}
+          - 描述: {{ .Annotations.description }}
+          - 嚴重程度: {{ .Labels.severity }}
+          - 時間: {{ .StartsAt }}
+          {{ end }}
+          
+          請立即檢查系統狀態！
+        headers:
+          Subject: '🚨 [CRITICAL] Laravel Admin 系統警報'
+    
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#alerts'
+        title: '🚨 嚴重警報'
+        text: |
+          {{ range .Alerts }}
+          *警報:* {{ .Annotations.summary }}
+          *描述:* {{ .Annotations.description }}
+          *時間:* {{ .StartsAt }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+
+  # 一般警告接收器
+  - name: 'warning-alerts'
+    email_configs:
+      - to: 'dev-team@your-domain.com'
+        subject: '⚠️ [WARNING] Laravel Admin 系統警告'
+        body: |
+          警告名稱: {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}
+          
+          詳細資訊:
+          {{ range .Alerts }}
+          - 警告: {{ .Annotations.summary }}
+          - 描述: {{ .Annotations.description }}
+          - 嚴重程度: {{ .Labels.severity }}
+          - 時間: {{ .StartsAt }}
+          {{ end }}
+          
+          請關注系統狀態。
+        headers:
+          Subject: '⚠️ [WARNING] Laravel Admin 系統警告'
+    
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#monitoring'
+        title: '⚠️ 系統警告'
+        text: |
+          {{ range .Alerts }}
+          *警告:* {{ .Annotations.summary }}
+          *描述:* {{ .Annotations.description }}
+          *時間:* {{ .StartsAt }}
+          {{ end }}
+        color: 'warning'
+        send_resolved: true
+
+# 抑制規則
+inhibit_rules:
+  # 如果應用程式完全無法存取，則抑制其他相關警報
+  - source_match:
+      alertname: 'LaravelAppDown'
+    target_match:
+      alertname: 'HighErrorRate'
+  
+  - source_match:
+      alertname: 'LaravelAppDown'
+    target_match:
+      alertname: 'HighResponseTime'
+
+# 靜音規則範本
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

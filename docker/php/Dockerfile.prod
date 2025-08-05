@@ -1,0 +1,71 @@
+# 生產環境 PHP Dockerfile
+FROM php:8.2-fpm-alpine
+
+# 設定工作目錄
+WORKDIR /var/www/html
+
+# 安裝系統依賴
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    oniguruma-dev \
+    icu-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libzip-dev \
+    mysql-client \
+    supervisor
+
+# 安裝 PHP 擴充套件
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        intl \
+        opcache
+
+# 安裝 Redis 擴充套件
+RUN pecl install redis \
+    && docker-php-ext-enable redis
+
+# 安裝 Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# 複製 PHP 配置檔案
+COPY docker/php/php.prod.ini /usr/local/etc/php/php.ini
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
+# 複製應用程式檔案
+COPY . /var/www/html
+
+# 設定檔案權限
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
+
+# 安裝 Composer 依賴（生產環境）
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# 建立必要的目錄
+RUN mkdir -p /var/www/html/storage/logs \
+    && mkdir -p /var/www/html/storage/framework/cache \
+    && mkdir -p /var/www/html/storage/framework/sessions \
+    && mkdir -p /var/www/html/storage/framework/views
+
+# 複製 Supervisor 配置
+COPY docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# 暴露端口
+EXPOSE 9000
+
+# 啟動 Supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

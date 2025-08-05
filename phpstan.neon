@@ -1,0 +1,85 @@
+# PHPStan 靜態分析設定檔
+parameters:
+    # 分析等級 (0-9，9 為最嚴格)
+    level: 6
+    
+    # 要分析的路徑
+    paths:
+        - app
+        - config
+        - database/factories
+        - database/seeders
+        - routes
+        - tests
+    
+    # 排除的路徑
+    excludePaths:
+        - app/Console/Kernel.php
+        - app/Exceptions/Handler.php
+        - app/Http/Kernel.php
+        - bootstrap/*
+        - storage/*
+        - vendor/*
+        - node_modules/*
+    
+    # Laravel 專用設定
+    bootstrapFiles:
+        - bootstrap/app.php
+    
+    # 忽略的錯誤模式
+    ignoreErrors:
+        # Eloquent 動態方法
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder#'
+        - '#Call to an undefined method Illuminate\\Database\\Query\\Builder#'
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\.*#'
+        
+        # Livewire 動態屬性
+        - '#Access to an undefined property Livewire\\Component::\$.*#'
+        - '#Call to an undefined method Livewire\\Component::.*#'
+        
+        # Laravel 容器解析
+        - '#Call to an undefined method Illuminate\\Contracts\\Foundation\\Application::.*#'
+        
+        # 測試相關
+        - '#Call to an undefined method Tests\\.*#'
+        - '#Access to an undefined property Tests\\.*#'
+        
+        # Laravel 輔助函數
+        - '#Function .* not found#'
+        
+        # 暫時忽略的特定錯誤（應該逐步修正）
+        - '#Parameter .* of method .* has no typehint specified#'
+        - '#Method .* has no return typehint specified#'
+    
+    # 檢查缺少的返回類型
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+    
+    # 檢查函數參數類型
+    checkFunctionNameCase: true
+    
+    # 檢查 PHP 版本相容性
+    phpVersion: 80200
+    
+    # 記憶體限制
+    memoryLimitFile: .phpstan-memory-limit
+    
+    # 快取目錄
+    tmpDir: storage/phpstan
+    
+    # 並行處理
+    parallel:
+        jobSize: 20
+        maximumNumberOfProcesses: 32
+        minimumNumberOfJobsPerProcess: 2
+    
+    # 報告未使用的忽略規則
+    reportUnmatchedIgnoredErrors: false
+    
+    # Laravel 專用擴展
+    symfony:
+        container_xml_path: bootstrap/cache/container.xml
+        
+includes:
+    # 如果安裝了 larastan，取消註解下面這行
+    # - ./vendor/nunomaduro/larastan/extension.neon

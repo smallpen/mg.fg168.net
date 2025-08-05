@@ -1,0 +1,438 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PHP_VERSION: 8.2
+  NODE_VERSION: 18
+
+jobs:
+  # 程式碼品質檢查
+  code-quality:
+    name: 程式碼品質檢查
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 檢出程式碼
+        uses: actions/checkout@v4
+        
+      - name: 設定 PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, mysql, gd
+          coverage: xdebug
+          
+      - name: 快取 Composer 依賴
+        uses: actions/cache@v3
+        with:
+          path: ~/.composer/cache/files
+          key: dependencies-composer-${{ hashFiles('composer.lock') }}
+          
+      - name: 安裝 Composer 依賴
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 安裝 NPM 依賴
+        run: npm ci
+        
+      - name: 編譯前端資源
+        run: npm run build
+        
+      - name: 複製環境設定檔
+        run: cp .env.example .env
+        
+      - name: 生成應用程式金鑰
+        run: php artisan key:generate
+        
+      - name: 建立 SQLite 資料庫
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+          
+      - name: 執行資料庫遷移
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+          
+      - name: 執行資料庫種子
+        run: php artisan db:seed --force
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+          
+      # PHP 程式碼風格檢查
+      - name: PHP 程式碼風格檢查 (PHP CS Fixer)
+        run: |
+          if [ ! -f .php-cs-fixer.php ]; then
+            echo "建立 PHP CS Fixer 設定檔..."
+            cat > .php-cs-fixer.php << 'EOF'
+          <?php
+          
+          $finder = PhpCsFixer\Finder::create()
+              ->in(__DIR__)
+              ->exclude(['bootstrap', 'storage', 'vendor'])
+              ->name('*.php')
+              ->notName('*.blade.php')
+              ->ignoreDotFiles(true)
+              ->ignoreVCS(true);
+          
+          return (new PhpCsFixer\Config())
+              ->setRules([
+                  '@PSR12' => true,
+                  'array_syntax' => ['syntax' => 'short'],
+                  'ordered_imports' => ['sort_algorithm' => 'alpha'],
+                  'no_unused_imports' => true,
+                  'not_operator_with_successor_space' => true,
+                  'trailing_comma_in_multiline' => true,
+                  'phpdoc_scalar' => true,
+                  'unary_operator_spaces' => true,
+                  'binary_operator_spaces' => true,
+                  'blank_line_before_statement' => [
+                      'statements' => ['break', 'continue', 'declare', 'return', 'throw', 'try'],
+                  ],
+                  'phpdoc_single_line_var_spacing' => true,
+                  'phpdoc_var_without_name' => true,
+              ])
+              ->setFinder($finder);
+          EOF
+          fi
+          ./vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
+          
+      # PHPStan 靜態分析
+      - name: PHPStan 靜態分析
+        run: |
+          if [ ! -f phpstan.neon ]; then
+            echo "建立 PHPStan 設定檔..."
+            cat > phpstan.neon << 'EOF'
+          parameters:
+              level: 5
+              paths:
+                  - app
+                  - config
+                  - database
+                  - routes
+              excludePaths:
+                  - app/Console/Kernel.php
+                  - app/Exceptions/Handler.php
+                  - app/Http/Kernel.php
+              ignoreErrors:
+                  - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder#'
+                  - '#Call to an undefined method Illuminate\\Database\\Query\\Builder#'
+          EOF
+          fi
+          ./vendor/bin/phpstan analyse --memory-limit=2G
+          
+      # Larastan (Laravel 專用的 PHPStan)
+      - name: Larastan 分析
+        run: |
+          if command -v ./vendor/bin/phpstan &> /dev/null; then
+            ./vendor/bin/phpstan analyse --configuration=phpstan.neon --memory-limit=2G
+          else
+            echo "Larastan 未安裝，跳過分析"
+          fi
+          
+      # 執行測試
+      - name: 執行 PHPUnit 測試
+        run: php artisan test --coverage --min=80
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+          
+      # 上傳測試覆蓋率報告
+      - name: 上傳覆蓋率報告到 Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  # 安全性掃描
+  security-scan:
+    name: 安全性掃描
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    steps:
+      - name: 檢出程式碼
+        uses: actions/checkout@v4
+        
+      - name: 設定 PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          
+      - name: 安裝 Composer 依賴
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        
+      # Composer 安全性檢查
+      - name: Composer 安全性檢查
+        run: composer audit
+        
+      # PHP 安全性檢查
+      - name: PHP 安全性檢查
+        run: |
+          if [ -f ./vendor/bin/security-checker ]; then
+            ./vendor/bin/security-checker security:check composer.lock
+          else
+            echo "Security checker 未安裝，跳過檢查"
+          fi
+
+  # Docker 映像建置測試
+  docker-build:
+    name: Docker 映像建置測試
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    steps:
+      - name: 檢出程式碼
+        uses: actions/checkout@v4
+        
+      - name: 設定 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: 建置 Docker 映像
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/php/Dockerfile.prod
+          push: false
+          tags: laravel-admin:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # 部署到測試環境
+  deploy-staging:
+    name: 部署到測試環境
+    runs-on: ubuntu-latest
+    needs: [code-quality, security-scan, docker-build]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+      - name: 檢出程式碼
+        uses: actions/checkout@v4
+        
+      - name: 部署到測試環境
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_PORT }}
+          script: |
+            cd ${{ secrets.STAGING_PATH }}
+            
+            # 備份當前版本
+            if [ -d "backup" ]; then rm -rf backup; fi
+            cp -r current backup || true
+            
+            # 更新程式碼
+            git fetch origin
+            git reset --hard origin/develop
+            
+            # 建置和部署
+            docker-compose -f docker-compose.staging.yml down
+            docker-compose -f docker-compose.staging.yml build --no-cache
+            docker-compose -f docker-compose.staging.yml up -d
+            
+            # 等待服務啟動
+            sleep 30
+            
+            # 執行資料庫遷移
+            docker-compose -f docker-compose.staging.yml exec -T app php artisan migrate --force
+            
+            # 清理快取
+            docker-compose -f docker-compose.staging.yml exec -T app php artisan config:cache
+            docker-compose -f docker-compose.staging.yml exec -T app php artisan route:cache
+            docker-compose -f docker-compose.staging.yml exec -T app php artisan view:cache
+            docker-compose -f docker-compose.staging.yml exec -T app php artisan queue:restart
+            
+      - name: 測試環境健康檢查
+        run: |
+          echo "等待服務完全啟動..."
+          sleep 60
+          
+          # 檢查應用程式是否正常運行
+          response=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.STAGING_URL }}/health)
+          if [ $response -eq 200 ]; then
+            echo "✅ 測試環境部署成功，健康檢查通過"
+          else
+            echo "❌ 測試環境健康檢查失敗，HTTP 狀態碼: $response"
+            exit 1
+          fi
+          
+      - name: 通知部署結果
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          message: |
+            測試環境部署 ${{ job.status }}
+            分支: ${{ github.ref }}
+            提交: ${{ github.sha }}
+            作者: ${{ github.actor }}
+
+  # 部署到生產環境
+  deploy-production:
+    name: 部署到生產環境
+    runs-on: ubuntu-latest
+    needs: [code-quality, security-scan, docker-build]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+      - name: 檢出程式碼
+        uses: actions/checkout@v4
+        
+      - name: 部署到生產環境
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_PORT }}
+          script: |
+            cd ${{ secrets.PRODUCTION_PATH }}
+            
+            # 建立備份
+            backup_dir="backups/backup_$(date +%Y%m%d_%H%M%S)"
+            mkdir -p $backup_dir
+            
+            # 備份資料庫
+            docker-compose -f docker-compose.prod.yml exec -T mysql mysqldump -u root -p$MYSQL_ROOT_PASSWORD laravel_admin > $backup_dir/database.sql
+            
+            # 備份應用程式檔案
+            tar -czf $backup_dir/storage.tar.gz storage/
+            cp .env $backup_dir/
+            
+            # 更新程式碼
+            git fetch origin
+            git reset --hard origin/main
+            
+            # 零停機部署
+            # 1. 建置新的映像
+            docker-compose -f docker-compose.prod.yml build --no-cache app
+            
+            # 2. 啟動新的應用程式容器（使用不同的名稱）
+            docker-compose -f docker-compose.prod.yml up -d --scale app=2 app
+            
+            # 3. 等待新容器準備就緒
+            sleep 45
+            
+            # 4. 執行資料庫遷移
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
+            
+            # 5. 清理快取
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan route:cache
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan view:cache
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan queue:restart
+            
+            # 6. 重新載入 Nginx 配置
+            docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
+            
+            # 7. 縮減到單一應用程式容器
+            docker-compose -f docker-compose.prod.yml up -d --scale app=1 app
+            
+            # 清理舊的映像
+            docker image prune -f
+            
+      - name: 生產環境健康檢查
+        run: |
+          echo "等待生產環境服務完全啟動..."
+          sleep 90
+          
+          # 多次健康檢查確保穩定性
+          for i in {1..5}; do
+            echo "第 $i 次健康檢查..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.PRODUCTION_URL }}/health)
+            if [ $response -eq 200 ]; then
+              echo "✅ 健康檢查 $i 通過"
+            else
+              echo "❌ 健康檢查 $i 失敗，HTTP 狀態碼: $response"
+              exit 1
+            fi
+            sleep 10
+          done
+          
+          echo "🎉 生產環境部署成功，所有健康檢查通過"
+          
+      - name: 效能測試
+        run: |
+          echo "執行基本效能測試..."
+          
+          # 使用 curl 測試回應時間
+          response_time=$(curl -o /dev/null -s -w "%{time_total}" ${{ secrets.PRODUCTION_URL }})
+          echo "首頁回應時間: ${response_time}s"
+          
+          # 檢查回應時間是否在可接受範圍內（3秒）
+          if (( $(echo "$response_time > 3.0" | bc -l) )); then
+            echo "⚠️ 警告：回應時間超過 3 秒"
+          else
+            echo "✅ 回應時間正常"
+          fi
+          
+      - name: 通知部署結果
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          message: |
+            🚀 生產環境部署 ${{ job.status }}
+            分支: ${{ github.ref }}
+            提交: ${{ github.sha }}
+            作者: ${{ github.actor }}
+            部署時間: ${{ steps.deploy.outputs.time }}
+
+  # 部署後監控
+  post-deploy-monitoring:
+    name: 部署後監控
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 持續監控
+        run: |
+          echo "開始部署後監控..."
+          
+          # 監控 5 分鐘
+          for i in {1..30}; do
+            echo "監控檢查 $i/30..."
+            
+            # 檢查應用程式狀態
+            response=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.PRODUCTION_URL }}/health)
+            
+            if [ $response -eq 200 ]; then
+              echo "✅ 應用程式運行正常"
+            else
+              echo "❌ 應用程式異常，HTTP 狀態碼: $response"
+              
+              # 發送警報
+              curl -X POST -H 'Content-type: application/json' \
+                --data '{"text":"🚨 生產環境異常！HTTP 狀態碼: '$response'"}' \
+                ${{ secrets.SLACK_WEBHOOK }}
+              
+              exit 1
+            fi
+            
+            sleep 10
+          done
+          
+          echo "🎉 部署後監控完成，系統運行穩定"

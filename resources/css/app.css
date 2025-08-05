@@ -1,0 +1,308 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* 自訂 CSS 變數用於主題切換 */
+:root {
+  /* 主要色彩 */
+  --color-primary: 59 130 246;
+  --color-primary-hover: 37 99 235;
+  --color-secondary: 100 116 139;
+  --color-success: 34 197 94;
+  --color-warning: 245 158 11;
+  --color-danger: 239 68 68;
+  
+  /* 背景色彩 */
+  --color-background: 255 255 255;
+  --color-surface: 248 250 252;
+  --color-surface-hover: 241 245 249;
+  --color-card: 255 255 255;
+  
+  /* 文字色彩 */
+  --color-text: 15 23 42;
+  --color-text-secondary: 71 85 105;
+  --color-text-muted: 148 163 184;
+  
+  /* 邊框色彩 */
+  --color-border: 226 232 240;
+  --color-border-hover: 203 213 225;
+  
+  /* 陰影 */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.dark {
+  /* 背景色彩 */
+  --color-background: 15 23 42;
+  --color-surface: 30 41 59;
+  --color-surface-hover: 51 65 85;
+  --color-card: 30 41 59;
+  
+  /* 文字色彩 */
+  --color-text: 248 250 252;
+  --color-text-secondary: 203 213 225;
+  --color-text-muted: 148 163 184;
+  
+  /* 邊框色彩 */
+  --color-border: 71 85 105;
+  --color-border-hover: 100 116 139;
+  
+  /* 陰影 */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+}
+
+/* 基礎樣式 */
+body {
+  @apply bg-gray-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-200;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+}
+
+/* 自訂元件樣式 */
+.btn {
+  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-primary {
+  @apply btn bg-primary-600 hover:bg-primary-700 text-white focus:ring-primary-500;
+}
+
+.btn-secondary {
+  @apply btn bg-secondary-600 hover:bg-secondary-700 text-white focus:ring-secondary-500;
+}
+
+.btn-success {
+  @apply btn bg-success-600 hover:bg-success-700 text-white focus:ring-success-500;
+}
+
+.btn-warning {
+  @apply btn bg-warning-600 hover:bg-warning-700 text-white focus:ring-warning-500;
+}
+
+.btn-danger {
+  @apply btn bg-danger-600 hover:bg-danger-700 text-white focus:ring-danger-500;
+}
+
+.btn-outline {
+  @apply btn border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-primary-500;
+}
+
+/* 表單樣式 */
+.form-input {
+  @apply block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+}
+
+.form-error {
+  @apply text-sm text-danger-600 dark:text-danger-400 mt-1;
+}
+
+/* 卡片樣式 */
+.card {
+  @apply bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700;
+}
+
+.card-header {
+  @apply px-6 py-4 border-b border-gray-200 dark:border-gray-700;
+}
+
+.card-body {
+  @apply px-6 py-4;
+}
+
+.card-footer {
+  @apply px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750;
+}
+
+/* 導航樣式 */
+.nav-link {
+  @apply flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200;
+}
+
+.nav-link-active {
+  @apply nav-link bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300;
+}
+
+.nav-link-inactive {
+  @apply nav-link text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100;
+}
+
+/* 表格樣式 */
+.table {
+  @apply min-w-full divide-y divide-gray-200 dark:divide-gray-700;
+}
+
+.table-header {
+  @apply bg-gray-50 dark:bg-gray-800;
+}
+
+.table-header-cell {
+  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+}
+
+.table-body {
+  @apply bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700;
+}
+
+.table-cell {
+  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100;
+}
+
+/* 通知樣式 */
+.alert {
+  @apply p-4 rounded-md border-l-4;
+}
+
+.alert-success {
+  @apply alert bg-success-50 dark:bg-success-900/20 border-success-400 text-success-800 dark:text-success-200;
+}
+
+.alert-warning {
+  @apply alert bg-warning-50 dark:bg-warning-900/20 border-warning-400 text-warning-800 dark:text-warning-200;
+}
+
+.alert-danger {
+  @apply alert bg-danger-50 dark:bg-danger-900/20 border-danger-400 text-danger-800 dark:text-danger-200;
+}
+
+.alert-info {
+  @apply alert bg-primary-50 dark:bg-primary-900/20 border-primary-400 text-primary-800 dark:text-primary-200;
+}
+
+/* 載入動畫 */
+.loading-spinner {
+  @apply inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-current;
+}
+
+/* 主題切換動畫 */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* 主題切換按鈕樣式 */
+.theme-toggle-btn {
+  @apply relative inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800;
+}
+
+.theme-toggle-icon {
+  @apply w-5 h-5 text-gray-600 dark:text-gray-400 transition-all duration-300;
+}
+
+.theme-toggle-icon.active {
+  @apply opacity-100 scale-100;
+}
+
+.theme-toggle-icon.inactive {
+  @apply opacity-0 scale-75 absolute;
+}
+
+/* 主題切換下拉選單 */
+.theme-dropdown {
+  @apply absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 border border-gray-200 dark:border-gray-700;
+}
+
+.theme-dropdown-item {
+  @apply flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200;
+}
+
+.theme-dropdown-item.active {
+  @apply bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300;
+}
+
+.theme-dropdown-icon {
+  @apply w-4 h-4 mr-3;
+}
+
+.theme-dropdown-check {
+  @apply w-4 h-4 ml-auto text-primary-600 dark:text-primary-400;
+}
+
+/* 響應式工具類別 */
+.container-admin {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* 響應式佈局樣式 */
+@media (max-width: 1023px) {
+  /* 行動裝置模式：側邊欄覆蓋在內容上方 */
+  .sidebar-mobile {
+    @apply fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out;
+  }
+  
+  .main-content-mobile {
+    @apply flex-1 flex flex-col min-h-screen;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* 桌面模式：側邊欄推擠內容 */
+  .sidebar-desktop {
+    @apply fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out;
+  }
+  
+  .main-content-desktop {
+    @apply flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out;
+  }
+  
+  .main-content-with-sidebar {
+    @apply ml-64;
+  }
+  
+  .main-content-without-sidebar {
+    @apply ml-0;
+  }
+}
+
+/* 遮罩層樣式 */
+.sidebar-overlay {
+  @apply fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out;
+}
+
+/* 自訂滾動條 */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(203 213 225);
+  border-radius: 3px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(71 85 105);
+}
+
+/* 打字機效果 */
+.typewriter {
+  overflow: hidden;
+  border-right: .15em solid orange;
+  white-space: nowrap;
+  margin: 0 auto;
+  letter-spacing: .15em;
+  animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: orange; }
+}

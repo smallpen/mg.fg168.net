@@ -1,0 +1,69 @@
+# 測試環境 PHP Dockerfile
+FROM php:8.2-cli-alpine
+
+# 設定工作目錄
+WORKDIR /var/www/html
+
+# 安裝系統依賴
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    oniguruma-dev \
+    icu-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libzip-dev \
+    mysql-client \
+    redis \
+    chromium \
+    chromium-chromedriver \
+    xvfb
+
+# 安裝 PHP 擴展
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        intl \
+        opcache
+
+# 安裝 Redis 擴展
+RUN pecl install redis xdebug \
+    && docker-php-ext-enable redis xdebug
+
+# 安裝 Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# 安裝 Node.js 和 npm
+RUN apk add --no-cache nodejs npm
+
+# 設定 Chrome 環境變數
+ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV CHROME_PATH=/usr/lib/chromium/
+ENV DISPLAY=:99
+
+# 建立測試使用者
+RUN addgroup -g 1000 -S laravel \
+    && adduser -u 1000 -S laravel -G laravel
+
+# 複製 PHP 測試設定檔
+COPY docker/php/php.test.ini /usr/local/etc/php/php.ini
+
+# 建立測試腳本
+COPY docker/php/test-runner.sh /usr/local/bin/test-runner.sh
+RUN chmod +x /usr/local/bin/test-runner.sh
+
+# 切換到測試使用者
+USER laravel
+
+# 預設命令
+CMD ["/usr/local/bin/test-runner.sh"]

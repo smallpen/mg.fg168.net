@@ -1,0 +1,76 @@
+# Laravel Admin 系統 Docker 忽略檔案
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# 文檔
+README.md
+*.md
+
+# 環境檔案
+.env
+.env.*
+!.env.example
+
+# 依賴
+node_modules
+vendor
+
+# 快取和日誌
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+
+# 測試
+tests
+phpunit.xml
+.phpunit.result.cache
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# 作業系統
+.DS_Store
+Thumbs.db
+
+# 開發工具
+docker-compose.yml
+docker-compose.dev.yml
+docker-compose.override.yml
+
+# 備份檔案
+*.backup
+*.bak
+*.tmp
+
+# 秘密檔案
+secrets/*.txt
+!secrets/*.example
+
+# SSL 憑證
+docker/ssl/*
+
+# 建置檔案
+public/hot
+public/build
+public/mix-manifest.json
+
+# NPM
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 其他
+.phpunit.result.cache
+.env.backup
+.phpstorm.meta.php
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php

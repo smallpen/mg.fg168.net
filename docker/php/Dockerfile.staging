@@ -1,0 +1,89 @@
+# 測試環境 PHP-FPM Dockerfile
+FROM php:8.2-fpm-alpine
+
+# 設定工作目錄
+WORKDIR /var/www/html
+
+# 安裝系統依賴
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    oniguruma-dev \
+    icu-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libzip-dev \
+    mysql-client \
+    redis \
+    supervisor \
+    nginx
+
+# 安裝 PHP 擴展
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        intl \
+        opcache
+
+# 安裝 Redis 擴展
+RUN pecl install redis \
+    && docker-php-ext-enable redis
+
+# 安裝 Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# 安裝 Node.js 和 npm
+RUN apk add --no-cache nodejs npm
+
+# 複製應用程式檔案
+COPY . /var/www/html
+
+# 設定檔案權限
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
+
+# 安裝 PHP 依賴
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# 安裝和編譯前端資源
+RUN npm ci --only=production \
+    && npm run build \
+    && rm -rf node_modules
+
+# 複製 PHP 設定檔
+COPY docker/php/php.staging.ini /usr/local/etc/php/php.ini
+
+# 複製 PHP-FPM 設定檔
+COPY docker/php/www.staging.conf /usr/local/etc/php-fpm.d/www.conf
+
+# 複製 Supervisor 設定檔
+COPY docker/php/supervisord.staging.conf /etc/supervisor/conf.d/supervisord.conf
+
+# 建立必要的目錄
+RUN mkdir -p /var/log/supervisor \
+    && mkdir -p /var/run/php-fpm
+
+# 建立啟動腳本
+COPY docker/php/start-staging.sh /usr/local/bin/start-staging.sh
+RUN chmod +x /usr/local/bin/start-staging.sh
+
+# 健康檢查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD php artisan tinker --execute="echo 'healthy';" || exit 1
+
+# 暴露端口
+EXPOSE 9000
+
+# 啟動命令
+CMD ["/usr/local/bin/start-staging.sh"]
