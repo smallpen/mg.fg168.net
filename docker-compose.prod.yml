@@ -73,21 +73,19 @@ services:
     image: mysql:8.0
     container_name: laravel_admin_mysql_prod
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
-      MYSQL_DATABASE: ${DB_DATABASE:-laravel_admin}
-      MYSQL_USER: ${DB_USERNAME:-laravel}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+      MYSQL_DATABASE: ${DB_DATABASE:-mg_db}
+      MYSQL_USER: ${DB_USERNAME:-db_user}
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
     volumes:
       - mysql_data:/var/lib/mysql
-      # - ./docker/mysql/prod-simple.cnf:/etc/mysql/conf.d/custom.cnf:ro
-      # - mysql_logs:/var/log/mysql
-      # - ./docker/mysql/init-prod.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/mysql/prod-simple.cnf:/etc/mysql/conf.d/custom.cnf:ro
     restart: unless-stopped
     networks:
       - laravel_admin_network
-    # secrets:
-      # - mysql_root_password
-      # - mysql_password
+    secrets:
+      - mysql_root_password
+      - mysql_password
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p1qaz1234"]
       interval: 30s

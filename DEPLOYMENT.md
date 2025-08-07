@@ -87,25 +87,34 @@ cp secrets/mysql_password.txt.example secrets/mysql_password.txt
 cp secrets/redis_password.txt.example secrets/redis_password.txt
 cp secrets/app_key.txt.example secrets/app_key.txt
 
-# 生成 Laravel APP_KEY（如果尚未安裝 Laravel，可以使用 Docker）
+# 生成 Laravel APP_KEY
+# 方法1：如果已安裝 Laravel
+php artisan key:generate --show > secrets/app_key.txt
+
+# 方法2：使用 Docker（如果本地沒有 PHP）
 docker run --rm -v $(pwd):/app -w /app php:8.2-cli php artisan key:generate --show > secrets/app_key.txt
 ```
 
 編輯每個秘密檔案，設定強密碼：
 
 ```bash
-# 設定 MySQL root 密碼
+# 設定 MySQL root 密碼（與 .env 中的 DB_PASSWORD 相同）
 echo "your_mysql_root_password" > secrets/mysql_root_password.txt
 
-# 設定 MySQL 使用者密碼
+# 設定 MySQL 使用者密碼（與 .env 中的 DB_PASSWORD 相同）
 echo "your_mysql_user_password" > secrets/mysql_password.txt
 
-# 設定 Redis 密碼
+# 設定 Redis 密碼（與 .env 中的 REDIS_PASSWORD 相同）
 echo "your_redis_password" > secrets/redis_password.txt
 
 # 確保檔案權限安全
 chmod 600 secrets/*.txt
 ```
+
+**重要提醒**：
+- 秘密檔案中的密碼必須與 `.env` 檔案中的對應密碼一致
+- `DB_USERNAME` 在 `.env` 中設定為 `db_user`，Docker Compose 會自動使用此值
+- `DB_DATABASE` 在 `.env` 中設定為 `mg_db`，Docker Compose 會自動使用此值
 
 ### 4. 生成 SSL 憑證
 
