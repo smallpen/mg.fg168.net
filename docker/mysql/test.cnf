@@ -1,0 +1,37 @@
+[mysqld]
+# 測試環境 MySQL 8.0 設定
+
+# 基本設定
+default-storage-engine = InnoDB
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+# 效能設定（測試環境使用較小的值）
+innodb_buffer_pool_size = 128M
+innodb_redo_log_capacity = 67108864
+innodb_flush_log_at_trx_commit = 2
+
+# 連線設定
+max_connections = 50
+wait_timeout = 600
+interactive_timeout = 600
+
+# 日誌設定
+slow_query_log = 1
+long_query_time = 2
+
+# 安全設定
+sql_mode = STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO
+
+# 測試專用設定
+skip-name-resolve
+host_cache_size = 0
+
+# 停用不必要的功能以加快啟動
+skip-log-bin
+
+# 測試環境停用 SSL
+skip-ssl
+
+# 使用舊的認證方式以相容 MariaDB 客戶端
+default-authentication-plugin = mysql_native_password

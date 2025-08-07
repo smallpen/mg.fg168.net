@@ -3,12 +3,17 @@
 /public/build
 /public/hot
 /public/storage
+/public/livewire
+/public/vendor
 /storage/*.key
 /vendor
 .env
 .env.backup
 .env.production
+.env.testing
 .phpunit.result.cache
+/bootstrap/cache/config.php
+/database/database.sqlite
 Homestead.json
 Homestead.yaml
 auth.json
@@ -20,6 +25,7 @@ yarn-error.log
 
 # Docker
 docker-compose.override.yml
+/docker/nginx/ssl/
 
 # OS
 .DS_Store
@@ -72,6 +78,7 @@ jspm_packages/
 *.bak
 *.backup
 *.old
+/storage/backups/database/*.sql
 
 # Temporary files
 *.tmp
