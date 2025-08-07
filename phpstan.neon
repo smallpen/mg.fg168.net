@@ -76,9 +76,9 @@ parameters:
     # 報告未使用的忽略規則
     reportUnmatchedIgnoredErrors: false
     
-    # Laravel 專用擴展
-    symfony:
-        container_xml_path: bootstrap/cache/container.xml
+    # Laravel 專用設定
+    # symfony:
+    #     container_xml_path: bootstrap/cache/container.xml
         
 includes:
     # Larastan 擴展（Laravel 專用的 PHPStan 規則）

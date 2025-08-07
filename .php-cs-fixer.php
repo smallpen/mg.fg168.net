@@ -82,7 +82,6 @@ return $config
         'method_chaining_indentation' => true,
         'no_blank_lines_after_class_opening' => true,
         'no_blank_lines_after_phpdoc' => true,
-        'single_blank_line_before_namespace' => true,
         
         // 字串格式
         'single_quote' => true,
