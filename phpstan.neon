@@ -81,5 +81,5 @@ parameters:
         container_xml_path: bootstrap/cache/container.xml
         
 includes:
-    # 如果安裝了 larastan，取消註解下面這行
-    # - ./vendor/nunomaduro/larastan/extension.neon
+    # Larastan 擴展（Laravel 專用的 PHPStan 規則）
+    - ./vendor/nunomaduro/larastan/extension.neon
