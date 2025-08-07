@@ -170,7 +170,7 @@ init_application() {
     
     # 修復檔案權限
     log_info "修復檔案權限..."
-    $COMPOSE_CMD -f "$compose_file" exec -T app bash /scripts/fix-permissions.sh
+    $COMPOSE_CMD -f "$compose_file" exec -T app sh /scripts/fix-permissions.sh
     
     # 執行遷移
     log_info "執行資料庫遷移..."

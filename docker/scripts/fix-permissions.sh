@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Laravel 權限修復腳本
 # 確保 storage 和 bootstrap/cache 目錄有正確的權限

@@ -6,6 +6,7 @@ WORKDIR /var/www/html
 
 # 安裝系統依賴
 RUN apk add --no-cache \
+    bash \
     git \
     curl \
     libpng-dev \
@@ -76,7 +77,6 @@ RUN mkdir -p /var/www/html/storage/logs \
 COPY docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php/start.sh /usr/local/bin/start.sh
 COPY docker/php/env-setup.sh /var/www/html/docker/php/env-setup.sh
-COPY docker/php/test-env.php /var/www/html/docker/php/test-env.php
 
 # 設定執行權限
 RUN chmod +x /usr/local/bin/start.sh \
