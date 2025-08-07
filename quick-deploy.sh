@@ -39,10 +39,11 @@ show_usage() {
     echo "  prod        生產環境"
     echo ""
     echo "選項:"
-    echo "  --build     強制重新建置映像"
-    echo "  --down      停止並移除容器"
-    echo "  --logs      顯示服務日誌"
-    echo "  --status    顯示服務狀態"
+    echo "  --build       強制重新建置映像"
+    echo "  --down        停止並移除容器"
+    echo "  --logs        顯示服務日誌"
+    echo "  --status      顯示服務狀態"
+    echo "  --skip-checks 跳過部署前檢查"
     echo "  --help      顯示此說明"
     echo ""
     echo "範例:"
@@ -178,6 +179,11 @@ init_application() {
     $COMPOSE_CMD -f "$compose_file" exec -T app php artisan view:clear
     $COMPOSE_CMD -f "$compose_file" exec -T app php artisan cache:clear
     
+    # 清除套件發現快取並重新發現套件（確保只載入對應環境的套件）
+    log_info "重新發現套件..."
+    $COMPOSE_CMD -f "$compose_file" exec -T app rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
+    $COMPOSE_CMD -f "$compose_file" exec -T app php artisan package:discover --ansi
+    
     # 快取設定（生產環境）
     if [ "$env" = "prod" ] || [ "$env" = "production" ]; then
         log_info "快取設定檔案..."
@@ -218,6 +224,7 @@ main() {
     local environment="dev"
     local force_build=false
     local action="start"
+    local skip_checks=false
     
     # 解析參數
     while [[ $# -gt 0 ]]; do
@@ -240,6 +247,10 @@ main() {
                 ;;
             --status)
                 action="status"
+                shift
+                ;;
+            --skip-checks)
+                skip_checks=true
                 shift
                 ;;
             --help)
@@ -272,6 +283,17 @@ main() {
     # 執行對應動作
     case $action in
         "start")
+            # 執行部署前檢查（除非跳過）
+            if [ "$skip_checks" = false ] && [ -f "scripts/pre-deploy-check.sh" ]; then
+                log_info "執行部署前檢查..."
+                if ! ./scripts/pre-deploy-check.sh; then
+                    log_error "部署前檢查失敗，請解決問題後再試"
+                    log_info "如要跳過檢查，請使用 --skip-checks 參數"
+                    exit 1
+                fi
+                echo ""
+            fi
+            
             if [ "$force_build" = true ]; then
                 build_services "$compose_file" true
             fi
@@ -280,8 +302,20 @@ main() {
             health_check "$compose_file"
             show_status "$compose_file"
             
-            log_success "🎉 $environment 環境部署完成！"
+            # 執行部署後驗證
+            if [ -f "scripts/post-deploy-verify.sh" ]; then
+                log_info "執行部署後驗證..."
+                echo ""
+                if ./scripts/post-deploy-verify.sh "$environment"; then
+                    log_success "🎉 $environment 環境部署完成且驗證通過！"
+                else
+                    log_warning "部署完成但驗證發現問題，請檢查上述訊息"
+                fi
+            else
+                log_success "🎉 $environment 環境部署完成！"
+            fi
             
+            echo ""
             # 顯示存取資訊
             case $environment in
                 "dev"|"development")

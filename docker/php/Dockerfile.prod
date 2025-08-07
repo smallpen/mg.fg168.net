@@ -61,6 +61,10 @@ RUN chown -R www-data:www-data /var/www/html \
 # 安裝 Composer 依賴（生產環境）
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
+# 清除 Laravel 套件發現快取，確保只載入生產環境套件
+RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
+    && php artisan package:discover --ansi
+
 # 建立必要的目錄
 RUN mkdir -p /var/www/html/storage/logs \
     && mkdir -p /var/www/html/storage/framework/cache \

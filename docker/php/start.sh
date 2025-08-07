@@ -97,8 +97,23 @@ sleep 5
 # 清除 Laravel 配置快取並重新生成
 echo "🧹 清理並重新生成 Laravel 配置快取..."
 source $ENV_FILE
+
+# 清除所有快取，包括套件發現快取
 php /var/www/html/artisan config:clear
-php /var/www/html/artisan config:cache
+php /var/www/html/artisan route:clear
+php /var/www/html/artisan view:clear
+php /var/www/html/artisan cache:clear
+
+# 清除套件發現快取並重新發現套件（確保只載入生產環境套件）
+rm -f /var/www/html/bootstrap/cache/packages.php /var/www/html/bootstrap/cache/services.php
+php /var/www/html/artisan package:discover --ansi
+
+# 重新快取配置（生產環境）
+if [ "$APP_ENV" = "production" ]; then
+    php /var/www/html/artisan config:cache
+    php /var/www/html/artisan route:cache
+    php /var/www/html/artisan view:cache
+fi
 
 echo "🎉 啟動 Supervisor..."
 

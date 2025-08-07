@@ -147,12 +147,17 @@ docker run --rm -v ssl_certs:/ssl -v $(pwd)/path/to/certs:/certs alpine cp /cert
 ```bash
 # 給予執行權限
 chmod +x quick-deploy.sh
+chmod +x scripts/pre-deploy-check.sh
+chmod +x scripts/post-deploy-verify.sh
 
-# 部署生產環境
+# 部署生產環境（包含自動檢查）
 ./quick-deploy.sh prod
 
 # 或者強制重新建置
 ./quick-deploy.sh prod --build
+
+# 跳過部署前檢查（不建議）
+./quick-deploy.sh prod --skip-checks
 ```
 
 #### 快速部署腳本選項
@@ -167,21 +172,69 @@ chmod +x quick-deploy.sh
 ./quick-deploy.sh prod         # 生產環境
 
 # 其他選項
-./quick-deploy.sh prod --build    # 強制重新建置映像
-./quick-deploy.sh prod --down     # 停止並移除容器
-./quick-deploy.sh prod --logs     # 顯示服務日誌
-./quick-deploy.sh prod --status   # 顯示服務狀態
+./quick-deploy.sh prod --build       # 強制重新建置映像
+./quick-deploy.sh prod --down        # 停止並移除容器
+./quick-deploy.sh prod --logs        # 顯示服務日誌
+./quick-deploy.sh prod --status      # 顯示服務狀態
+./quick-deploy.sh prod --skip-checks # 跳過部署前檢查（不建議）
+```
+
+### 部署檢查腳本
+
+#### 部署前檢查
+
+在部署前執行環境檢查，確保所有必要條件都滿足：
+
+```bash
+# 執行部署前檢查
+./scripts/pre-deploy-check.sh
+
+# 檢查項目包括：
+# - Docker 環境
+# - 必要檔案存在性
+# - 環境變數設定
+# - 秘密檔案內容
+# - 磁碟空間
+# - 網路連線
+# - 現有容器狀態
+# - Composer 依賴設定
+# - Laravel 快取檔案狀態
+```
+
+#### 部署後驗證
+
+在部署完成後驗證系統狀態：
+
+```bash
+# 驗證生產環境
+./scripts/post-deploy-verify.sh prod
+
+# 驗證測試環境
+./scripts/post-deploy-verify.sh staging
+
+# 驗證項目包括：
+# - 容器運行狀態
+# - 容器健康檢查
+# - 應用程式連線
+# - 資料庫連線
+# - Redis 連線
+# - 網頁服務
+# - 套件發現快取
+# - 日誌錯誤檢查
+# - 磁碟使用量
 ```
 
 快速部署腳本會自動執行以下步驟：
-1. 檢查 Docker 環境
-2. 建置 Docker 映像（如果需要）
-3. 啟動所有服務
-4. 等待服務準備就緒
-5. 執行資料庫遷移
-6. 清理和快取應用程式設定
-7. 執行健康檢查
-8. 顯示部署結果和存取資訊
+1. **部署前檢查**：驗證環境設定、必要檔案、Docker 環境等
+2. 檢查 Docker 環境
+3. 建置 Docker 映像（如果需要）
+4. 啟動所有服務
+5. 等待服務準備就緒
+6. 執行資料庫遷移
+7. 清理和快取應用程式設定（包含套件發現快取清理）
+8. 執行健康檢查
+9. **部署後驗證**：確認所有服務正常運行
+10. 顯示部署結果和存取資訊
 
 ### 使用 Docker 腳本部署
 
@@ -253,6 +306,10 @@ docker compose -f docker-compose.prod.yml exec app php artisan cache:clear
 docker compose -f docker-compose.prod.yml exec app php artisan config:clear
 docker compose -f docker-compose.prod.yml exec app php artisan route:clear
 docker compose -f docker-compose.prod.yml exec app php artisan view:clear
+
+# 清除套件發現快取並重新發現套件（重要：確保只載入生產環境套件）
+docker compose -f docker-compose.prod.yml exec app rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
+docker compose -f docker-compose.prod.yml exec app php artisan package:discover --ansi
 
 # 建立快取（生產環境）
 docker compose -f docker-compose.prod.yml exec app php artisan config:cache
@@ -476,10 +533,20 @@ docker compose -f docker-compose.prod.yml exec app npm install
 docker compose -f docker-compose.prod.yml exec app npm run build
 ```
 
-#### 6. 清除快取
+#### 6. 清除快取並重新發現套件
 
 ```bash
+# 清除所有快取
 docker compose -f docker-compose.prod.yml exec app php artisan cache:clear
+docker compose -f docker-compose.prod.yml exec app php artisan config:clear
+docker compose -f docker-compose.prod.yml exec app php artisan route:clear
+docker compose -f docker-compose.prod.yml exec app php artisan view:clear
+
+# 清除套件發現快取並重新發現套件（重要：確保只載入生產環境套件）
+docker compose -f docker-compose.prod.yml exec app rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
+docker compose -f docker-compose.prod.yml exec app php artisan package:discover --ansi
+
+# 重新快取設定（生產環境）
 docker compose -f docker-compose.prod.yml exec app php artisan config:cache
 docker compose -f docker-compose.prod.yml exec app php artisan route:cache
 docker compose -f docker-compose.prod.yml exec app php artisan view:cache
@@ -572,6 +639,29 @@ docker compose -f docker-compose.prod.yml exec app npm run build
 docker compose -f docker-compose.prod.yml exec app chown -R www-data:www-data storage bootstrap/cache
 docker compose -f docker-compose.prod.yml exec app chmod -R 775 storage bootstrap/cache
 ```
+
+#### 7. Laravel Dusk Service Provider 找不到問題
+
+**症狀**：容器健康檢查失敗，錯誤訊息顯示 `Class "Laravel\Dusk\DuskServiceProvider" not found`
+
+**原因**：Laravel 的套件發現機制將開發環境的套件（如 Laravel Dusk）快取在 `bootstrap/cache/packages.php` 和 `bootstrap/cache/services.php` 檔案中，但在生產環境中這些套件並未安裝。
+
+**解決方案**：
+```bash
+# 清除套件發現快取
+docker compose -f docker-compose.prod.yml exec app rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
+
+# 重新發現套件（只會載入生產環境中實際安裝的套件）
+docker compose -f docker-compose.prod.yml exec app php artisan package:discover --ansi
+
+# 測試健康檢查
+docker compose -f docker-compose.prod.yml exec app php artisan tinker --execute="echo 'OK';"
+```
+
+**預防措施**：
+- 在 Dockerfile 中確保使用 `composer install --no-dev` 安裝依賴
+- 在容器啟動時自動清除套件發現快取
+- 部署腳本中包含套件重新發現步驟
 
 ### 日誌位置
 
@@ -695,8 +785,14 @@ FALLBACK_LOCALE=en
 ## 常用指令速查
 
 ```bash
+# 部署前檢查
+./scripts/pre-deploy-check.sh
+
 # 快速部署生產環境
 ./quick-deploy.sh prod
+
+# 部署後驗證
+./scripts/post-deploy-verify.sh prod
 
 # 查看服務狀態
 ./quick-deploy.sh prod --status
@@ -713,11 +809,17 @@ docker compose -f docker-compose.prod.yml exec app bash
 # 執行 Artisan 指令
 docker compose -f docker-compose.prod.yml exec app php artisan [command]
 
-# 清除所有快取
+# 清除所有快取（包含套件發現快取）
 docker compose -f docker-compose.prod.yml exec app php artisan optimize:clear
+docker compose -f docker-compose.prod.yml exec app rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
+docker compose -f docker-compose.prod.yml exec app php artisan package:discover --ansi
 
 # 最佳化生產環境
 docker compose -f docker-compose.prod.yml exec app php artisan optimize
+
+# 手動清除套件發現快取（解決 DuskServiceProvider 問題）
+docker compose -f docker-compose.prod.yml exec app rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
+docker compose -f docker-compose.prod.yml exec app php artisan package:discover --ansi
 ```
 
 ## 聯絡資訊
