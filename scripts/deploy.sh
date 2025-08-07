@@ -90,8 +90,8 @@ run_tests() {
     docker compose -f docker-compose.test.yml up -d mysql redis
     sleep 10
     
-    # 執行測試
-    docker compose -f docker-compose.test.yml run --rm app php artisan test
+    # 執行完整測試套件
+    docker compose -f docker-compose.test.yml run --rm app /usr/local/bin/test-runner.sh
     
     if [ $? -eq 0 ]; then
         log_success "所有測試通過"

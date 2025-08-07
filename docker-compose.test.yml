@@ -1,4 +1,4 @@
-version: '3.8'
+# Docker Compose 測試環境設定
 
 services:
   # 測試應用程式容器

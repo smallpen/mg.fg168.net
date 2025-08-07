@@ -62,8 +62,11 @@ class PermissionServiceTest extends TestCase
         // 指派權限給角色
         $this->adminRole->permissions()->attach($this->userManagePermission);
 
-        // 建立使用者
-        $this->user = User::factory()->create();
+        // 建立使用者（確保不是超級管理員）
+        $this->user = User::factory()->create([
+            'username' => 'testuser_' . uniqid(),
+            'email' => 'test_' . uniqid() . '@example.com'
+        ]);
     }
 
     /**
@@ -71,11 +74,24 @@ class PermissionServiceTest extends TestCase
      */
     public function test_has_permission(): void
     {
+        // 確保使用者沒有任何角色
+        $this->user->roles()->detach();
+        $this->user->refresh();
+        $this->permissionService->clearUserPermissionCache($this->user);
+        
         // 使用者沒有角色時應該沒有權限
         $this->assertFalse($this->permissionService->hasPermission($this->user, 'user.manage'));
 
         // 指派角色後應該有權限
         $this->user->assignRole($this->adminRole);
+        
+        // 重新載入使用者以確保關聯被更新
+        $this->user->refresh();
+        $this->user->load('roles.permissions');
+        
+        // 清除權限快取
+        $this->permissionService->clearUserPermissionCache($this->user);
+        
         $this->assertTrue($this->permissionService->hasPermission($this->user, 'user.manage'));
     }
 }

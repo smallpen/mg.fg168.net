@@ -26,7 +26,8 @@ RUN apk add --no-cache \
     gcc \
     g++ \
     make \
-    pkgconfig
+    pkgconfig \
+    linux-headers
 
 # 安裝 PHP 擴展
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -59,6 +60,14 @@ ENV DISPLAY=:99
 # 建立測試使用者
 RUN addgroup -g 1000 -S laravel \
     && adduser -u 1000 -S laravel -G laravel
+
+# 建立必要的目錄並設定權限
+RUN mkdir -p /var/www/html/storage/logs \
+    && mkdir -p /var/www/html/storage/framework/cache \
+    && mkdir -p /var/www/html/storage/framework/sessions \
+    && mkdir -p /var/www/html/storage/framework/views \
+    && mkdir -p /var/www/html/bootstrap/cache \
+    && chown -R laravel:laravel /var/www/html
 
 # 複製 PHP 測試設定檔
 COPY docker/php/php.test.ini /usr/local/etc/php/php.ini

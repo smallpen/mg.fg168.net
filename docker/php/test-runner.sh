@@ -6,19 +6,39 @@ echo "🧪 開始執行 Laravel Admin 測試套件..."
 
 # 等待資料庫準備就緒
 echo "⏳ 等待 MySQL 資料庫準備就緒..."
-while ! mysqladmin ping -h mysql -u root -ptest_root_password --silent; do
-    echo "等待 MySQL 連線..."
+timeout=60
+while [ $timeout -gt 0 ]; do
+    if MYSQL_PWD=test_password mariadb -h mysql -u laravel_test --disable-ssl -e "SELECT 1" >/dev/null 2>&1; then
+        echo "✅ MySQL 資料庫已準備就緒"
+        break
+    fi
+    echo "等待 MySQL 連線... (剩餘 $timeout 秒)"
     sleep 2
+    timeout=$((timeout - 2))
 done
-echo "✅ MySQL 資料庫已準備就緒"
+
+if [ $timeout -le 0 ]; then
+    echo "❌ MySQL 連線逾時"
+    exit 1
+fi
 
 # 等待 Redis 準備就緒
 echo "⏳ 等待 Redis 準備就緒..."
-while ! redis-cli -h redis -a test_redis_password ping > /dev/null 2>&1; do
-    echo "等待 Redis 連線..."
+timeout=30
+while [ $timeout -gt 0 ]; do
+    if redis-cli -h redis -a test_redis_password ping >/dev/null 2>&1; then
+        echo "✅ Redis 已準備就緒"
+        break
+    fi
+    echo "等待 Redis 連線... (剩餘 $timeout 秒)"
     sleep 2
+    timeout=$((timeout - 2))
 done
-echo "✅ Redis 已準備就緒"
+
+if [ $timeout -le 0 ]; then
+    echo "❌ Redis 連線逾時"
+    exit 1
+fi
 
 # 安裝依賴
 echo "📦 安裝 Composer 依賴..."

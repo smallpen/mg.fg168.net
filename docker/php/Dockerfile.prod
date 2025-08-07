@@ -48,6 +48,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # 複製 PHP 配置檔案
 COPY docker/php/php.prod.ini /usr/local/etc/php/php.ini
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 # 複製應用程式檔案
 COPY . /var/www/html
@@ -64,13 +65,21 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN mkdir -p /var/www/html/storage/logs \
     && mkdir -p /var/www/html/storage/framework/cache \
     && mkdir -p /var/www/html/storage/framework/sessions \
-    && mkdir -p /var/www/html/storage/framework/views
+    && mkdir -p /var/www/html/storage/framework/views \
+    && mkdir -p /var/log/supervisor
 
-# 複製 Supervisor 配置
+# 複製 Supervisor 配置和啟動腳本
 COPY docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/php/start.sh /usr/local/bin/start.sh
+COPY docker/php/env-setup.sh /var/www/html/docker/php/env-setup.sh
+COPY docker/php/test-env.php /var/www/html/docker/php/test-env.php
+
+# 設定執行權限
+RUN chmod +x /usr/local/bin/start.sh \
+    && chmod +x /var/www/html/docker/php/env-setup.sh
 
 # 暴露端口
 EXPOSE 9000
 
-# 啟動 Supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# 啟動腳本
+CMD ["/usr/local/bin/start.sh"]

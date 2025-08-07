@@ -17,15 +17,10 @@ SET time_zone = '+08:00';
 -- CREATE USER IF NOT EXISTS 'monitor'@'%' IDENTIFIED BY 'monitor_password';
 -- GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'monitor'@'%';
 
--- 最佳化設定
-SET GLOBAL innodb_buffer_pool_size = 512 * 1024 * 1024;
-SET GLOBAL query_cache_size = 0;
-SET GLOBAL query_cache_type = 0;
-
--- 記錄初始化完成
-INSERT INTO information_schema.PROCESSLIST (ID, USER, HOST, DB, COMMAND, TIME, STATE, INFO) 
-VALUES (0, 'system', 'localhost', 'laravel_admin', 'Init', 0, 'Completed', 'Production database initialized') 
-ON DUPLICATE KEY UPDATE INFO = 'Production database initialized';
+-- 最佳化設定（在配置檔案中設定，這裡註解掉）
+-- SET GLOBAL innodb_buffer_pool_size = 512 * 1024 * 1024;
+-- SET GLOBAL query_cache_size = 0;
+-- SET GLOBAL query_cache_type = 0;
 
 -- 顯示初始化狀態
 SELECT 'MySQL 生產環境初始化完成' AS status;

@@ -49,7 +49,6 @@ myisam_max_sort_file_size = 10G
 myisam_repair_threads = 1
 
 # InnoDB 設定
-innodb_additional_mem_pool_size = 16M
 innodb_buffer_pool_size = 512M
 innodb_data_file_path = ibdata1:10M:autoextend
 innodb_write_io_threads = 8

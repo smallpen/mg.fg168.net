@@ -121,7 +121,7 @@ class PermissionFactory extends Factory
     /**
      * 建立建立權限
      */
-    public function create(): static
+    public function createPermission(): static
     {
         return $this->state(fn (array $attributes) => [
             'name' => $attributes['module'] . '.create',
