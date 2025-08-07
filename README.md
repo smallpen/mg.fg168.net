@@ -49,6 +49,88 @@ php artisan migrate
 php artisan db:seed
 ```
 
+### Docker 部署
+
+#### 開發環境
+```bash
+# 啟動開發環境
+./quick-deploy.sh dev
+
+# 或使用 Docker Compose
+docker compose up -d
+```
+
+#### 生產環境
+```bash
+# 首次部署
+./quick-deploy.sh prod --build
+
+# 日常部署
+./quick-deploy.sh prod
+
+# 停止服務
+./quick-deploy.sh prod --down
+```
+
+#### 部署後驗證
+```bash
+# 執行部署後檢查
+./scripts/post-deploy-verify.sh prod
+
+# 檢查服務狀態
+docker compose -f docker-compose.prod.yml ps
+
+# 檢查應用程式健康狀態
+curl http://localhost/health
+```
+
+## 故障排除
+
+如果遇到部署問題，請參考 [故障排除指南](TROUBLESHOOTING.md)。
+
+常見問題：
+- 資料庫連線問題
+- Redis 認證問題  
+- 檔案權限問題
+- APP_KEY 未設定
+
+## 環境配置
+
+### 必要的 Secrets 檔案
+
+確保以下檔案存在且包含正確的值：
+
+```
+secrets/
+├── app_key.txt              # Laravel APP_KEY
+├── mysql_password.txt       # MySQL 使用者密碼
+├── mysql_root_password.txt  # MySQL root 密碼
+└── redis_password.txt       # Redis 密碼
+```
+
+### 環境變數
+
+主要環境變數配置：
+
+```env
+# 應用程式
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=base64:your_app_key_here
+
+# 資料庫
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_DATABASE=mg_db
+DB_USERNAME=db_user
+DB_PASSWORD=1qaz1234
+
+# Redis
+REDIS_HOST=redis
+REDIS_PASSWORD=1qaz1234
+REDIS_PORT=6379
+```
+
 5. 編譯前端資源
 ```bash
 npm run dev

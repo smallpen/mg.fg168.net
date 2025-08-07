@@ -34,13 +34,14 @@ services:
       - ./public/build:/var/www/html/public/build:ro
       - ./.env.production:/var/www/html/.env:ro
       - app_logs:/var/www/html/storage/logs
+      - ./docker/scripts:/scripts:ro
     environment:
       - APP_ENV=production
       - APP_DEBUG=false
       - APP_KEY_FILE=/run/secrets/app_key
       - DB_HOST=mysql
-      - DB_DATABASE=${DB_DATABASE:-laravel_admin}
-      - DB_USERNAME=${DB_USERNAME:-laravel}
+      - DB_DATABASE=${DB_DATABASE:-mg_db}
+      - DB_USERNAME=${DB_USERNAME:-db_user}
       - DB_PASSWORD_FILE=/run/secrets/mysql_password
       - REDIS_HOST=redis
       - REDIS_PASSWORD_FILE=/run/secrets/redis_password
@@ -75,12 +76,13 @@ services:
     container_name: laravel_admin_mysql_prod
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
-      MYSQL_DATABASE: ${DB_DATABASE:-laravel_admin}
-      MYSQL_USER: ${DB_USERNAME:-laravel}
+      MYSQL_DATABASE: ${DB_DATABASE:-mg_db}
+      MYSQL_USER: ${DB_USERNAME:-db_user}
       MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/prod-simple.cnf:/etc/mysql/conf.d/custom.cnf:ro
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     restart: unless-stopped
     networks:
       - laravel_admin_network
@@ -138,8 +140,8 @@ services:
       - ./docker/scripts:/scripts:ro
     environment:
       - MYSQL_HOST=mysql
-      - MYSQL_DATABASE=${DB_DATABASE:-laravel_admin}
-      - MYSQL_USER=${DB_USERNAME:-laravel}
+      - MYSQL_DATABASE=${DB_DATABASE:-mg_db}
+      - MYSQL_USER=${DB_USERNAME:-db_user}
       - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
     depends_on:
       - mysql
