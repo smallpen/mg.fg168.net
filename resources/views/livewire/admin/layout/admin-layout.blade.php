@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 dark:bg-slate-900" x-data="{ 
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900" x-data="{ 
     isMobile: window.innerWidth < 1024,
     init() {
         // 監聽視窗大小變化

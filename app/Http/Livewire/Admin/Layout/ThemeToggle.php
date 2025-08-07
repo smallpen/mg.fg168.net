@@ -48,10 +48,10 @@ class ThemeToggle extends Component
         }
 
         // 發送事件通知其他元件主題已變更
-        $this->dispatch('theme-changed', theme: $this->currentTheme);
+        $this->dispatch('theme-changed', ['theme' => $this->currentTheme]);
         
         // 更新頁面的 HTML class
-        $this->dispatch('update-theme-class', theme: $this->currentTheme);
+        $this->dispatch('update-theme-class', ['theme' => $this->currentTheme]);
     }
 
     /**
@@ -76,10 +76,10 @@ class ThemeToggle extends Component
         }
 
         // 發送事件通知其他元件主題已變更
-        $this->dispatch('theme-changed', theme: $this->currentTheme);
+        $this->dispatch('theme-changed', ['theme' => $this->currentTheme]);
         
         // 更新頁面的 HTML class
-        $this->dispatch('update-theme-class', theme: $this->currentTheme);
+        $this->dispatch('update-theme-class', ['theme' => $this->currentTheme]);
     }
 
     /**

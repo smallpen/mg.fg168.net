@@ -56,7 +56,7 @@ class DashboardStats extends AdminComponent
     {
         $this->stats = $this->dashboardService->getStats(true);
         
-        $this->dispatchBrowserEvent('stats-refreshed', [
+        $this->dispatch('stats-refreshed', [
             'message' => '統計資料已更新'
         ]);
     }

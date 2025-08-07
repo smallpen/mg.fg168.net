@@ -52,7 +52,7 @@ class AdminLayout extends Component
         $this->saveSidebarState();
         
         // 發送事件通知其他元件
-        $this->dispatch('sidebarToggled', $this->sidebarOpen);
+        $this->dispatch('sidebarToggled', ['open' => $this->sidebarOpen]);
     }
     
     /**
@@ -62,7 +62,7 @@ class AdminLayout extends Component
     {
         $this->sidebarOpen = false;
         $this->saveSidebarState();
-        $this->dispatch('sidebarToggled', $this->sidebarOpen);
+        $this->dispatch('sidebarToggled', ['open' => $this->sidebarOpen]);
     }
     
     /**
@@ -72,7 +72,7 @@ class AdminLayout extends Component
     {
         $this->sidebarOpen = true;
         $this->saveSidebarState();
-        $this->dispatch('sidebarToggled', $this->sidebarOpen);
+        $this->dispatch('sidebarToggled', ['open' => $this->sidebarOpen]);
     }
     
     /**

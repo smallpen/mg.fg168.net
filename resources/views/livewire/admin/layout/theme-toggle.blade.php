@@ -113,7 +113,7 @@
 document.addEventListener('livewire:init', () => {
     // 監聽主題變更事件
     Livewire.on('update-theme-class', (event) => {
-        const theme = event.theme;
+        const theme = event[0].theme;
         const htmlElement = document.documentElement;
         
         if (theme === 'dark') {

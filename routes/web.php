@@ -32,6 +32,11 @@ Route::get('/', function () {
     return redirect()->route('admin.dashboard');
 });
 
+// 測試路由
+Route::get('/test-styles', function () {
+    return view('test-styles');
+});
+
 // 管理後台路由群組
 Route::prefix('admin')->name('admin.')->group(function () {
     

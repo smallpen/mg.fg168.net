@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 觸發 Livewire 事件更新伺服器端主題設定
             if (window.Livewire) {
-                window.Livewire.emit('themeChanged', newTheme);
+                window.Livewire.dispatch('themeChanged', { theme: newTheme });
             }
         }
     });
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 發送事件給 Livewire 元件
         if (window.Livewire) {
-            window.Livewire.emit('setMobileMode', isMobile);
+            window.Livewire.dispatch('setMobileMode', { isMobile: isMobile });
         }
     }
     

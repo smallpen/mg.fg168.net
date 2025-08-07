@@ -56,11 +56,11 @@ class LoginForm extends Component
     protected function messages()
     {
         return [
-            'username.required' => '請輸入使用者名稱',
-            'username.min' => '使用者名稱至少需要 3 個字元',
+            'username.required' => __('auth.validation.username_required'),
+            'username.min' => __('auth.validation.username_min', ['min' => 3]),
             'username.max' => '使用者名稱不能超過 20 個字元',
-            'password.required' => '請輸入密碼',
-            'password.min' => '密碼至少需要 6 個字元',
+            'password.required' => __('auth.validation.password_required'),
+            'password.min' => __('auth.validation.password_min', ['min' => 6]),
         ];
     }
 
@@ -119,7 +119,7 @@ class LoginForm extends Component
 
             // 登入失敗
             throw ValidationException::withMessages([
-                'username' => '使用者名稱或密碼錯誤',
+                'username' => __('auth.login.failed'),
             ]);
 
         } catch (ValidationException $e) {

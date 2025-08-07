@@ -50,7 +50,7 @@ class TopBar extends Component
      */
     public function toggleSidebar()
     {
-        $this->emit('toggleSidebar');
+        $this->dispatch('toggleSidebar');
     }
     
     /**
@@ -133,7 +133,7 @@ class TopBar extends Component
     public function markAllNotificationsAsRead()
     {
         // 實作標記所有通知為已讀的邏輯
-        $this->emit('notificationsMarkedAsRead');
+        $this->dispatch('notificationsMarkedAsRead');
         
         // 顯示成功訊息
         session()->flash('success', '所有通知已標記為已讀');
