@@ -129,12 +129,40 @@ class DashboardService
             $this->getCacheKey('online_users'),
             5 * 60, // 5 分鐘快取
             function () {
-                // 計算過去 15 分鐘內有活動的使用者
-                return DB::table('sessions')
-                    ->where('last_activity', '>=', now()->subMinutes(15)->timestamp)
-                    ->whereNotNull('user_id')
-                    ->distinct('user_id')
-                    ->count();
+                try {
+                    // 如果使用 Redis session，從 Redis 獲取線上使用者數量
+                    if (config('session.driver') === 'redis') {
+                        $redis = app('redis')->connection();
+                        $sessionKeys = $redis->keys(config('session.cookie') . '*');
+                        
+                        $onlineUsers = collect($sessionKeys)->map(function ($key) use ($redis) {
+                            $sessionData = $redis->get($key);
+                            if ($sessionData) {
+                                $data = unserialize($sessionData);
+                                return isset($data['login_web_' . sha1(config('app.name'))]) ? 
+                                    $data['login_web_' . sha1(config('app.name'))] : null;
+                            }
+                            return null;
+                        })->filter()->unique()->count();
+                        
+                        return $onlineUsers;
+                    }
+                    
+                    // 如果使用資料庫 session，查詢 sessions 表
+                    return DB::table('sessions')
+                        ->where('last_activity', '>=', now()->subMinutes(15)->timestamp)
+                        ->whereNotNull('user_id')
+                        ->distinct('user_id')
+                        ->count();
+                        
+                } catch (\Exception $e) {
+                    // 如果發生錯誤，記錄日誌並回傳 0
+                    logger()->warning('無法取得線上使用者數量', [
+                        'error' => $e->getMessage(),
+                        'session_driver' => config('session.driver')
+                    ]);
+                    return 0;
+                }
             }
         );
     }

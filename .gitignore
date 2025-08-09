@@ -78,7 +78,7 @@ jspm_packages/
 *.bak
 *.backup
 *.old
-/storage/backups/database/*.sql
+/storage/backups/
 
 # Temporary files
 *.tmp

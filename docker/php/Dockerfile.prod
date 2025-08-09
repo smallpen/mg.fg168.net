@@ -24,7 +24,9 @@ RUN apk add --no-cache \
     gcc \
     g++ \
     make \
-    pkgconfig
+    pkgconfig \
+    nodejs \
+    npm
 
 # 安裝 PHP 擴充套件
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -61,6 +63,11 @@ RUN chown -R www-data:www-data /var/www/html \
 
 # 安裝 Composer 依賴（生產環境）
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# 安裝 Node.js 依賴並編譯前端資產
+RUN npm ci \
+    && npm run build \
+    && rm -rf node_modules
 
 # 清除 Laravel 套件發現快取，確保只載入生產環境套件
 RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \

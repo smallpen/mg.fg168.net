@@ -43,6 +43,12 @@ php artisan config:cache
 
 echo "✓ Queue Worker 初始化完成"
 
-# 啟動 Queue Worker
+# 測試環境變數是否正確設定
+echo "測試環境變數:"
+echo "REDIS_PASSWORD: ${REDIS_PASSWORD:0:4}****"
+echo "DB_PASSWORD: ${DB_PASSWORD:0:4}****"
+echo "APP_KEY: ${APP_KEY:0:10}****"
+
+# 啟動 Queue Worker，確保環境變數傳遞
 echo "啟動 Queue Worker..."
 exec php artisan queue:work --sleep=3 --tries=3 --max-time=3600 --memory=256 --verbose

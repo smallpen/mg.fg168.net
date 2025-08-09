@@ -1,32 +1,24 @@
 #!/bin/bash
 
-# Laravel 應用程式啟動腳本 - 處理 Docker secrets
+# Laravel 應用程式啟動腳本 - 簡化版本
 
 set -e
 
 echo "正在啟動 Laravel 應用程式..."
 
-# 讀取 secrets 並設定環境變數
-if [ -f "/run/secrets/redis_password" ]; then
-    export REDIS_PASSWORD=$(cat /run/secrets/redis_password)
-    echo "✓ 已設定 Redis 密碼"
-else
-    echo "⚠ 警告: 找不到 Redis 密碼 secrets"
-fi
-
+# 讀取 secrets 並設定環境變數（如果存在）
 if [ -f "/run/secrets/mysql_password" ]; then
     export DB_PASSWORD=$(cat /run/secrets/mysql_password)
-    echo "✓ 已設定資料庫密碼"
-else
-    echo "⚠ 警告: 找不到資料庫密碼 secrets"
+    echo "✓ 已從 secrets 設定資料庫密碼"
 fi
 
 if [ -f "/run/secrets/app_key" ]; then
     export APP_KEY=$(cat /run/secrets/app_key)
-    echo "✓ 已設定應用程式金鑰"
-else
-    echo "⚠ 警告: 找不到應用程式金鑰 secrets"
+    echo "✓ 已從 secrets 設定應用程式金鑰"
 fi
+
+# Redis 密碼直接從 .env 檔案讀取，不再使用 secrets
+echo "✓ Redis 密碼從 .env 檔案讀取"
 
 # 等待資料庫和 Redis 準備就緒
 echo "等待服務準備就緒..."

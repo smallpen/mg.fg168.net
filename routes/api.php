@@ -30,25 +30,25 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 */
 
 // 基本健康檢查 - 最輕量級的檢查
-Route::get('/health', [HealthController::class, 'basic'])->name('health.basic');
+Route::get('/health', [HealthController::class, 'basic'])->name('api.health.basic');
 
 // 詳細健康檢查 - 包含所有組件狀態
-Route::get('/health/detailed', [HealthController::class, 'detailed'])->name('health.detailed');
+Route::get('/health/detailed', [HealthController::class, 'detailed'])->name('api.health.detailed');
 
 // 效能指標
-Route::get('/health/metrics', [HealthController::class, 'metrics'])->name('health.metrics');
+Route::get('/health/metrics', [HealthController::class, 'metrics'])->name('api.health.metrics');
 
 // 資料庫健康檢查
-Route::get('/health/database', [HealthController::class, 'database'])->name('health.database');
+Route::get('/health/database', [HealthController::class, 'database'])->name('api.health.database');
 
 // Redis 健康檢查
-Route::get('/health/redis', [HealthController::class, 'redis'])->name('health.redis');
+Route::get('/health/redis', [HealthController::class, 'redis'])->name('api.health.redis');
 
 // 備份狀態
-Route::get('/health/backups', [HealthController::class, 'backups'])->name('health.backups');
+Route::get('/health/backups', [HealthController::class, 'backups'])->name('api.health.backups');
 
 // 系統資訊
-Route::get('/health/info', [HealthController::class, 'info'])->name('health.info');
+Route::get('/health/info', [HealthController::class, 'info'])->name('api.health.info');
 
 // 完整系統檢查
-Route::get('/health/full', [HealthController::class, 'fullCheck'])->name('health.full');
+Route::get('/health/full', [HealthController::class, 'fullCheck'])->name('api.health.full');

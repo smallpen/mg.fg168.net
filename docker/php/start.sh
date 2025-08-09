@@ -23,13 +23,18 @@ fi
 # 設定 Redis 密碼從 secrets 檔案
 if [ -f /run/secrets/redis_password ]; then
     export REDIS_PASSWORD=$(cat /run/secrets/redis_password)
-    echo "✅ 從 secrets 載入 Redis 密碼"
+    echo "✅ 從 secrets 載入 Redis 密碼: ${REDIS_PASSWORD:0:4}****"
 elif [ -n "$REDIS_PASSWORD_FILE" ] && [ -f "$REDIS_PASSWORD_FILE" ]; then
     export REDIS_PASSWORD=$(cat "$REDIS_PASSWORD_FILE")
-    echo "✅ 從環境變數指定的檔案載入 Redis 密碼"
+    echo "✅ 從環境變數指定的檔案載入 Redis 密碼: ${REDIS_PASSWORD:0:4}****"
 elif [ -f /var/www/html/secrets/redis_password.txt ]; then
     export REDIS_PASSWORD=$(cat /var/www/html/secrets/redis_password.txt)
-    echo "✅ 從本地 secrets 檔案載入 Redis 密碼"
+    echo "✅ 從本地 secrets 檔案載入 Redis 密碼: ${REDIS_PASSWORD:0:4}****"
+else
+    echo "❌ 找不到 Redis 密碼檔案！"
+    echo "檢查的路徑："
+    echo "  - /run/secrets/redis_password: $(ls -la /run/secrets/redis_password 2>/dev/null || echo '不存在')"
+    echo "  - /var/www/html/secrets/redis_password.txt: $(ls -la /var/www/html/secrets/redis_password.txt 2>/dev/null || echo '不存在')"
 fi
 
 # 執行環境變數設定腳本
@@ -107,6 +112,13 @@ php /var/www/html/artisan cache:clear
 # 清除套件發現快取並重新發現套件（確保只載入生產環境套件）
 rm -f /var/www/html/bootstrap/cache/packages.php /var/www/html/bootstrap/cache/services.php
 php /var/www/html/artisan package:discover --ansi
+
+# 執行資料庫遷移（如果需要）
+echo "🔄 檢查資料庫遷移..."
+php /var/www/html/artisan migrate --force || echo "⚠️ 遷移失敗或已是最新版本"
+
+# 建立儲存連結
+php /var/www/html/artisan storage:link || echo "⚠️ 儲存連結已存在"
 
 # 重新快取配置（生產環境）
 if [ "$APP_ENV" = "production" ]; then

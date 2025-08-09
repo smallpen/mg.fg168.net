@@ -351,5 +351,5 @@
     </div>
 
     {{-- 角色刪除確認對話框 --}}
-    @livewire('admin.roles.role-delete')
+    <livewire:admin.roles.role-delete />
 </div>

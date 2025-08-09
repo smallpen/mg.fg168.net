@@ -11,6 +11,7 @@ services:
       - ./storage/app/public:/var/www/html/storage/app/public:ro
       - ssl_certs:/etc/nginx/ssl:ro
       - nginx_logs:/var/log/nginx
+      - build_assets:/var/www/html/public/build:ro
     depends_on:
       - app
     restart: unless-stopped
@@ -31,8 +32,8 @@ services:
     volumes:
       - ./storage:/var/www/html/storage
       - ./bootstrap/cache:/var/www/html/bootstrap/cache
-      - ./public/build:/var/www/html/public/build:ro
-      - ./.env.production:/var/www/html/.env:ro
+      - build_assets:/var/www/html/public/build
+      - ./.env.production:/var/www/html/.env
       - app_logs:/var/www/html/storage/logs
       - ./docker/scripts:/scripts:ro
     environment:
@@ -136,7 +137,7 @@ services:
     volumes:
       - ./storage:/var/www/html/storage
       - ./bootstrap/cache:/var/www/html/bootstrap/cache
-      - ./.env.production:/var/www/html/.env:ro
+      - ./.env.production:/var/www/html/.env
       - app_logs:/var/www/html/storage/logs
       - ./docker/scripts:/scripts:ro
     environment:
@@ -149,6 +150,7 @@ services:
       - CACHE_DRIVER=redis
       - SESSION_DRIVER=redis
       - QUEUE_CONNECTION=redis
+    # 使用自定義的 queue 啟動腳本
     command: /scripts/queue-start.sh
     depends_on:
       - mysql
@@ -214,6 +216,8 @@ volumes:
   redis_logs:
     driver: local
   backup_data:
+    driver: local
+  build_assets:
     driver: local
 
 secrets:

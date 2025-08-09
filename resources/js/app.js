@@ -1,9 +1,8 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 
-// 初始化 Alpine.js
+// 初始化 Alpine.js（讓 Livewire 處理初始化）
 window.Alpine = Alpine;
-Alpine.start();
 
 // 主題切換功能
 document.addEventListener('DOMContentLoaded', function() {

@@ -29,7 +29,7 @@
     
     <!-- 側邊導航選單 -->
     <aside class="{{ $this->getLayoutClasses()['sidebar'] }}">
-        @livewire('admin.layout.sidebar')
+        <livewire:admin.layout.sidebar />
     </aside>
     
     <!-- 主內容區域 -->
@@ -37,7 +37,7 @@
         
         <!-- 頂部導航列 -->
         <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 relative z-30">
-            @livewire('admin.layout.top-bar')
+            <livewire:admin.layout.top-bar />
         </header>
         
         <!-- 主要內容 -->

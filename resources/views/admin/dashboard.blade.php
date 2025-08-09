@@ -19,19 +19,19 @@
     </div>
     
     <!-- 統計卡片 - 使用 Livewire 元件 -->
-    @livewire('admin.dashboard.dashboard-stats')
+    <livewire:admin.dashboard.dashboard-stats />
     
     <!-- 統計圖表 -->
-    @livewire('admin.dashboard.stats-chart')
+    <livewire:admin.dashboard.stats-chart />
     
     <!-- 快速操作和最近活動 -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         <!-- 快速操作 - 使用 Livewire 元件 -->
-        @livewire('admin.dashboard.quick-actions')
+        <livewire:admin.dashboard.quick-actions />
         
         <!-- 最近活動 - 使用 Livewire 元件 -->
-        @livewire('admin.dashboard.recent-activity')
+        <livewire:admin.dashboard.recent-activity />
         
     </div>
     

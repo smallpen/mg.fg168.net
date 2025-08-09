@@ -48,10 +48,10 @@
             </button>
             
             <!-- 主題切換按鈕 -->
-            @livewire('admin.layout.theme-toggle')
+            <livewire:admin.layout.theme-toggle />
             
             <!-- 語言選擇器 -->
-            @livewire('admin.language-selector')
+            <livewire:admin.language-selector />
             
             <!-- 通知按鈕 -->
             <div class="relative">
@@ -181,7 +181,7 @@
                         
                         <!-- 登出按鈕 -->
                         <div class="py-1">
-                            @livewire('admin.auth.logout-button', ['showText' => true, 'classes' => 'flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'])
+                            <livewire:admin.auth.logout-button :showText="true" :classes="'flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'" />
                         </div>
                         
                     </div>

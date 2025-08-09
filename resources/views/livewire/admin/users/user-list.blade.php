@@ -335,5 +335,5 @@
     </div>
 
     {{-- 使用者刪除確認對話框 --}}
-    @livewire('admin.users.user-delete')
+    <livewire:admin.users.user-delete />
 </div>

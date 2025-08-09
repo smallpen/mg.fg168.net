@@ -21,11 +21,15 @@ if [ -d "/var/www/html/bootstrap/cache" ]; then
     echo "✓ bootstrap/cache 目錄權限已修復"
 fi
 
-# 確保 .env 檔案可讀
+# 確保 .env 檔案可讀（跳過唯讀檔案系統）
 if [ -f "/var/www/html/.env" ]; then
-    chown www-data:www-data /var/www/html/.env
-    chmod 644 /var/www/html/.env
-    echo "✓ .env 檔案權限已修復"
+    # 檢查是否為唯讀檔案系統
+    if chown www-data:www-data /var/www/html/.env 2>/dev/null; then
+        chmod 644 /var/www/html/.env
+        echo "✓ .env 檔案權限已修復"
+    else
+        echo "⚠ .env 檔案位於唯讀檔案系統，跳過權限修復"
+    fi
 fi
 
 echo "權限修復完成！"

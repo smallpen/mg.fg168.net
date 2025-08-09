@@ -6,7 +6,7 @@
 set -e
 
 # 設定變數
-HEALTH_URL="${HEALTH_URL:-http://localhost/api/health}"
+HEALTH_URL="${HEALTH_URL:-http://localhost/health}"
 TIMEOUT="${TIMEOUT:-10}"
 MAX_RETRIES="${MAX_RETRIES:-3}"
 
@@ -60,7 +60,7 @@ check_http_health() {
 check_php_fpm() {
     log_info "檢查 PHP-FPM 程序"
     
-    if pgrep -f "php-fpm" >/dev/null; then
+    if ps aux | grep -v grep | grep "php-fpm" >/dev/null; then
         log_info "PHP-FPM 程序正在運行"
         return 0
     else

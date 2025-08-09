@@ -17,7 +17,7 @@
 </head>
 <body class="font-sans antialiased bg-gray-50 dark:bg-gray-900">
     <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        @livewire('admin.auth.login-form')
+        <livewire:admin.auth.login-form />
     </div>
 
     @livewireScripts
