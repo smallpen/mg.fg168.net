@@ -65,6 +65,45 @@ class QuickActions extends Component
     }
 
     /**
+     * 處理快速操作點擊
+     * 
+     * @param string $route
+     * @return void
+     */
+    public function handleAction(string $route)
+    {
+        // 記錄活動
+        if (auth()->check()) {
+            // 找到對應的操作標題
+            $action = collect($this->quickActions)->firstWhere('route', $route);
+            $actionTitle = $action['title'] ?? $route;
+
+            // 這裡可以加入活動記錄邏輯
+            // app(\App\Services\ActivityService::class)->logQuickAction(
+            //     auth()->user(),
+            //     $route,
+            //     $actionTitle
+            // );
+        }
+
+        // 重新導向到指定路由
+        return redirect()->route($route);
+    }
+
+    /**
+     * 重新整理快速操作
+     * 
+     * @return void
+     */
+    public function refresh()
+    {
+        // 觸發重新渲染
+        $this->dispatch('actions-refreshed', [
+            'message' => '快速操作已更新'
+        ]);
+    }
+
+    /**
      * 渲染元件
      * 
      * @return \Illuminate\View\View

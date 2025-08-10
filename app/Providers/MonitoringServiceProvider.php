@@ -58,12 +58,22 @@ class MonitoringServiceProvider extends ServiceProvider
         $logPath = storage_path('logs');
         
         if (!is_dir($logPath)) {
-            mkdir($logPath, 0755, true);
+            try {
+                mkdir($logPath, 0755, true);
+            } catch (\Exception $e) {
+                // 如果無法建立目錄，記錄錯誤但不中斷應用程式
+                error_log("無法建立日誌目錄: " . $e->getMessage());
+            }
         }
 
-        // 確保日誌檔案有正確的權限
-        if (is_dir($logPath)) {
-            chmod($logPath, 0755);
+        // 確保日誌檔案有正確的權限（僅在有權限時執行）
+        if (is_dir($logPath) && is_writable($logPath)) {
+            try {
+                chmod($logPath, 0755);
+            } catch (\Exception $e) {
+                // 權限設定失敗時不中斷應用程式
+                error_log("無法設定日誌目錄權限: " . $e->getMessage());
+            }
         }
     }
 
@@ -80,7 +90,12 @@ class MonitoringServiceProvider extends ServiceProvider
 
         foreach ($backupPaths as $path) {
             if (!is_dir($path)) {
-                mkdir($path, 0755, true);
+                try {
+                    mkdir($path, 0755, true);
+                } catch (\Exception $e) {
+                    // 如果無法建立目錄，記錄錯誤但不中斷應用程式
+                    error_log("無法建立備份目錄 {$path}: " . $e->getMessage());
+                }
             }
         }
     }

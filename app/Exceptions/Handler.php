@@ -40,28 +40,37 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             // 使用日誌服務記錄系統錯誤
             if (app()->bound(LoggingService::class)) {
-                $loggingService = app(LoggingService::class);
-                $loggingService->logSystemError($e, [
-                    'url' => request()->fullUrl(),
-                    'method' => request()->method(),
-                    'input' => request()->except($this->dontFlash),
-                ]);
+                try {
+                    $loggingService = app(LoggingService::class);
+                    $loggingService->logSystemError($e, [
+                        'url' => request()->fullUrl(),
+                        'method' => request()->method(),
+                        'input' => request()->except($this->dontFlash),
+                    ]);
+                } catch (\Exception $logException) {
+                    // 如果日誌記錄失敗，避免循環錯誤
+                    error_log('日誌記錄失敗: ' . $logException->getMessage());
+                }
             }
         });
 
         // 處理認證例外
         $this->renderable(function (AuthenticationException $e, Request $request) {
             if (app()->bound(LoggingService::class)) {
-                $loggingService = app(LoggingService::class);
-                $loggingService->logSecurityEvent(
-                    'authentication_failed',
-                    '未認證的存取嘗試',
-                    [
-                        'url' => $request->fullUrl(),
-                        'method' => $request->method(),
-                    ],
-                    'medium'
-                );
+                try {
+                    $loggingService = app(LoggingService::class);
+                    $loggingService->logSecurityEvent(
+                        'authentication_failed',
+                        '未認證的存取嘗試',
+                        [
+                            'url' => $request->fullUrl(),
+                            'method' => $request->method(),
+                        ],
+                        'medium'
+                    );
+                } catch (\Exception $logException) {
+                    error_log('安全事件日誌記錄失敗: ' . $logException->getMessage());
+                }
             }
 
             if ($request->expectsJson()) {
@@ -75,12 +84,16 @@ class Handler extends ExceptionHandler
         $this->renderable(function (HttpException $e, Request $request) {
             if ($e->getStatusCode() === 403) {
                 if (app()->bound(LoggingService::class)) {
-                    $loggingService = app(LoggingService::class);
-                    $loggingService->logPermissionViolation(
-                        $request->method(),
-                        $request->fullUrl(),
-                        '權限不足'
-                    );
+                    try {
+                        $loggingService = app(LoggingService::class);
+                        $loggingService->logPermissionViolation(
+                            $request->method(),
+                            $request->fullUrl(),
+                            '權限不足'
+                        );
+                    } catch (\Exception $logException) {
+                        error_log('權限違規日誌記錄失敗: ' . $logException->getMessage());
+                    }
                 }
 
                 if ($request->expectsJson()) {
