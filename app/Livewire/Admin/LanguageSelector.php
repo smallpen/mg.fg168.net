@@ -38,37 +38,38 @@ class LanguageSelector extends Component
      * 切換語言
      *
      * @param string $locale 要切換的語言代碼
-     * @return void
      */
-    public function switchLanguage(string $locale): void
+    public function switchLanguage(string $locale)
     {
         // 驗證語言代碼是否支援
         if (!array_key_exists($locale, $this->supportedLocales)) {
-            $this->addError('locale', __('admin.language.unsupported'));
+            session()->flash('error', '不支援的語言');
             return;
         }
         
-        // 設定應用程式語言
-        App::setLocale($locale);
-        $this->currentLocale = $locale;
-        
-        // 儲存語言偏好到 session
-        Session::put('locale', $locale);
-        
-        // 如果使用者已登入，更新使用者的語言偏好
-        if (auth()->check()) {
-            auth()->user()->update(['locale' => $locale]);
+        try {
+            // 設定應用程式語言
+            App::setLocale($locale);
+            $this->currentLocale = $locale;
+            
+            // 儲存語言偏好到 session
+            Session::put('locale', $locale);
+            
+            // 如果使用者已登入，更新使用者的語言偏好
+            if (auth()->check()) {
+                auth()->user()->update(['locale' => $locale]);
+            }
+            
+            // 顯示成功訊息
+            $languageName = $this->supportedLocales[$locale];
+            session()->flash('success', "語言已切換為 {$languageName}");
+            
+            // 發送語言切換事件（這會觸發頁面重新載入）
+            $this->dispatch('language-changed', locale: $locale);
+            
+        } catch (\Exception $e) {
+            session()->flash('error', '語言切換失敗：' . $e->getMessage());
         }
-        
-        // 顯示成功訊息
-        $languageName = $this->supportedLocales[$locale];
-        session()->flash('success', __('admin.language.switched', ['language' => $languageName]));
-        
-        // 發送語言切換事件
-        $this->dispatch('language-changed', locale: $locale);
-        
-        // 重新載入頁面以套用新語言
-        $this->redirect(request()->url() . '?locale=' . $locale, navigate: true);
     }
     
     /**

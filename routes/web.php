@@ -37,96 +37,67 @@ Route::get('/test-styles', function () {
     return view('test-styles');
 });
 
-// 管理後台路由群組
-Route::prefix('admin')->name('admin.')->group(function () {
+// 語言選擇器測試路由
+Route::get('/test-language-selector', function () {
+    return view('test-language-selector');
+})->name('test.language-selector');
+
+// 簡單語言測試路由
+Route::get('/test-simple-language', function () {
+    return view('test-simple-language');
+})->name('test.simple-language');
+
+// 語言切換測試路由（使用 URL 參數）
+Route::get('/test-lang-switch', function () {
+    $locale = request('locale', app()->getLocale());
+    if (in_array($locale, ['zh_TW', 'en'])) {
+        app()->setLocale($locale);
+        session(['locale' => $locale]);
+    }
     
-    // 認證相關路由（未登入時可存取）
-    Route::middleware('guest')->group(function () {
-        Route::get('/login', function () {
-            return view('admin.auth.login');
-        })->name('login');
-        
-        Route::post('/login', function () {
-            // 這個路由實際上不會被使用，因為 Livewire 會處理登入邏輯
-            // 但保留它以防需要回退到傳統表單提交
-            return redirect()->route('admin.login');
-        });
+    return response()->json([
+        'current_locale' => app()->getLocale(),
+        'session_locale' => session('locale'),
+        'supported_locales' => ['zh_TW' => '正體中文', 'en' => 'English'],
+        'message' => 'Language switched successfully'
+    ]);
+})->name('test.lang-switch');
+
+// 焦點管理器測試路由
+Route::get('/test-focus', function () {
+    return view('test-focus');
+})->name('test.focus');
+
+// 焦點管理器範例路由
+Route::get('/focus-example', function () {
+    return view('admin.components.focus-example');
+})->name('focus.example');
+
+// 多語言支援展示頁面
+Route::get('/demo/multi-language', function () {
+    return view('demo.multi-language');
+})->name('demo.multi-language')->middleware(['web', App\Http\Middleware\SetLocale::class]);
+
+// 管理後台認證路由（未登入時可存取）
+Route::prefix('admin')->name('admin.')->middleware('guest')->group(function () {
+    Route::get('/login', function () {
+        return view('admin.auth.login');
+    })->name('login');
+    
+    Route::post('/login', function () {
+        // 這個路由實際上不會被使用，因為 Livewire 會處理登入邏輯
+        // 但保留它以防需要回退到傳統表單提交
+        return redirect()->route('admin.login');
     });
-    
-    // 需要認證的管理後台路由
-    Route::middleware(['auth', 'admin'])->group(function () {
-        
-        // 儀表板
-        Route::get('/dashboard', [DashboardController::class, 'index'])
-             ->name('dashboard');
-        
-        // 使用者管理路由
-        Route::prefix('users')->name('users.')->group(function () {
-            Route::get('/', function () {
-                return view('admin.users.index');
-            })->name('index');
-            
-            Route::get('/create', function () {
-                return view('admin.users.create');
-            })->name('create');
-            
-            Route::get('/{user}', function ($user) {
-                return view('admin.users.show', compact('user'));
-            })->name('show');
-            
-            Route::get('/{user}/edit', function ($user) {
-                return view('admin.users.edit', compact('user'));
-            })->name('edit');
-        });
-        
-        // 角色管理路由
-        Route::prefix('roles')->name('roles.')->group(function () {
-            Route::get('/', function () {
-                return view('admin.roles.index');
-            })->name('index');
-            
-            Route::get('/create', function () {
-                return view('admin.roles.create');
-            })->name('create');
-            
-            Route::get('/{role}/edit', function ($role) {
-                return view('admin.roles.edit', compact('role'));
-            })->name('edit');
-        });
-        
-        // 權限管理路由
-        Route::prefix('permissions')->name('permissions.')->group(function () {
-            Route::get('/', function () {
-                return view('admin.permissions.index');
-            })->name('index');
-        });
-        
-        // 系統設定路由
-        Route::prefix('settings')->name('settings.')->group(function () {
-            Route::get('/', function () {
-                return view('admin.settings.index');
-            })->name('index');
-        });
-        
-        // 測試路由（開發環境使用）
-        if (app()->environment('local')) {
-            Route::get('/test-layout', function () {
-                return view('admin.test-layout');
-            })->name('test-layout');
-            
-            Route::get('/test-theme', function () {
-                return view('admin.test-theme');
-            })->name('test-theme');
-        }
-        
-    });
-    
-    // 登出路由（保留作為備用，主要由 Livewire 元件處理）
-    Route::post('/logout', function () {
-        auth()->logout();
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
-        return redirect()->route('admin.login')->with('success', '您已成功登出');
-    })->name('logout');
-    
 });
+
+// 管理後台登出路由（保留作為備用，主要由 Livewire 元件處理）
+Route::post('/admin/logout', function () {
+    auth()->logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect()->route('admin.login')->with('success', '您已成功登出');
+})->name('admin.logout');
+
+// 載入管理後台路由檔案
+require __DIR__.'/admin.php';

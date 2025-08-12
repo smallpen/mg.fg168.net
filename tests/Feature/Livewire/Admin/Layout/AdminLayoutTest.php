@@ -2,380 +2,317 @@
 
 namespace Tests\Feature\Livewire\Admin\Layout;
 
-use App\Http\Livewire\Admin\Layout\AdminLayout;
-use App\Models\Role;
+use App\Livewire\Admin\Layout\AdminLayout;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * AdminLayout 元件測試
+ * AdminLayout 元件功能測試
  * 
- * 測試管理後台主要佈局的渲染、響應式設計和狀態管理
+ * 測試管理後台主佈局元件的各項功能，包括：
+ * - 響應式佈局適應
+ * - 側邊欄狀態管理
+ * - 主題切換功能
+ * - 頁面資訊管理
+ * - 事件處理機制
  */
 class AdminLayoutTest extends TestCase
 {
     use RefreshDatabase;
-
+    
+    protected User $user;
+    
     protected function setUp(): void
     {
         parent::setUp();
         
-        // 建立測試角色
-        $this->adminRole = Role::factory()->create(['name' => 'admin']);
+        // 建立測試使用者
+        $this->user = User::factory()->create([
+            'theme_preference' => 'light',
+            'locale' => 'zh_TW'
+        ]);
         
-        // 建立管理員使用者
-        $this->admin = User::factory()->create();
-        $this->admin->roles()->attach($this->adminRole);
+        $this->actingAs($this->user);
     }
-
-    /**
-     * 測試元件能正確渲染
-     */
-    public function test_component_renders_correctly()
+    
+    /** @test */
+    public function 可以正常渲染佈局元件()
     {
-        $this->actingAs($this->admin);
-
         Livewire::test(AdminLayout::class)
             ->assertStatus(200)
-            ->assertSee('管理後台')
-            ->assertViewHas('user', $this->admin);
+            ->assertViewIs('livewire.admin.layout.admin-layout');
     }
-
-    /**
-     * 測試側邊欄顯示狀態
-     */
-    public function test_sidebar_display_state()
+    
+    /** @test */
+    public function 初始化時載入正確的預設狀態()
     {
-        $this->actingAs($this->admin);
-
         Livewire::test(AdminLayout::class)
-            ->assertSet('sidebarOpen', true) // 預設開啟
+            ->assertSet('sidebarCollapsed', false)
+            ->assertSet('sidebarMobile', false)
+            ->assertSet('currentTheme', 'light')
+            ->assertSet('currentLocale', 'zh_TW')
+            ->assertSet('isMobile', false)
+            ->assertSet('isTablet', false);
+    }
+    
+    /** @test */
+    public function 可以切換側邊欄收合狀態()
+    {
+        Livewire::test(AdminLayout::class)
+            ->assertSet('sidebarCollapsed', false)
             ->call('toggleSidebar')
-            ->assertSet('sidebarOpen', false)
+            ->assertSet('sidebarCollapsed', true)
+            ->assertDispatched('sidebar-toggled', collapsed: true)
             ->call('toggleSidebar')
-            ->assertSet('sidebarOpen', true);
+            ->assertSet('sidebarCollapsed', false)
+            ->assertDispatched('sidebar-toggled', collapsed: false);
     }
-
-    /**
-     * 測試響應式側邊欄行為
-     */
-    public function test_responsive_sidebar_behavior()
+    
+    /** @test */
+    public function 可以切換行動版側邊欄狀態()
     {
-        $this->actingAs($this->admin);
-
         Livewire::test(AdminLayout::class)
-            ->set('isMobile', true)
-            ->assertSet('sidebarOpen', false) // 行動版預設關閉
-            ->call('toggleSidebar')
-            ->assertSet('sidebarOpen', true)
-            ->assertDispatched('sidebar-toggled');
+            ->assertSet('sidebarMobile', false)
+            ->call('toggleMobileSidebar')
+            ->assertSet('sidebarMobile', true)
+            ->assertDispatched('mobile-sidebar-toggled', open: true)
+            ->call('toggleMobileSidebar')
+            ->assertSet('sidebarMobile', false)
+            ->assertDispatched('mobile-sidebar-toggled', open: false);
     }
-
-    /**
-     * 測試頂部導航列顯示
-     */
-    public function test_top_navigation_display()
+    
+    /** @test */
+    public function 可以設定和切換主題()
     {
-        $this->actingAs($this->admin);
-
         Livewire::test(AdminLayout::class)
-            ->assertSee($this->admin->name)
-            ->assertSee('登出')
-            ->assertSee('主題切換')
-            ->assertSee('語言選擇');
+            ->assertSet('currentTheme', 'light')
+            ->call('setTheme', 'dark')
+            ->assertSet('currentTheme', 'dark')
+            ->assertDispatched('theme-changed', theme: 'dark');
+        
+        // 驗證使用者偏好已儲存
+        $this->assertEquals('dark', $this->user->fresh()->theme_preference);
     }
-
-    /**
-     * 測試麵包屑導航
-     */
-    public function test_breadcrumb_navigation()
+    
+    /** @test */
+    public function 可以設定和切換語言()
     {
-        $this->actingAs($this->admin);
-
         Livewire::test(AdminLayout::class)
-            ->set('breadcrumbs', [
-                ['name' => '首頁', 'url' => '/admin'],
-                ['name' => '使用者管理', 'url' => '/admin/users'],
-                ['name' => '編輯使用者', 'url' => null]
-            ])
-            ->assertSee('首頁')
-            ->assertSee('使用者管理')
-            ->assertSee('編輯使用者');
+            ->assertSet('currentLocale', 'zh_TW')
+            ->call('setLocale', 'en')
+            ->assertSet('currentLocale', 'en')
+            ->assertDispatched('locale-changed', locale: 'en');
+        
+        // 驗證使用者偏好已儲存
+        $this->assertEquals('en', $this->user->fresh()->locale);
     }
-
-    /**
-     * 測試頁面標題設定
-     */
-    public function test_page_title_setting()
+    
+    /** @test */
+    public function 可以設定頁面標題()
     {
-        $this->actingAs($this->admin);
-
         Livewire::test(AdminLayout::class)
             ->call('setPageTitle', '使用者管理')
-            ->assertSet('pageTitle', '使用者管理')
-            ->assertSee('使用者管理');
+            ->assertSet('pageTitle', '使用者管理');
     }
-
-    /**
-     * 測試通知顯示
-     */
-    public function test_notification_display()
+    
+    /** @test */
+    public function 可以設定麵包屑導航()
     {
-        $this->actingAs($this->admin);
-
+        $breadcrumbs = [
+            ['label' => '首頁', 'url' => '/admin'],
+            ['label' => '使用者管理', 'url' => '/admin/users'],
+            ['label' => '使用者列表', 'url' => null]
+        ];
+        
         Livewire::test(AdminLayout::class)
-            ->call('showNotification', 'success', '操作成功')
-            ->assertSee('操作成功')
-            ->assertSee('success');
+            ->call('setBreadcrumbs', $breadcrumbs)
+            ->assertSet('breadcrumbs', $breadcrumbs);
     }
-
-    /**
-     * 測試載入狀態顯示
-     */
-    public function test_loading_state_display()
+    
+    /** @test */
+    public function 可以新增頁面操作按鈕()
     {
-        $this->actingAs($this->admin);
-
+        $action = [
+            'label' => '新增使用者',
+            'url' => '/admin/users/create',
+            'icon' => 'plus',
+            'class' => 'btn-primary'
+        ];
+        
         Livewire::test(AdminLayout::class)
-            ->set('isLoading', true)
-            ->assertSee('載入中...')
-            ->set('isLoading', false)
-            ->assertDontSee('載入中...');
+            ->call('addPageAction', $action)
+            ->assertSet('pageActions.0', $action);
     }
-
-    /**
-     * 測試權限控制 - 無權限使用者
-     */
-    public function test_unauthorized_access()
+    
+    /** @test */
+    public function 可以處理視窗大小變更事件()
     {
-        $unauthorizedUser = User::factory()->create();
-        $this->actingAs($unauthorizedUser);
-
         Livewire::test(AdminLayout::class)
-            ->assertRedirect('/admin/login');
-    }
-
-    /**
-     * 測試使用者選單顯示
-     */
-    public function test_user_menu_display()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->call('toggleUserMenu')
-            ->assertSet('userMenuOpen', true)
-            ->assertSee('個人資料')
-            ->assertSee('帳號設定')
-            ->assertSee('登出');
-    }
-
-    /**
-     * 測試搜尋功能
-     */
-    public function test_global_search_functionality()
-    {
-        $this->actingAs($this->admin);
-
-        User::factory()->create(['name' => 'John Doe']);
-
-        Livewire::test(AdminLayout::class)
-            ->set('searchTerm', 'John')
-            ->call('performSearch')
-            ->assertDispatched('search-performed')
-            ->assertSee('搜尋結果');
-    }
-
-    /**
-     * 測試快捷鍵支援
-     */
-    public function test_keyboard_shortcuts()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->call('handleKeyboardShortcut', 'ctrl+k')
-            ->assertSet('searchFocused', true)
-            ->call('handleKeyboardShortcut', 'ctrl+b')
-            ->assertDispatched('sidebar-toggled');
-    }
-
-    /**
-     * 測試主題狀態管理
-     */
-    public function test_theme_state_management()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->set('currentTheme', 'dark')
-            ->assertSet('currentTheme', 'dark')
-            ->call('updateTheme', 'light')
-            ->assertSet('currentTheme', 'light');
-    }
-
-    /**
-     * 測試語言狀態管理
-     */
-    public function test_language_state_management()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->set('currentLocale', 'en')
-            ->assertSet('currentLocale', 'en')
-            ->call('updateLocale', 'zh_TW')
-            ->assertSet('currentLocale', 'zh_TW');
-    }
-
-    /**
-     * 測試側邊欄選單項目顯示
-     */
-    public function test_sidebar_menu_items()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->assertSee('儀表板')
-            ->assertSee('使用者管理')
-            ->assertSee('角色權限')
-            ->assertSee('系統設定');
-    }
-
-    /**
-     * 測試當前頁面高亮
-     */
-    public function test_current_page_highlight()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->set('currentRoute', 'admin.users.index')
-            ->assertSee('active') // 檢查是否有 active 類別
-            ->call('setCurrentRoute', 'admin.roles.index')
-            ->assertSet('currentRoute', 'admin.roles.index');
-    }
-
-    /**
-     * 測試頁面載入進度條
-     */
-    public function test_page_loading_progress()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->call('startPageLoading')
-            ->assertSet('pageLoadingProgress', 0)
-            ->call('updateLoadingProgress', 50)
-            ->assertSet('pageLoadingProgress', 50)
-            ->call('completePageLoading')
-            ->assertSet('pageLoadingProgress', 100);
-    }
-
-    /**
-     * 測試錯誤處理顯示
-     */
-    public function test_error_handling_display()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->call('showError', '發生錯誤')
-            ->assertSee('發生錯誤')
-            ->assertSee('error');
-    }
-
-    /**
-     * 測試全螢幕模式
-     */
-    public function test_fullscreen_mode()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->call('toggleFullscreen')
-            ->assertSet('isFullscreen', true)
-            ->assertDispatched('fullscreen-toggled')
-            ->call('toggleFullscreen')
-            ->assertSet('isFullscreen', false);
-    }
-
-    /**
-     * 測試佈局設定儲存
-     */
-    public function test_layout_settings_persistence()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->set('sidebarOpen', false)
-            ->set('currentTheme', 'dark')
-            ->call('saveLayoutSettings')
-            ->assertDispatched('settings-saved');
-
-        // 檢查設定是否被儲存到 session 或資料庫
-        $this->assertEquals('dark', session('admin_theme'));
-        $this->assertFalse(session('sidebar_open'));
-    }
-
-    /**
-     * 測試即時通知系統
-     */
-    public function test_real_time_notifications()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->call('connectToNotifications')
-            ->assertDispatched('notifications-connected')
-            ->call('receiveNotification', [
-                'type' => 'info',
-                'message' => '新的系統更新可用'
+            ->call('handleViewportChange', [
+                'isMobile' => true,
+                'isTablet' => false,
+                'width' => 375
             ])
-            ->assertSee('新的系統更新可用');
-    }
-
-    /**
-     * 測試多標籤頁支援
-     */
-    public function test_multi_tab_support()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->call('openTab', 'users', '使用者管理')
-            ->assertSet('tabs', [['id' => 'users', 'title' => '使用者管理']])
-            ->call('closeTab', 'users')
-            ->assertSet('tabs', []);
-    }
-
-    /**
-     * 測試佈局響應式斷點
-     */
-    public function test_responsive_breakpoints()
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test(AdminLayout::class)
-            ->set('screenSize', 'mobile')
             ->assertSet('isMobile', true)
-            ->set('screenSize', 'desktop')
-            ->assertSet('isMobile', false);
+            ->assertSet('isTablet', false);
     }
-
-    /**
-     * 測試輔助功能支援
-     */
-    public function test_accessibility_support()
+    
+    /** @test */
+    public function 行動裝置模式下自動關閉側邊欄()
     {
-        $this->actingAs($this->admin);
-
         Livewire::test(AdminLayout::class)
-            ->assertSee('aria-label')
-            ->assertSee('role="navigation"')
-            ->call('toggleHighContrast')
-            ->assertSet('highContrast', true);
+            ->set('sidebarCollapsed', false)
+            ->call('handleViewportChange', [
+                'isMobile' => true,
+                'isTablet' => false,
+                'width' => 375
+            ])
+            ->assertSet('isMobile', true)
+            ->assertSet('sidebarMobile', false);
+    }
+    
+    /** @test */
+    public function 可以監聽主題變更事件()
+    {
+        Livewire::test(AdminLayout::class)
+            ->dispatch('theme-changed', theme: 'dark')
+            ->assertSet('currentTheme', 'dark');
+    }
+    
+    /** @test */
+    public function 可以監聽語言變更事件()
+    {
+        Livewire::test(AdminLayout::class)
+            ->dispatch('locale-changed', locale: 'en')
+            ->assertSet('currentLocale', 'en');
+    }
+    
+    /** @test */
+    public function 側邊欄狀態會儲存到session()
+    {
+        Livewire::test(AdminLayout::class)
+            ->call('toggleSidebar');
+        
+        $this->assertTrue(session('sidebar_collapsed'));
+    }
+    
+    /** @test */
+    public function 從session恢復側邊欄狀態()
+    {
+        session(['sidebar_collapsed' => true]);
+        
+        Livewire::test(AdminLayout::class)
+            ->assertSet('sidebarCollapsed', true);
+    }
+    
+    /** @test */
+    public function 產生正確的佈局CSS類別()
+    {
+        $component = Livewire::test(AdminLayout::class);
+        $layoutClasses = $component->instance()->getLayoutClasses();
+        
+        $this->assertIsArray($layoutClasses);
+        $this->assertArrayHasKey('container', $layoutClasses);
+        $this->assertArrayHasKey('sidebar', $layoutClasses);
+        $this->assertArrayHasKey('main', $layoutClasses);
+        $this->assertArrayHasKey('overlay', $layoutClasses);
+    }
+    
+    /** @test */
+    public function 桌面版佈局產生正確的CSS類別()
+    {
+        $component = Livewire::test(AdminLayout::class)
+            ->set('isMobile', false)
+            ->set('isTablet', false);
+        
+        $layoutClasses = $component->instance()->getLayoutClasses();
+        
+        $this->assertStringContainsString('layout-desktop', $layoutClasses['container']);
+        $this->assertStringContainsString('ml-72', $layoutClasses['main']);
+    }
+    
+    /** @test */
+    public function 平板版佈局產生正確的CSS類別()
+    {
+        $component = Livewire::test(AdminLayout::class)
+            ->set('isMobile', false)
+            ->set('isTablet', true);
+        
+        $layoutClasses = $component->instance()->getLayoutClasses();
+        
+        $this->assertStringContainsString('layout-tablet', $layoutClasses['container']);
+    }
+    
+    /** @test */
+    public function 行動版佈局產生正確的CSS類別()
+    {
+        $component = Livewire::test(AdminLayout::class)
+            ->set('isMobile', true)
+            ->set('isTablet', false);
+        
+        $layoutClasses = $component->instance()->getLayoutClasses();
+        
+        $this->assertStringContainsString('layout-mobile', $layoutClasses['container']);
+        $this->assertStringContainsString('ml-0', $layoutClasses['main']);
+    }
+    
+    /** @test */
+    public function 收合狀態下產生正確的CSS類別()
+    {
+        $component = Livewire::test(AdminLayout::class)
+            ->set('sidebarCollapsed', true);
+        
+        $layoutClasses = $component->instance()->getLayoutClasses();
+        
+        $this->assertStringContainsString('sidebar-collapsed', $layoutClasses['container']);
+        $this->assertStringContainsString('w-16', $layoutClasses['sidebar']);
+        $this->assertStringContainsString('ml-16', $layoutClasses['main']);
+    }
+    
+    /** @test */
+    public function 行動版側邊欄開啟時顯示遮罩層()
+    {
+        $component = Livewire::test(AdminLayout::class)
+            ->set('isMobile', true)
+            ->set('sidebarMobile', true);
+        
+        $layoutClasses = $component->instance()->getLayoutClasses();
+        
+        $this->assertStringNotContainsString('hidden', $layoutClasses['overlay']);
+    }
+    
+    /** @test */
+    public function 非行動版或側邊欄關閉時隱藏遮罩層()
+    {
+        $component = Livewire::test(AdminLayout::class)
+            ->set('isMobile', false)
+            ->set('sidebarMobile', false);
+        
+        $layoutClasses = $component->instance()->getLayoutClasses();
+        
+        $this->assertStringContainsString('hidden', $layoutClasses['overlay']);
+    }
+    
+    /** @test */
+    public function 計算屬性正確回傳當前使用者()
+    {
+        $component = Livewire::test(AdminLayout::class);
+        $currentUser = $component->instance()->getCurrentUserProperty();
+        
+        $this->assertInstanceOf(User::class, $currentUser);
+        $this->assertEquals($this->user->id, $currentUser->id);
+    }
+    
+    /** @test */
+    public function 計算屬性正確回傳行動裝置狀態()
+    {
+        $component = Livewire::test(AdminLayout::class)
+            ->set('isMobile', true);
+        
+        $isMobile = $component->instance()->getIsMobileProperty();
+        
+        $this->assertTrue($isMobile);
     }
 }

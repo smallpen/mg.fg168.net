@@ -24,6 +24,7 @@ class Activity extends Model
      */
     protected $fillable = [
         'type',
+        'event',
         'description',
         'module',
         'user_id',
@@ -81,6 +82,16 @@ class Activity extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * 執行活動的使用者關聯（別名，用於相容性）
+     *
+     * @return BelongsTo
+     */
+    public function causer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**

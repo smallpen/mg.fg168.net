@@ -1,0 +1,162 @@
+/* 麵包屑容器 */
+.breadcrumb-container {
+    @apply w-full;
+}
+
+/* 麵包屑導航 */
+.breadcrumb-nav {
+    @apply w-full;
+}
+
+.breadcrumb-list {
+    @apply flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-300 overflow-x-auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.breadcrumb-list::-webkit-scrollbar {
+    display: none;
+}
+
+/* 麵包屑項目 */
+.breadcrumb-item {
+    @apply flex items-center space-x-1 whitespace-nowrap;
+}
+
+.breadcrumb-item.active .breadcrumb-current {
+    @apply text-gray-900 dark:text-gray-100 font-medium;
+}
+
+/* 麵包屑連結 */
+.breadcrumb-link {
+    @apply text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 
+           hover:underline transition-colors duration-200 cursor-pointer
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded px-1;
+}
+
+.breadcrumb-link:disabled {
+    @apply text-gray-400 dark:text-gray-500 cursor-not-allowed hover:no-underline;
+}
+
+/* 麵包屑文字 */
+.breadcrumb-text,
+.breadcrumb-current {
+    @apply px-1;
+}
+
+/* 分隔符號 */
+.breadcrumb-separator {
+    @apply w-4 h-4 text-gray-400 dark:text-gray-500 mx-1 flex-shrink-0;
+}
+
+/* 省略號下拉選單 */
+.breadcrumb-ellipsis {
+    @apply relative;
+}
+
+.breadcrumb-ellipsis-btn {
+    @apply flex items-center space-x-1 text-gray-600 dark:text-gray-300 
+           hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded px-1;
+}
+
+.ellipsis-text {
+    @apply font-medium;
+}
+
+.ellipsis-icon {
+    @apply w-3 h-3 flex-shrink-0;
+}
+
+.breadcrumb-dropdown {
+    @apply absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 
+           border border-gray-200 dark:border-gray-700 rounded-md shadow-lg 
+           py-1 z-50 min-w-48;
+}
+
+.breadcrumb-dropdown-item {
+    @apply block w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300
+           hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100
+           transition-colors duration-200 cursor-pointer;
+}
+
+.breadcrumb-dropdown-item:disabled {
+    @apply text-gray-400 dark:text-gray-500 cursor-not-allowed hover:bg-transparent;
+}
+
+/* 行動版麵包屑 */
+.breadcrumb-mobile {
+    @apply flex items-center justify-between py-2;
+}
+
+.breadcrumb-back-btn {
+    @apply flex items-center space-x-2 text-blue-600 dark:text-blue-400 
+           hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded px-2 py-1;
+}
+
+.breadcrumb-back-btn:disabled {
+    @apply text-gray-400 dark:text-gray-500 cursor-not-allowed;
+}
+
+.back-icon {
+    @apply w-4 h-4 flex-shrink-0;
+}
+
+.breadcrumb-mobile-current {
+    @apply text-gray-900 dark:text-gray-100 font-medium truncate ml-4;
+}
+
+/* 響應式設計 */
+@media (max-width: 640px) {
+    .breadcrumb-list {
+        @apply hidden;
+    }
+    
+    .breadcrumb-mobile {
+        @apply flex;
+    }
+}
+
+@media (min-width: 641px) {
+    .breadcrumb-list {
+        @apply flex;
+    }
+    
+    .breadcrumb-mobile {
+        @apply hidden;
+    }
+}
+
+/* 載入動畫 */
+.breadcrumb-loading {
+    @apply animate-pulse;
+}
+
+.breadcrumb-loading .breadcrumb-item {
+    @apply bg-gray-200 dark:bg-gray-700 rounded h-4 w-16;
+}
+
+/* 高對比模式支援 */
+@media (prefers-contrast: high) {
+    .breadcrumb-link {
+        @apply underline;
+    }
+    
+    .breadcrumb-separator {
+        @apply text-black dark:text-white;
+    }
+}
+
+/* 減少動畫偏好 */
+@media (prefers-reduced-motion: reduce) {
+    .breadcrumb-link,
+    .breadcrumb-ellipsis-btn,
+    .breadcrumb-back-btn {
+        @apply transition-none;
+    }
+    
+    .breadcrumb-dropdown {
+        @apply transition-none;
+    }
+}

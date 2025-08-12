@@ -54,6 +54,12 @@ class Kernel extends ConsoleKernel
                 }
             }
         })->weekly()->sundays()->at('01:00');
+
+        // 每小時清理過期的 Session
+        $schedule->command('sessions:cleanup')
+                 ->hourly()
+                 ->withoutOverlapping()
+                 ->runInBackground();
     }
 
     /**

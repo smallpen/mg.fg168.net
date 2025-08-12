@@ -1,8 +1,23 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
+import './touch-gestures';
+import './lazy-loading';
+import './service-worker-manager';
+import './animations/interactive-animations';
+import './animations/gesture-handler';
 
-// 初始化 Alpine.js（讓 Livewire 處理初始化）
+// 讓 Livewire 處理 Alpine.js 初始化
 window.Alpine = Alpine;
+
+// 效能優化指令
+Alpine.directive('lazy-img', (el, { expression }) => {
+    el.setAttribute('data-src', expression);
+    el.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMSIgaGVpZ2h0PSIxIiB2aWV3Qm94PSIwIDAgMSAxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9InRyYW5zcGFyZW50Ii8+PC9zdmc+';
+});
+
+Alpine.directive('lazy-component', (el, { expression }) => {
+    el.setAttribute('data-lazy-component', expression);
+});
 
 // 主題切換功能
 document.addEventListener('DOMContentLoaded', function() {
@@ -158,3 +173,82 @@ window.hideLoading = function(element, originalText) {
         element.innerHTML = originalText;
     }
 };
+
+// 效能優化初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 預載入關鍵資源
+    if (window.lazyLoader) {
+        window.lazyLoader.preloadCriticalResources();
+    }
+    
+    // 初始化效能監控
+    if ('performance' in window && 'PerformanceObserver' in window) {
+        // 監控 LCP (Largest Contentful Paint)
+        try {
+            new PerformanceObserver((entryList) => {
+                for (const entry of entryList.getEntries()) {
+                    console.log('LCP:', entry.startTime);
+                    // 可以發送到分析服務
+                    if (window.gtag) {
+                        window.gtag('event', 'LCP', {
+                            value: Math.round(entry.startTime),
+                            custom_parameter: 'admin_layout'
+                        });
+                    }
+                }
+            }).observe({ entryTypes: ['largest-contentful-paint'] });
+        } catch (e) {
+            console.warn('LCP 監控不支援:', e);
+        }
+        
+        // 監控 FID (First Input Delay)
+        try {
+            new PerformanceObserver((entryList) => {
+                for (const entry of entryList.getEntries()) {
+                    const fid = entry.processingStart - entry.startTime;
+                    console.log('FID:', fid);
+                    if (window.gtag) {
+                        window.gtag('event', 'FID', {
+                            value: Math.round(fid),
+                            custom_parameter: 'admin_layout'
+                        });
+                    }
+                }
+            }).observe({ entryTypes: ['first-input'] });
+        } catch (e) {
+            console.warn('FID 監控不支援:', e);
+        }
+        
+        // 監控 CLS (Cumulative Layout Shift)
+        try {
+            new PerformanceObserver((entryList) => {
+                for (const entry of entryList.getEntries()) {
+                    if (!entry.hadRecentInput) {
+                        console.log('CLS:', entry.value);
+                        if (window.gtag) {
+                            window.gtag('event', 'CLS', {
+                                value: Math.round(entry.value * 1000),
+                                custom_parameter: 'admin_layout'
+                            });
+                        }
+                    }
+                }
+            }).observe({ entryTypes: ['layout-shift'] });
+        } catch (e) {
+            console.warn('CLS 監控不支援:', e);
+        }
+    }
+    
+    // 資源載入優化
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+            // 在瀏覽器空閒時預載入非關鍵資源
+            const nonCriticalImages = document.querySelectorAll('img[data-preload="idle"]');
+            nonCriticalImages.forEach(img => {
+                if (img.dataset.src && window.lazyLoader) {
+                    window.lazyLoader.preloadResource(img.dataset.src, 'image');
+                }
+            });
+        });
+    }
+});

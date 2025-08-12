@@ -1,68 +1,122 @@
 @extends('layouts.admin')
 
 @section('title', '儀表板')
-@section('page-title', '儀表板')
 
 @section('content')
-<div class="space-y-6">
-    
-    <!-- 歡迎訊息 -->
-    <div class="card">
-        <div class="card-body">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                歡迎回來，{{ auth()->user()->display_name }}！
-            </h2>
-            <p class="text-gray-600 dark:text-gray-400">
-                這是您的管理後台儀表板，您可以在這裡管理系統的各項功能。
-            </p>
-        </div>
-    </div>
-    
-    <!-- 統計卡片 - 使用 Livewire 元件 -->
-    <livewire:admin.dashboard.dashboard-stats />
-    
-    <!-- 統計圖表 -->
-    <livewire:admin.dashboard.stats-chart />
-    
-    <!-- 快速操作和最近活動 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <!-- 快速操作 - 使用 Livewire 元件 -->
-        <livewire:admin.dashboard.quick-actions />
-        
-        <!-- 最近活動 - 使用 Livewire 元件 -->
-        <livewire:admin.dashboard.recent-activity />
-        
-    </div>
-    
-    <!-- 系統資訊 -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">系統資訊</h3>
-        </div>
-        <div class="card-body">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ app()->version() }}</div>
-                    <div class="text-sm text-gray-600 dark:text-gray-400">Laravel 版本</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ PHP_VERSION }}</div>
-                    <div class="text-sm text-gray-600 dark:text-gray-400">PHP 版本</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 capitalize">{{ app()->environment() }}</div>
-                    <div class="text-sm text-gray-600 dark:text-gray-400">執行環境</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold {{ config('app.debug') ? 'text-warning-600 dark:text-warning-400' : 'text-success-600 dark:text-success-400' }}">
-                        {{ config('app.debug') ? '開啟' : '關閉' }}
-                    </div>
-                    <div class="text-sm text-gray-600 dark:text-gray-400">除錯模式</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-</div>
+    <livewire:admin.dashboard />
 @endsection
+
+@push('scripts')
+<script>
+    // 儀表板相關的 JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // 監聽 toast 事件
+        window.addEventListener('toast', event => {
+            const { type, message } = event.detail;
+            
+            // 這裡可以整合 toast 通知系統
+            console.log(`${type}: ${message}`);
+            
+            // 如果有使用 toast 庫，可以在這裡調用
+            // 例如：toast.success(message) 或 toast.error(message)
+        });
+        
+        // 自動重新整理儀表板資料（每 5 分鐘）
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                Livewire.dispatch('refresh-dashboard');
+            }
+        }, 300000); // 5 分鐘
+        
+        // 當頁面重新獲得焦點時重新整理資料
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                Livewire.dispatch('refresh-dashboard');
+            }
+        });
+    });
+</script>
+@endpush
+
+@push('styles')
+<style>
+    /* 儀表板特定樣式 */
+    .dashboard-container {
+        animation: fadeIn 0.5s ease-in-out;
+        padding: 1.5rem;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .stat-card {
+        transform: scale(1);
+        transition: all 0.2s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chart-area {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+    
+    [data-theme="dark"] .chart-area {
+        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    }
+    
+    .quick-actions button {
+        transition: transform 0.2s ease;
+    }
+    
+    .quick-actions button:hover {
+        transform: translateX(4px);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    /* 響應式調整 */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .stat-card {
+            padding: 1rem;
+        }
+        
+        .chart-container {
+            padding: 1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .chart-area {
+            height: 12rem;
+        }
+    }
+</style>
+@endpush

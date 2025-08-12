@@ -1,0 +1,497 @@
+/* 按鈕動畫 - Button Animations */
+
+/* ===== 基礎按鈕動畫 ===== */
+
+.btn-animated {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0); /* 啟用硬體加速 */
+  backface-visibility: hidden;
+}
+
+/* 按鈕懸停效果 */
+.btn-animated:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-animated:active {
+  transform: translateY(0) scale(0.95);
+  transition-duration: 0.05s;
+}
+
+.btn-animated:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* ===== 波紋效果 ===== */
+
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease-out, height 0.3s ease-out;
+  pointer-events: none;
+}
+
+.btn-ripple:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* 自訂波紋顏色 */
+.btn-ripple.btn-primary::before {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-ripple.btn-secondary::before {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-ripple.btn-success::before {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-ripple.btn-warning::before {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-ripple.btn-danger::before {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-ripple.btn-outline::before {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* ===== 載入動畫 ===== */
+
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: buttonSpin 1s linear infinite;
+}
+
+/* 載入動畫變體 */
+.btn-loading-dots::after {
+  content: '⋯';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: currentColor;
+  font-size: 1.2em;
+  animation: loadingDots 1.5s ease-in-out infinite;
+}
+
+.btn-loading-pulse::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  background: currentColor;
+  border-radius: 50%;
+  animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes buttonSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes loadingDots {
+  0%, 20% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes loadingPulse {
+  0%, 100% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+}
+
+/* ===== 狀態動畫 ===== */
+
+/* 成功動畫 */
+.btn-success-animation {
+  animation: buttonSuccess 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes buttonSuccess {
+  0% {
+    transform: scale(1);
+    background-color: var(--original-bg, #3b82f6);
+  }
+  50% {
+    transform: scale(1.05);
+    background-color: #10b981;
+  }
+  100% {
+    transform: scale(1);
+    background-color: var(--original-bg, #3b82f6);
+  }
+}
+
+/* 錯誤動畫 */
+.btn-error-animation {
+  animation: buttonError 0.3s ease-out;
+}
+
+@keyframes buttonError {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+    background-color: #ef4444;
+  }
+  75% {
+    transform: translateX(5px);
+    background-color: #ef4444;
+  }
+}
+
+/* 警告動畫 */
+.btn-warning-animation {
+  animation: buttonWarning 0.4s ease-in-out;
+}
+
+@keyframes buttonWarning {
+  0%, 100% {
+    transform: scale(1);
+    background-color: var(--original-bg, #3b82f6);
+  }
+  25%, 75% {
+    transform: scale(1.02);
+    background-color: #f59e0b;
+  }
+  50% {
+    transform: scale(0.98);
+    background-color: #f59e0b;
+  }
+}
+
+/* ===== 特殊效果按鈕 ===== */
+
+/* 發光效果 */
+.btn-glow {
+  position: relative;
+  transition: all 0.3s ease-out;
+}
+
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: inherit;
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  z-index: -1;
+}
+
+.btn-glow:hover::before {
+  opacity: 0.7;
+}
+
+/* 漸變背景動畫 */
+.btn-gradient {
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #3b82f6);
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 邊框動畫 */
+.btn-border-animation {
+  position: relative;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.btn-border-animation::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+  background-size: 300% 300%;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: borderRotate 2s linear infinite;
+  z-index: -1;
+}
+
+@keyframes borderRotate {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* ===== 按鈕組動畫 ===== */
+
+.btn-group {
+  display: flex;
+  gap: 0;
+}
+
+.btn-group .btn-animated {
+  border-radius: 0;
+  margin-left: -1px;
+  transition: all 0.2s ease-out;
+}
+
+.btn-group .btn-animated:first-child {
+  border-top-left-radius: 0.375rem;
+  border-bottom-left-radius: 0.375rem;
+  margin-left: 0;
+}
+
+.btn-group .btn-animated:last-child {
+  border-top-right-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+}
+
+.btn-group .btn-animated:hover {
+  z-index: 1;
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* ===== 浮動操作按鈕 ===== */
+
+.btn-fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 1000;
+}
+
+.btn-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.btn-fab:active {
+  transform: scale(0.95);
+}
+
+/* FAB 展開選單 */
+.btn-fab-menu {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+}
+
+.btn-fab-item {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-fab-menu.expanded .btn-fab-item:nth-child(2) {
+  bottom: 70px;
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.1s;
+}
+
+.btn-fab-menu.expanded .btn-fab-item:nth-child(3) {
+  bottom: 120px;
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.2s;
+}
+
+.btn-fab-menu.expanded .btn-fab-item:nth-child(4) {
+  bottom: 170px;
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.3s;
+}
+
+/* ===== 切換按鈕動畫 ===== */
+
+.btn-toggle {
+  position: relative;
+  transition: all 0.3s ease-out;
+}
+
+.btn-toggle.active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-toggle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background-color: #3b82f6;
+  border-radius: inherit;
+  transition: width 0.3s ease-out;
+  z-index: -1;
+}
+
+.btn-toggle.active::before {
+  width: 100%;
+}
+
+/* ===== 按鈕圖示動畫 ===== */
+
+.btn-icon {
+  transition: all 0.2s ease-out;
+}
+
+.btn-animated:hover .btn-icon {
+  transform: scale(1.1);
+}
+
+.btn-animated:active .btn-icon {
+  transform: scale(0.9);
+}
+
+/* 圖示旋轉動畫 */
+.btn-icon-rotate {
+  transition: transform 0.3s ease-out;
+}
+
+.btn-animated:hover .btn-icon-rotate {
+  transform: rotate(180deg);
+}
+
+/* 圖示彈跳動畫 */
+.btn-icon-bounce {
+  animation: iconBounce 2s ease-in-out infinite;
+}
+
+@keyframes iconBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-3px);
+  }
+  60% {
+    transform: translateY(-2px);
+  }
+}
+
+/* ===== 響應式調整 ===== */
+
+@media (max-width: 768px) {
+  .btn-animated:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .btn-fab {
+    bottom: 1rem;
+    right: 1rem;
+    width: 48px;
+    height: 48px;
+  }
+  
+  .btn-fab:hover {
+    transform: none;
+  }
+  
+  .btn-group .btn-animated:hover {
+    transform: none;
+  }
+}
+
+/* 減少動畫偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .btn-animated,
+  .btn-ripple,
+  .btn-loading,
+  .btn-fab,
+  .btn-fab-item,
+  .btn-toggle,
+  .btn-icon,
+  .btn-icon-rotate {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  
+  .btn-animated:hover,
+  .btn-animated:active,
+  .btn-fab:hover,
+  .btn-fab:active {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .btn-ripple::before,
+  .btn-glow::before,
+  .btn-border-animation::before,
+  .btn-toggle::before {
+    display: none !important;
+  }
+}

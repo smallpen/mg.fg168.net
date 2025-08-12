@@ -1,27 +1,48 @@
-@props(['sidebarOpen' => true])
+@props(['sidebarOpen' => false])
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900" x-data="{ sidebarOpen: {{ $sidebarOpen ? 'true' : 'false' }}, isMobile: false }" 
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900" x-data="{ sidebarOpen: false, isMobile: window.innerWidth < 1024 }" 
      x-init="
         // 檢測螢幕大小
-        const checkMobile = () => isMobile = window.innerWidth < 1024;
+        checkMobile = () => {
+            wasMobile = isMobile;
+            isMobile = window.innerWidth < 1024;
+            
+            // 如果切換到手機版，關閉側邊欄
+            if (isMobile) {
+                sidebarOpen = false;
+            }
+            // 如果切換到桌面版，恢復側邊欄狀態
+            else if (wasMobile && !isMobile) {
+                savedState = localStorage.getItem('sidebarOpen');
+                sidebarOpen = savedState !== null ? savedState === 'true' : true;
+            }
+        };
+        
+        // 初始化
         checkMobile();
         window.addEventListener('resize', checkMobile);
         
-        // 從 localStorage 恢復側邊欄狀態
-        const savedState = localStorage.getItem('sidebarOpen');
-        if (savedState !== null) {
-            sidebarOpen = savedState === 'true';
+        // 初始化側邊欄狀態
+        if (!isMobile) {
+            savedState = localStorage.getItem('sidebarOpen');
+            sidebarOpen = savedState !== null ? savedState === 'true' : true;
         }
         
-        // 監聽側邊欄狀態變化並儲存
+        // 監聽側邊欄狀態變化並儲存（僅桌面版）
         $watch('sidebarOpen', value => {
-            localStorage.setItem('sidebarOpen', value);
+            if (!isMobile) {
+                localStorage.setItem('sidebarOpen', value);
+            }
         });
      ">
 
     <!-- 側邊欄 -->
     <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out"
-         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+         :class="{
+             'translate-x-0': sidebarOpen,
+             '-translate-x-full': !sidebarOpen && isMobile,
+             'lg:translate-x-0': !isMobile
+         }"
          x-show="sidebarOpen || !isMobile"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="-translate-x-full"
@@ -41,7 +62,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <span class="text-xl font-bold text-gray-900 dark:text-white">管理系統</span>
+                    <span class="text-xl font-bold text-gray-900 dark:text-white">{{ __('admin.title') }}</span>
                 </div>
                 
                 <!-- 行動裝置關閉按鈕 -->
@@ -64,7 +85,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
                     </svg>
-                    儀表板
+                    {{ __('admin.navigation.dashboard') }}
                 </a>
                 
                 <!-- 使用者管理 -->
@@ -75,7 +96,7 @@
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                             </svg>
-                            使用者管理
+                            {{ __('admin.navigation.users') }}
                         </div>
                         <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -83,9 +104,9 @@
                     </button>
                     
                     <div x-show="open" x-transition class="ml-8 mt-2 space-y-1">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">使用者列表</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">新增使用者</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">角色管理</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('admin.users.list') }}</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('admin.users.create') }}</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('admin.roles.title') }}</a>
                     </div>
                 </div>
                 
@@ -98,7 +119,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
-                            系統設定
+                            {{ __('admin.navigation.settings') }}
                         </div>
                         <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -106,9 +127,9 @@
                     </button>
                     
                     <div x-show="open" x-transition class="ml-8 mt-2 space-y-1">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">基本設定</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">郵件設定</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">快取管理</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('layout.basic_settings') }}</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('layout.mail_settings') }}</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('layout.cache_management') }}</a>
                     </div>
                 </div>
                 
@@ -171,8 +192,11 @@
                     @endif
                 </div>
                 
-                <!-- 右側：使用者選單和主題切換 -->
+                <!-- 右側：語言選擇器、主題切換和使用者選單 -->
                 <div class="flex items-center space-x-4">
+                    
+                    <!-- 語言選擇器 -->
+                    <livewire:admin.language-selector />
                     
                     <!-- 主題切換按鈕 -->
                     <button @click="

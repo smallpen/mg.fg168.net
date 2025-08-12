@@ -2,6 +2,32 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+/* 導入主題系統 CSS */
+@import './theme-system.css';
+@import './custom-themes.css';
+@import './admin-layout.css';
+@import './enhanced-admin-layout.css';
+@import './responsive-design.css';
+@import './components/breadcrumb.css';
+@import './components/top-nav-bar.css';
+@import './dashboard.css';
+
+/* 導入動畫系統 CSS */
+@import './animations/interactive-animations.css';
+@import './animations/page-transitions.css';
+@import './animations/menu-animations.css';
+@import './animations/button-animations.css';
+@import './animations/loading-animations.css';
+@import './animations/gesture-animations.css';
+
+/* 導入動畫系統 CSS */
+@import './animations/interactive-animations.css';
+@import './animations/page-transitions.css';
+@import './animations/menu-animations.css';
+@import './animations/button-animations.css';
+@import './animations/loading-animations.css';
+@import './animations/gesture-animations.css';
+
 /* 自訂 CSS 變數用於主題切換 */
 :root {
   /* 主要色彩 */

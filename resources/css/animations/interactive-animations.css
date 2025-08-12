@@ -1,0 +1,753 @@
+/* 互動動畫系統 - Interactive Animation System */
+
+/* ===== 動畫變數定義 ===== */
+:root {
+  /* 動畫時間 */
+  --animation-fast: 150ms;
+  --animation-normal: 300ms;
+  --animation-slow: 500ms;
+  --animation-extra-slow: 800ms;
+  
+  /* 動畫曲線 */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* 動畫距離 */
+  --slide-distance: 20px;
+  --scale-hover: 1.05;
+  --scale-active: 0.95;
+  --rotate-hover: 5deg;
+}
+
+/* ===== 頁面切換動畫 ===== */
+
+/* 頁面淡入動畫 */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(var(--slide-distance));
+  animation: pageEnter var(--animation-normal) var(--ease-out) forwards;
+}
+
+.page-transition-leave {
+  opacity: 1;
+  transform: translateY(0);
+  animation: pageLeave var(--animation-fast) var(--ease-in) forwards;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--slide-distance));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pageLeave {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* 頁面滑動切換動畫 */
+.page-slide-enter-right {
+  animation: slideInRight var(--animation-normal) var(--ease-out) forwards;
+}
+
+.page-slide-enter-left {
+  animation: slideInLeft var(--animation-normal) var(--ease-out) forwards;
+}
+
+.page-slide-leave-right {
+  animation: slideOutRight var(--animation-fast) var(--ease-in) forwards;
+}
+
+.page-slide-leave-left {
+  animation: slideOutLeft var(--animation-fast) var(--ease-in) forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+/* ===== 選單展開/收合動畫 ===== */
+
+/* 側邊欄動畫 */
+.sidebar-transition {
+  transition: all var(--animation-normal) var(--ease-in-out);
+}
+
+.sidebar-expand {
+  animation: sidebarExpand var(--animation-normal) var(--ease-out) forwards;
+}
+
+.sidebar-collapse {
+  animation: sidebarCollapse var(--animation-normal) var(--ease-in) forwards;
+}
+
+@keyframes sidebarExpand {
+  from {
+    width: 64px;
+  }
+  to {
+    width: 280px;
+  }
+}
+
+@keyframes sidebarCollapse {
+  from {
+    width: 280px;
+  }
+  to {
+    width: 64px;
+  }
+}
+
+/* 選單項目動畫 */
+.menu-item {
+  transition: all var(--animation-fast) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.menu-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left var(--animation-slow) var(--ease-out);
+}
+
+.menu-item:hover::before {
+  left: 100%;
+}
+
+.menu-item:hover {
+  transform: translateX(4px);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.menu-item.active {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-right: 3px solid rgb(59, 130, 246);
+}
+
+/* 子選單展開動畫 */
+.submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--animation-normal) var(--ease-in-out),
+              opacity var(--animation-fast) var(--ease-out);
+  opacity: 0;
+}
+
+.submenu.expanded {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.submenu-item {
+  transform: translateX(-20px);
+  opacity: 0;
+  transition: all var(--animation-fast) var(--ease-out);
+}
+
+.submenu.expanded .submenu-item {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.submenu.expanded .submenu-item:nth-child(1) { transition-delay: 50ms; }
+.submenu.expanded .submenu-item:nth-child(2) { transition-delay: 100ms; }
+.submenu.expanded .submenu-item:nth-child(3) { transition-delay: 150ms; }
+.submenu.expanded .submenu-item:nth-child(4) { transition-delay: 200ms; }
+.submenu.expanded .submenu-item:nth-child(5) { transition-delay: 250ms; }
+
+/* 選單圖示旋轉動畫 */
+.menu-icon {
+  transition: transform var(--animation-fast) var(--ease-out);
+}
+
+.menu-item.expanded .menu-icon {
+  transform: rotate(90deg);
+}
+
+/* ===== 按鈕點擊回饋動畫 ===== */
+
+/* 基礎按鈕動畫 */
+.btn-animated {
+  position: relative;
+  overflow: hidden;
+  transition: all var(--animation-fast) var(--ease-out);
+  transform: translateZ(0); /* 啟用硬體加速 */
+}
+
+.btn-animated:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-animated:active {
+  transform: translateY(0) scale(var(--scale-active));
+  transition-duration: 50ms;
+}
+
+/* 按鈕波紋效果 */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width var(--animation-normal) var(--ease-out),
+              height var(--animation-normal) var(--ease-out);
+}
+
+.btn-ripple:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* 按鈕載入動畫 */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: buttonSpin 1s linear infinite;
+}
+
+@keyframes buttonSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 按鈕成功動畫 */
+.btn-success-animation {
+  animation: buttonSuccess var(--animation-slow) var(--ease-bounce);
+}
+
+@keyframes buttonSuccess {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); background-color: #10b981; }
+  100% { transform: scale(1); }
+}
+
+/* 按鈕錯誤動畫 */
+.btn-error-animation {
+  animation: buttonError var(--animation-normal) var(--ease-out);
+}
+
+@keyframes buttonError {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* ===== 載入和狀態變更動畫 ===== */
+
+/* 載入覆蓋層 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--animation-fast) var(--ease-out);
+}
+
+.loading-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 載入動畫變體 */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  animation: loadingDots 1.4s ease-in-out infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes loadingDots {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 載入進度條 */
+.loading-progress {
+  width: 200px;
+  height: 4px;
+  background: #f3f4f6;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.loading-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 2px;
+  animation: progressBar 2s ease-in-out infinite;
+}
+
+@keyframes progressBar {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* 骨架屏動畫 */
+.skeleton {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite;
+}
+
+@keyframes skeletonLoading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 狀態變更動畫 */
+.state-change {
+  transition: all var(--animation-normal) var(--ease-in-out);
+}
+
+.state-success {
+  animation: stateSuccess var(--animation-slow) var(--ease-bounce);
+}
+
+.state-error {
+  animation: stateError var(--animation-normal) var(--ease-out);
+}
+
+.state-warning {
+  animation: stateWarning var(--animation-normal) var(--ease-in-out);
+}
+
+@keyframes stateSuccess {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); background-color: #dcfce7; }
+  100% { transform: scale(1); }
+}
+
+@keyframes stateError {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); background-color: #fef2f2; }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes stateWarning {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); background-color: #fffbeb; }
+}
+
+/* ===== 手勢動畫支援 ===== */
+
+/* 觸控回饋 */
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-feedback::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width var(--animation-fast) var(--ease-out),
+              height var(--animation-fast) var(--ease-out),
+              opacity var(--animation-fast) var(--ease-out);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.touch-feedback:active::after {
+  width: 100px;
+  height: 100px;
+  opacity: 1;
+}
+
+/* 滑動手勢動畫 */
+.swipe-left {
+  animation: swipeLeft var(--animation-normal) var(--ease-out);
+}
+
+.swipe-right {
+  animation: swipeRight var(--animation-normal) var(--ease-out);
+}
+
+.swipe-up {
+  animation: swipeUp var(--animation-normal) var(--ease-out);
+}
+
+.swipe-down {
+  animation: swipeDown var(--animation-normal) var(--ease-out);
+}
+
+@keyframes swipeLeft {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-20px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes swipeRight {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(20px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes swipeUp {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes swipeDown {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(20px); }
+  100% { transform: translateY(0); }
+}
+
+/* 長按動畫 */
+.long-press {
+  position: relative;
+}
+
+.long-press::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background: rgba(59, 130, 246, 0.2);
+  transition: width var(--animation-extra-slow) linear;
+  border-radius: inherit;
+}
+
+.long-press.pressing::before {
+  width: 100%;
+}
+
+/* 拖拽動畫 */
+.draggable {
+  transition: transform var(--animation-fast) var(--ease-out);
+  cursor: grab;
+}
+
+.draggable:active {
+  cursor: grabbing;
+  transform: scale(1.05);
+  z-index: 1000;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.drag-ghost {
+  opacity: 0.5;
+  transform: rotate(5deg);
+}
+
+.drop-zone {
+  transition: all var(--animation-fast) var(--ease-out);
+}
+
+.drop-zone.drag-over {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 2px dashed #3b82f6;
+  transform: scale(1.02);
+}
+
+/* ===== 通用動畫工具類別 ===== */
+
+/* 淡入淡出 */
+.fade-in {
+  animation: fadeIn var(--animation-normal) var(--ease-out);
+}
+
+.fade-out {
+  animation: fadeOut var(--animation-normal) var(--ease-in);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* 彈跳效果 */
+.bounce-in {
+  animation: bounceIn var(--animation-slow) var(--ease-bounce);
+}
+
+.bounce-out {
+  animation: bounceOut var(--animation-normal) var(--ease-in);
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceOut {
+  20% {
+    transform: scale(0.9);
+  }
+  50%, 55% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+/* 縮放動畫 */
+.scale-in {
+  animation: scaleIn var(--animation-normal) var(--ease-out);
+}
+
+.scale-out {
+  animation: scaleOut var(--animation-normal) var(--ease-in);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* 旋轉動畫 */
+.rotate-in {
+  animation: rotateIn var(--animation-normal) var(--ease-out);
+}
+
+.rotate-out {
+  animation: rotateOut var(--animation-normal) var(--ease-in);
+}
+
+@keyframes rotateIn {
+  from {
+    opacity: 0;
+    transform: rotate(-180deg) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes rotateOut {
+  from {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(180deg) scale(0.8);
+  }
+}
+
+/* ===== 響應式動畫控制 ===== */
+
+/* 減少動畫偏好設定 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 行動裝置優化 */
+@media (max-width: 768px) {
+  :root {
+    --animation-fast: 100ms;
+    --animation-normal: 200ms;
+    --animation-slow: 300ms;
+    --animation-extra-slow: 400ms;
+  }
+  
+  .sidebar-transition {
+    transition-duration: 200ms;
+  }
+  
+  .menu-item:hover {
+    transform: none; /* 移除懸停效果 */
+  }
+}
+
+/* 高效能模式 */
+.performance-mode * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* 除錯模式 */
+.debug-animations * {
+  animation-duration: 3s !important;
+  transition-duration: 1s !important;
+}

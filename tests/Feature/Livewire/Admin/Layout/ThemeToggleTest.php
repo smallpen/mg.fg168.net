@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Livewire\Admin\Layout;
 
-use App\Http\Livewire\Admin\Layout\ThemeToggle;
+use App\Livewire\Admin\Layout\ThemeToggle;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

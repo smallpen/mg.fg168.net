@@ -1,0 +1,390 @@
+/* RTL 語言支援 CSS */
+
+/* 基礎 RTL 支援 */
+[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+[dir="ltr"] {
+    direction: ltr;
+    text-align: left;
+}
+
+/* 邊距和填充的 RTL 支援 */
+.rtl\:ml-auto[dir="rtl"] {
+    margin-left: auto;
+}
+
+.rtl\:mr-auto[dir="rtl"] {
+    margin-right: auto;
+}
+
+.rtl\:pl-4[dir="rtl"] {
+    padding-left: 1rem;
+}
+
+.rtl\:pr-4[dir="rtl"] {
+    padding-right: 1rem;
+}
+
+/* 文字對齊的 RTL 支援 */
+.rtl\:text-right[dir="rtl"] {
+    text-align: right;
+}
+
+.rtl\:text-left[dir="rtl"] {
+    text-align: left;
+}
+
+/* Flexbox 的 RTL 支援 */
+.rtl\:flex-row-reverse[dir="rtl"] {
+    flex-direction: row-reverse;
+}
+
+.rtl\:justify-end[dir="rtl"] {
+    justify-content: flex-end;
+}
+
+.rtl\:justify-start[dir="rtl"] {
+    justify-content: flex-start;
+}
+
+/* 浮動的 RTL 支援 */
+.rtl\:float-right[dir="rtl"] {
+    float: right;
+}
+
+.rtl\:float-left[dir="rtl"] {
+    float: left;
+}
+
+/* 邊框的 RTL 支援 */
+.rtl\:border-r[dir="rtl"] {
+    border-right-width: 1px;
+}
+
+.rtl\:border-l[dir="rtl"] {
+    border-left-width: 1px;
+}
+
+.rtl\:border-r-0[dir="rtl"] {
+    border-right-width: 0;
+}
+
+.rtl\:border-l-0[dir="rtl"] {
+    border-left-width: 0;
+}
+
+/* 圓角的 RTL 支援 */
+.rtl\:rounded-l-lg[dir="rtl"] {
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+}
+
+.rtl\:rounded-r-lg[dir="rtl"] {
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
+
+.rtl\:rounded-l-none[dir="rtl"] {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.rtl\:rounded-r-none[dir="rtl"] {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* 位置的 RTL 支援 */
+.rtl\:left-0[dir="rtl"] {
+    left: 0;
+}
+
+.rtl\:right-0[dir="rtl"] {
+    right: 0;
+}
+
+.rtl\:left-auto[dir="rtl"] {
+    left: auto;
+}
+
+.rtl\:right-auto[dir="rtl"] {
+    right: auto;
+}
+
+/* 變換的 RTL 支援 */
+.rtl\:scale-x-[-1][dir="rtl"] {
+    --tw-scale-x: -1;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+/* 圖示的 RTL 支援 */
+.rtl-flip[dir="rtl"] {
+    transform: scaleX(-1);
+}
+
+/* 導航選單的 RTL 支援 */
+.sidebar[dir="rtl"] {
+    right: 0;
+    left: auto;
+}
+
+.sidebar[dir="rtl"].collapsed {
+    transform: translateX(100%);
+}
+
+.sidebar[dir="rtl"]:not(.collapsed) {
+    transform: translateX(0);
+}
+
+/* 下拉選單的 RTL 支援 */
+.dropdown-menu[dir="rtl"] {
+    right: 0;
+    left: auto;
+}
+
+.dropdown-menu[dir="rtl"]::before {
+    right: 1rem;
+    left: auto;
+}
+
+/* 麵包屑的 RTL 支援 */
+.breadcrumb[dir="rtl"] {
+    flex-direction: row-reverse;
+}
+
+.breadcrumb[dir="rtl"] .separator {
+    transform: scaleX(-1);
+}
+
+/* 表格的 RTL 支援 */
+.table[dir="rtl"] th,
+.table[dir="rtl"] td {
+    text-align: right;
+}
+
+.table[dir="rtl"] th:first-child,
+.table[dir="rtl"] td:first-child {
+    text-align: right;
+}
+
+.table[dir="rtl"] th:last-child,
+.table[dir="rtl"] td:last-child {
+    text-align: left;
+}
+
+/* 表單的 RTL 支援 */
+.form-input[dir="rtl"],
+.form-select[dir="rtl"],
+.form-textarea[dir="rtl"] {
+    text-align: right;
+}
+
+.form-checkbox[dir="rtl"],
+.form-radio[dir="rtl"] {
+    margin-right: 0;
+    margin-left: 0.5rem;
+}
+
+/* 按鈕的 RTL 支援 */
+.btn[dir="rtl"] .icon {
+    margin-right: 0;
+    margin-left: 0.5rem;
+}
+
+.btn[dir="rtl"] .icon:first-child {
+    margin-left: 0;
+    margin-right: 0.5rem;
+}
+
+/* 卡片的 RTL 支援 */
+.card[dir="rtl"] .card-header {
+    text-align: right;
+}
+
+.card[dir="rtl"] .card-actions {
+    flex-direction: row-reverse;
+}
+
+/* 通知的 RTL 支援 */
+.notification[dir="rtl"] {
+    text-align: right;
+}
+
+.notification[dir="rtl"] .notification-icon {
+    margin-right: 0;
+    margin-left: 0.75rem;
+}
+
+/* 模態框的 RTL 支援 */
+.modal[dir="rtl"] .modal-header {
+    text-align: right;
+}
+
+.modal[dir="rtl"] .modal-close {
+    right: auto;
+    left: 1rem;
+}
+
+/* 工具提示的 RTL 支援 */
+.tooltip[dir="rtl"] {
+    text-align: right;
+}
+
+/* 進度條的 RTL 支援 */
+.progress[dir="rtl"] .progress-bar {
+    right: 0;
+    left: auto;
+}
+
+/* 標籤的 RTL 支援 */
+.tabs[dir="rtl"] {
+    flex-direction: row-reverse;
+}
+
+.tabs[dir="rtl"] .tab {
+    margin-right: 0;
+    margin-left: 1rem;
+}
+
+/* 搜尋框的 RTL 支援 */
+.search-input[dir="rtl"] {
+    padding-right: 2.5rem;
+    padding-left: 1rem;
+}
+
+.search-input[dir="rtl"] + .search-icon {
+    right: 0.75rem;
+    left: auto;
+}
+
+/* 分頁的 RTL 支援 */
+.pagination[dir="rtl"] {
+    flex-direction: row-reverse;
+}
+
+.pagination[dir="rtl"] .page-link {
+    margin-right: 0;
+    margin-left: 0.25rem;
+}
+
+/* 響應式 RTL 支援 */
+@media (max-width: 768px) {
+    .mobile-menu[dir="rtl"] {
+        right: 0;
+        left: auto;
+        transform: translateX(100%);
+    }
+    
+    .mobile-menu[dir="rtl"].open {
+        transform: translateX(0);
+    }
+}
+
+/* 動畫的 RTL 支援 */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+[dir="rtl"] .slide-in-right {
+    animation: slideInLeft 0.3s ease-out;
+}
+
+[dir="rtl"] .slide-in-left {
+    animation: slideInRight 0.3s ease-out;
+}
+
+/* 自訂屬性的 RTL 支援 */
+:root {
+    --direction: ltr;
+    --start: left;
+    --end: right;
+}
+
+[dir="rtl"] {
+    --direction: rtl;
+    --start: right;
+    --end: left;
+}
+
+/* 使用自訂屬性的範例 */
+.element {
+    direction: var(--direction);
+    text-align: var(--start);
+    margin-inline-start: 1rem;
+    margin-inline-end: 0;
+    border-inline-start: 1px solid #e5e7eb;
+}
+
+/* 邏輯屬性支援（現代瀏覽器） */
+.modern-rtl {
+    margin-inline-start: 1rem;
+    margin-inline-end: 0;
+    padding-inline-start: 1rem;
+    padding-inline-end: 0;
+    border-inline-start: 1px solid #e5e7eb;
+    border-inline-end: none;
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+}
+
+/* 文字方向指示器 */
+.text-direction-indicator::before {
+    content: "LTR";
+}
+
+[dir="rtl"] .text-direction-indicator::before {
+    content: "RTL";
+}
+
+/* 語言特定的字體支援 */
+[lang="ar"],
+[lang="he"],
+[lang="fa"] {
+    font-family: 'Noto Sans Arabic', 'Noto Sans Hebrew', 'Noto Sans', sans-serif;
+}
+
+[lang="zh-TW"],
+[lang="zh-CN"] {
+    font-family: 'Noto Sans TC', 'Noto Sans SC', 'Microsoft JhengHei', sans-serif;
+}
+
+/* 數字的 RTL 支援 */
+.numbers[dir="rtl"] {
+    unicode-bidi: bidi-override;
+    direction: ltr;
+    text-align: right;
+}
+
+/* 混合文字的支援 */
+.mixed-text[dir="rtl"] {
+    unicode-bidi: embed;
+}
+
+/* 強制 LTR 的元素 */
+.force-ltr {
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+/* 強制 RTL 的元素 */
+.force-rtl {
+    direction: rtl !important;
+    text-align: right !important;
+}

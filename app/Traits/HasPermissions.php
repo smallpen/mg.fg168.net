@@ -142,4 +142,6 @@ trait HasPermissions
         $cacheKey = "user_permissions_{$this->id}";
         cache()->forget($cacheKey);
     }
+
+
 }

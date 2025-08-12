@@ -85,6 +85,28 @@ class CheckAdminPermission
             return $this->handleInsufficientPermission($request, "您沒有 '{$permission}' 權限存取此功能");
         }
 
+        // 檢查路由特定權限
+        $routePermission = $this->getRoutePermission($request);
+        if ($routePermission && !$user->hasPermission($routePermission)) {
+            $this->logAccessAttempt($request, 'route_permission_denied', $user->id, [
+                'route_permission' => $routePermission,
+                'route_name' => $request->route()->getName(),
+            ]);
+            
+            return $this->handleInsufficientPermission($request, "您沒有存取此頁面的權限");
+        }
+        
+        // 檢查模組存取權限
+        $modulePermission = $this->getModulePermission($request);
+        if ($modulePermission && !$user->hasPermission($modulePermission)) {
+            $this->logAccessAttempt($request, 'module_permission_denied', $user->id, [
+                'module_permission' => $modulePermission,
+                'route_name' => $request->route()->getName(),
+            ]);
+            
+            return $this->handleInsufficientPermission($request, "您沒有存取此模組的權限");
+        }
+
         // 暫時允許所有已登入的使用者存取（用於測試主題切換功能）
         // 在實際環境中，應該取消註解以下程式碼來檢查管理員權限
         /*
@@ -172,5 +194,77 @@ class CheckAdminPermission
             default:
                 Log::info('Admin access attempt', $logData);
         }
+    }
+    
+    /**
+     * 根據路由取得所需權限
+     */
+    protected function getRoutePermission(Request $request): ?string
+    {
+        $routeName = $request->route()->getName();
+        
+        // 定義路由權限映射
+        $routePermissions = [
+            'admin.users.index' => 'users.view',
+            'admin.users.create' => 'users.create',
+            'admin.users.show' => 'users.view',
+            'admin.users.edit' => 'users.edit',
+            'admin.roles.index' => 'roles.view',
+            'admin.roles.create' => 'roles.create',
+            'admin.roles.edit' => 'roles.edit',
+            'admin.permissions.index' => 'permissions.view',
+            'admin.settings.index' => 'settings.manage',
+        ];
+        
+        return $routePermissions[$routeName] ?? null;
+    }
+    
+    /**
+     * 根據路由取得模組權限
+     */
+    protected function getModulePermission(Request $request): ?string
+    {
+        $routeName = $request->route()->getName();
+        
+        // 定義模組權限映射
+        $modulePermissions = [
+            'admin.users' => 'module.users',
+            'admin.roles' => 'module.roles',
+            'admin.permissions' => 'module.permissions',
+            'admin.settings' => 'module.settings',
+        ];
+        
+        // 從路由名稱提取模組名稱
+        if (preg_match('/^admin\.([^.]+)/', $routeName, $matches)) {
+            $module = "admin.{$matches[1]}";
+            return $modulePermissions[$module] ?? null;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 檢查使用者是否有管理員角色
+     */
+    protected function isAdminUser($user): bool
+    {
+        return $user->hasRole(['super_admin', 'admin']) || 
+               $user->hasPermission('admin.access');
+    }
+    
+    /**
+     * 檢查是否為開發環境的測試路由
+     */
+    protected function isTestRoute(Request $request): bool
+    {
+        $routeName = $request->route()->getName();
+        $testRoutes = [
+            'admin.test-layout',
+            'admin.test-theme',
+            'admin.test-responsive',
+            'admin.animations',
+        ];
+        
+        return in_array($routeName, $testRoutes) && app()->environment('local');
     }
 }

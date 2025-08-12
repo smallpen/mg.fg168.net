@@ -1,0 +1,259 @@
+/* Dashboard 專用樣式 */
+
+/* 統計卡片動畫效果 */
+.stat-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* 圖表容器樣式 */
+.chart-container {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chart-container:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* 圖表區域樣式 */
+.chart-area {
+    position: relative;
+}
+
+.chart-area::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(156, 163, 175, 0.3), transparent);
+}
+
+/* 快速操作按鈕樣式 */
+.quick-actions button {
+    transition: all 0.2s ease-in-out;
+}
+
+.quick-actions button:hover {
+    transform: translateX(4px);
+}
+
+/* 活動列表項目樣式 */
+.recent-activities .space-y-4 > div {
+    transition: all 0.2s ease-in-out;
+    border-left: 3px solid transparent;
+}
+
+.recent-activities .space-y-4 > div:hover {
+    border-left-color: rgb(59, 130, 246);
+    padding-left: 1rem;
+}
+
+/* 載入動畫 */
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.loading-skeleton {
+    animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* 響應式網格調整 */
+.stats-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* 圓餅圖懸停效果 */
+.chart-container svg path {
+    transition: opacity 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.chart-container svg path:hover {
+    opacity: 0.8;
+    filter: brightness(1.1);
+}
+
+/* 效能指標條形圖樣式 */
+.performance-bar {
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 深色模式優化 */
+@media (prefers-color-scheme: dark) {
+    .chart-area::before {
+        background: linear-gradient(to right, transparent, rgba(75, 85, 99, 0.3), transparent);
+    }
+}
+
+/* 平板和手機版優化 */
+@media (max-width: 1023px) {
+    .dashboard-container {
+        padding: 1rem;
+    }
+    
+    .stats-grid {
+        gap: 1rem;
+    }
+    
+    .chart-container {
+        padding: 1rem;
+    }
+    
+    .quick-actions {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .chart-area {
+        height: 12rem !important;
+    }
+    
+    .recent-activities .space-y-4 > div {
+        padding: 0.75rem;
+    }
+}
+
+/* 數字動畫效果 */
+.stat-number {
+    transition: all 0.3s ease-in-out;
+}
+
+.stat-card:hover .stat-number {
+    transform: scale(1.05);
+}
+
+/* 圖示動畫 */
+.stat-icon {
+    transition: all 0.3s ease-in-out;
+}
+
+.stat-card:hover .stat-icon {
+    transform: rotate(5deg) scale(1.1);
+}
+
+/* 活動圖示脈衝效果 */
+.activity-icon {
+    position: relative;
+}
+
+.activity-icon::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0;
+    transform: scale(1);
+    animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* 重新整理按鈕動畫 */
+.refresh-button {
+    transition: all 0.2s ease-in-out;
+}
+
+.refresh-button:hover {
+    transform: rotate(180deg);
+}
+
+/* 分頁按鈕樣式 */
+.pagination-button {
+    transition: all 0.2s ease-in-out;
+}
+
+.pagination-button:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+/* 搜尋和篩選動畫 */
+.filter-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 工具提示樣式 */
+.tooltip {
+    position: relative;
+}
+
+.tooltip::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+}
+
+.tooltip:hover::before {
+    opacity: 1;
+}

@@ -5,7 +5,7 @@ namespace Tests\Unit;
 use Tests\TestCase;
 use App\Models\User;
 use Livewire\Livewire;
-use App\Http\Livewire\Admin\Layout\ThemeToggle;
+use App\Livewire\Admin\Layout\ThemeToggle;
 
 /**
  * 主題切換單元測試
@@ -35,11 +35,15 @@ class ThemeToggleUnitTest extends TestCase
         // 驗證初始主題
         $this->assertEquals('light', $component->currentTheme);
 
-        // 測試主題切換
+        // 測試主題切換 (light -> dark)
         $component->toggleTheme();
         $this->assertEquals('dark', $component->currentTheme);
 
-        // 再次切換
+        // 再次切換 (dark -> auto)
+        $component->toggleTheme();
+        $this->assertEquals('auto', $component->currentTheme);
+
+        // 第三次切換 (auto -> light)
         $component->toggleTheme();
         $this->assertEquals('light', $component->currentTheme);
     }
@@ -61,17 +65,21 @@ class ThemeToggleUnitTest extends TestCase
         $component = new ThemeToggle();
         $component->mount();
 
-        // 設定暗黑主題
+        // 設定暗色主題
         $component->setTheme('dark');
         $this->assertEquals('dark', $component->currentTheme);
 
-        // 設定淺色主題
+        // 設定亮色主題
         $component->setTheme('light');
         $this->assertEquals('light', $component->currentTheme);
 
+        // 設定自動模式
+        $component->setTheme('auto');
+        $this->assertEquals('auto', $component->currentTheme);
+
         // 測試無效主題（應該被忽略）
         $component->setTheme('invalid');
-        $this->assertEquals('light', $component->currentTheme);
+        $this->assertEquals('auto', $component->currentTheme);
     }
 
     /**
@@ -111,7 +119,7 @@ class ThemeToggleUnitTest extends TestCase
         // 預設應該是淺色主題
         $this->assertEquals('light', $component->currentTheme);
 
-        // 測試主題切換
+        // 測試主題切換 (light -> dark)
         $component->toggleTheme();
         $this->assertEquals('dark', $component->currentTheme);
     }

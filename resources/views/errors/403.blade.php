@@ -18,7 +18,7 @@
             </h2>
             
             <p class="mt-2 text-sm text-gray-600">
-                {{ $exception->getMessage() ?: '您沒有權限存取此頁面' }}
+                您沒有權限存取此頁面
             </p>
         </div>
 

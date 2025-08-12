@@ -11,7 +11,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // 註冊 NavigationService 作為單例
+        $this->app->singleton(\App\Services\NavigationService::class);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -20,6 +21,19 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // 定義動態權限檢查 Gate
+        Gate::before(function ($user, $ability) {
+            // 超級管理員擁有所有權限
+            if ($user->isSuperAdmin()) {
+                return true;
+            }
+            
+            // 檢查使用者是否擁有特定權限
+            if ($user->hasPermission($ability)) {
+                return true;
+            }
+            
+            return null; // 讓其他 Gate 繼續檢查
+        });
     }
 }

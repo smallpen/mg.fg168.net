@@ -1,0 +1,608 @@
+/* 手勢動畫支援 - Gesture Animation Support */
+
+/* ===== 觸控回饋動畫 ===== */
+
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-feedback::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.touch-feedback:active::after {
+  width: 100px;
+  height: 100px;
+  opacity: 1;
+}
+
+.dark .touch-feedback::after {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 觸控回饋變體 */
+.touch-feedback-primary::after {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.touch-feedback-success::after {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.touch-feedback-warning::after {
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.touch-feedback-danger::after {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* ===== 滑動手勢動畫 ===== */
+
+/* 左滑動畫 */
+.swipe-left {
+  animation: swipeLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes swipeLeft {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-20px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* 右滑動畫 */
+.swipe-right {
+  animation: swipeRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes swipeRight {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(20px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* 上滑動畫 */
+.swipe-up {
+  animation: swipeUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes swipeUp {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* 下滑動畫 */
+.swipe-down {
+  animation: swipeDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes swipeDown {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(20px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* ===== 滑動操作動畫 ===== */
+
+/* 滑動刪除 */
+.swipe-to-delete {
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.swipe-to-delete.swiping {
+  transform: translateX(var(--swipe-distance, 0));
+}
+
+.swipe-to-delete.delete-threshold {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.swipe-to-delete::after {
+  content: '刪除';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ef4444;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.swipe-to-delete.delete-threshold::after {
+  opacity: 1;
+}
+
+/* 滑動操作 */
+.swipe-actions {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-actions-left,
+.swipe-actions-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.swipe-actions-left {
+  left: 0;
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.swipe-actions-right {
+  right: 0;
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.swipe-actions.swiping-left .swipe-actions-right {
+  opacity: 1;
+}
+
+.swipe-actions.swiping-right .swipe-actions-left {
+  opacity: 1;
+}
+
+/* ===== 長按動畫 ===== */
+
+.long-press {
+  position: relative;
+  overflow: hidden;
+}
+
+.long-press::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background: rgba(59, 130, 246, 0.2);
+  transition: width 0.8s linear;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.long-press.pressing::before {
+  width: 100%;
+}
+
+.long-press-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* 長按進度環 */
+.long-press-ring {
+  position: relative;
+  display: inline-block;
+}
+
+.long-press-ring::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  transition: border-color 0.1s ease-out;
+}
+
+.long-press-ring.pressing::after {
+  border-color: #3b82f6;
+  animation: longPressRing 0.8s linear;
+}
+
+@keyframes longPressRing {
+  0% {
+    stroke-dasharray: 0 100;
+  }
+  100% {
+    stroke-dasharray: 100 0;
+  }
+}
+
+/* ===== 拖拽動畫 ===== */
+
+.draggable {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: grab;
+  user-select: none;
+}
+
+.draggable:active {
+  cursor: grabbing;
+}
+
+.draggable.dragging {
+  transform: scale(1.05) rotate(2deg);
+  z-index: 1000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  opacity: 0.9;
+}
+
+/* 拖拽幽靈 */
+.drag-ghost {
+  opacity: 0.5;
+  transform: rotate(5deg);
+  filter: blur(1px);
+}
+
+/* 拖拽預覽 */
+.drag-preview {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1001;
+  transform: translate(-50%, -50%);
+  animation: dragPreview 0.2s ease-out;
+}
+
+@keyframes dragPreview {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===== 放置區域動畫 ===== */
+
+.drop-zone {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.drop-zone::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed transparent;
+  border-radius: inherit;
+  transition: all 0.3s ease-out;
+  pointer-events: none;
+}
+
+.drop-zone.drag-over {
+  background-color: rgba(59, 130, 246, 0.05);
+  transform: scale(1.02);
+}
+
+.drop-zone.drag-over::before {
+  border-color: #3b82f6;
+  animation: dropZonePulse 1s ease-in-out infinite;
+}
+
+@keyframes dropZonePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 放置指示器 */
+.drop-indicator {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: #3b82f6;
+  border-radius: 1px;
+  opacity: 0;
+  transform: scaleX(0);
+  transition: all 0.2s ease-out;
+}
+
+.drop-indicator.active {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* ===== 捏合縮放動畫 ===== */
+
+.pinch-zoom {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.pinch-zoom.zooming {
+  transition: none;
+}
+
+.pinch-zoom.zoom-in {
+  animation: zoomIn 0.3s ease-out;
+}
+
+.pinch-zoom.zoom-out {
+  animation: zoomOut 0.3s ease-out;
+}
+
+@keyframes zoomIn {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes zoomOut {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(0.95);
+  }
+}
+
+/* ===== 旋轉手勢動畫 ===== */
+
+.rotatable {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.rotatable.rotating {
+  transition: none;
+}
+
+.rotatable.rotate-feedback {
+  animation: rotateFeedback 0.3s ease-out;
+}
+
+@keyframes rotateFeedback {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(5deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+/* ===== 手勢軌跡動畫 ===== */
+
+.gesture-trail {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 9999;
+  animation: gestureTrail 0.5s ease-out forwards;
+}
+
+@keyframes gestureTrail {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* ===== 手勢提示動畫 ===== */
+
+.gesture-hint {
+  position: relative;
+  overflow: hidden;
+}
+
+.gesture-hint::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -20px;
+  width: 40px;
+  height: 2px;
+  background: rgba(59, 130, 246, 0.6);
+  border-radius: 1px;
+  transform: translateY(-50%);
+  animation: gestureHint 2s ease-in-out infinite;
+}
+
+@keyframes gestureHint {
+  0%, 100% {
+    left: -20px;
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+  }
+  50% {
+    left: calc(100% - 20px);
+    opacity: 1;
+  }
+}
+
+/* 垂直手勢提示 */
+.gesture-hint-vertical::after {
+  width: 2px;
+  height: 40px;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: gestureHintVertical 2s ease-in-out infinite;
+}
+
+@keyframes gestureHintVertical {
+  0%, 100% {
+    top: -20px;
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+  }
+  50% {
+    top: calc(100% - 20px);
+    opacity: 1;
+  }
+}
+
+/* ===== 多點觸控動畫 ===== */
+
+.multi-touch-feedback {
+  position: relative;
+}
+
+.touch-point {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(59, 130, 246, 0.6);
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.1);
+  transform: translate(-50%, -50%) scale(0);
+  animation: touchPoint 0.3s ease-out forwards;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+@keyframes touchPoint {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+}
+
+/* ===== 響應式調整 ===== */
+
+@media (max-width: 768px) {
+  .touch-feedback::after {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .swipe-left,
+  .swipe-right,
+  .swipe-up,
+  .swipe-down {
+    animation-duration: 0.2s;
+  }
+  
+  .draggable.dragging {
+    transform: scale(1.02) rotate(1deg);
+  }
+  
+  .gesture-trail {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+/* 減少動畫偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .touch-feedback::after,
+  .swipe-left,
+  .swipe-right,
+  .swipe-up,
+  .swipe-down,
+  .swipe-to-delete,
+  .long-press::before,
+  .long-press-ring::after,
+  .draggable,
+  .drag-preview,
+  .drop-zone,
+  .drop-zone::before,
+  .drop-indicator,
+  .pinch-zoom,
+  .rotatable,
+  .gesture-trail,
+  .gesture-hint::after,
+  .gesture-hint-vertical::after,
+  .touch-point {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  .draggable.dragging {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .drop-zone.drag-over {
+    transform: none !important;
+  }
+}
+
+/* 無觸控裝置隱藏手勢提示 */
+@media (hover: hover) and (pointer: fine) {
+  .gesture-hint::after,
+  .gesture-hint-vertical::after {
+    display: none;
+  }
+}

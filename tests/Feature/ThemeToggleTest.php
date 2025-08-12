@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\Models\User;
 use Livewire\Livewire;
-use App\Http\Livewire\Admin\Layout\ThemeToggle;
+use App\Livewire\Admin\Layout\ThemeToggle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 /**
@@ -28,7 +28,7 @@ class ThemeToggleTest extends TestCase
 
         Livewire::test(ThemeToggle::class)
             ->assertStatus(200)
-            ->assertSee('切換到暗黑主題')
+            ->assertSee('當前主題：亮色主題')
             ->assertSet('currentTheme', 'light');
     }
 

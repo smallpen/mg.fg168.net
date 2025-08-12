@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\HasPermissions;
 
 /**
@@ -28,9 +29,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar',
         'theme_preference',
+        'custom_themes',
         'locale',
         'is_active',
+        'accessibility_preferences',
+        'preferences',
     ];
 
     /**
@@ -52,6 +57,9 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_active' => 'boolean',
+        'accessibility_preferences' => 'array',
+        'custom_themes' => 'array',
+        'preferences' => 'array',
     ];
 
     /**
@@ -63,6 +71,16 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class, 'user_roles')
                     ->withTimestamps();
+    }
+
+    /**
+     * 使用者的通知關聯
+     * 
+     * @return HasMany
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class)->latest();
     }
 
     /**

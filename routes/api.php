@@ -29,6 +29,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 |
 */
 
+// 網路連線檢測端點 - 用於前端網路狀態檢測
+Route::match(['GET', 'HEAD'], '/ping', function () {
+    return response('', 200);
+})->name('api.ping');
+
 // 基本健康檢查 - 最輕量級的檢查
 Route::get('/health', [HealthController::class, 'basic'])->name('api.health.basic');
 

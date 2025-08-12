@@ -1,0 +1,376 @@
+/**
+ * 效能優化相關樣式
+ * 
+ * 包含載入動畫、骨架屏、圖片延遲載入等效能優化相關的 CSS
+ */
+
+/* 載入動畫 */
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 圖片延遲載入狀態 */
+img[data-src] {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s infinite;
+    min-height: 100px;
+    display: block;
+}
+
+img[data-src].loading {
+    opacity: 0.7;
+}
+
+img[data-src].loaded {
+    animation: fade-in 0.3s ease-in-out;
+}
+
+img[data-src].error {
+    background: #f8f8f8;
+    position: relative;
+}
+
+img[data-src].error::after {
+    content: '圖片載入失敗';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #999;
+    font-size: 14px;
+}
+
+@keyframes loading-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* 元件載入狀態 */
+[data-lazy-component] {
+    min-height: 100px;
+    position: relative;
+}
+
+[data-lazy-component].component-loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s infinite;
+}
+
+[data-lazy-component].component-loaded {
+    animation: slide-in 0.3s ease-out;
+}
+
+[data-lazy-component].component-error {
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    color: #c66;
+}
+
+[data-lazy-component].component-error::after {
+    content: '元件載入失敗，請重新整理頁面';
+    display: block;
+    font-size: 14px;
+}
+
+@keyframes slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 骨架屏樣式 */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-text {
+    height: 16px;
+    margin-bottom: 8px;
+}
+
+.skeleton-text:last-child {
+    margin-bottom: 0;
+    width: 60%;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.skeleton-button {
+    height: 36px;
+    width: 100px;
+    border-radius: 6px;
+}
+
+.skeleton-card {
+    height: 200px;
+    border-radius: 8px;
+}
+
+.skeleton-chart {
+    height: 300px;
+    border-radius: 8px;
+}
+
+/* 網路狀態指示器 */
+.network-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.network-status.online {
+    background: #10b981;
+    color: white;
+}
+
+.network-status.offline {
+    background: #ef4444;
+    color: white;
+}
+
+/* 更新通知樣式 */
+.update-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #3b82f6;
+    color: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    max-width: 300px;
+    animation: slide-in-right 0.3s ease-out;
+}
+
+.update-notification .update-button {
+    background: white;
+    color: #3b82f6;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.update-notification .update-button:hover {
+    background: #f3f4f6;
+}
+
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 效能優化的過渡動畫 */
+.performance-transition {
+    transition: all 0.2s ease-out;
+}
+
+.performance-transition-fast {
+    transition: all 0.1s ease-out;
+}
+
+.performance-transition-slow {
+    transition: all 0.4s ease-out;
+}
+
+/* 減少動畫偏好設定 */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .loading-shimmer,
+    .skeleton {
+        animation: none;
+        background: #f0f0f0;
+    }
+}
+
+/* 高對比度模式支援 */
+@media (prefers-contrast: high) {
+    .skeleton,
+    img[data-src] {
+        background: #000;
+        color: #fff;
+    }
+    
+    .network-status.online {
+        background: #000;
+        border: 2px solid #fff;
+    }
+    
+    .network-status.offline {
+        background: #fff;
+        color: #000;
+        border: 2px solid #000;
+    }
+}
+
+/* 暗色主題支援 */
+.dark .skeleton,
+.dark img[data-src] {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+}
+
+.dark [data-lazy-component].component-loading {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+}
+
+.dark [data-lazy-component].component-error {
+    background: #7f1d1d;
+    border-color: #991b1b;
+    color: #fca5a5;
+}
+
+/* 載入優先級指示 */
+[data-priority="high"] {
+    animation-duration: 0.8s;
+}
+
+[data-priority="medium"] {
+    animation-duration: 1.2s;
+}
+
+[data-priority="low"] {
+    animation-duration: 1.8s;
+}
+
+/* 資源預載入指示器 */
+.preload-indicator {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.preload-indicator.active {
+    opacity: 1;
+}
+
+/* 效能監控面板 */
+.performance-panel {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    font-size: 12px;
+    min-width: 200px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.performance-panel.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.performance-panel h4 {
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    color: #374151;
+}
+
+.performance-panel .metric {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.performance-panel .metric:last-child {
+    margin-bottom: 0;
+}
+
+.performance-panel .metric-value {
+    font-weight: 500;
+    color: #059669;
+}
+
+.performance-panel .metric-value.warning {
+    color: #d97706;
+}
+
+.performance-panel .metric-value.error {
+    color: #dc2626;
+}
+
+/* 暗色主題下的效能面板 */
+.dark .performance-panel {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+.dark .performance-panel h4 {
+    color: #f9fafb;
+}
+
+.dark .performance-panel .metric {
+    color: #d1d5db;
+}

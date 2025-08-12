@@ -1,0 +1,474 @@
+/* 自訂主題 CSS 支援 */
+
+/* 自訂主題基礎架構 */
+[data-theme="custom"] {
+  /* 這些變數會透過 JavaScript 動態設定 */
+  --color-primary: var(--custom-primary, #3B82F6);
+  --color-primary-dark: var(--custom-primary-dark, #2563EB);
+  --color-primary-light: var(--custom-primary-light, #60A5FA);
+  --color-secondary: var(--custom-secondary, #6B7280);
+  --color-success: var(--custom-success, #10B981);
+  --color-warning: var(--custom-warning, #F59E0B);
+  --color-danger: var(--custom-danger, #EF4444);
+  --color-info: var(--custom-info, #06B6D4);
+  
+  --bg-primary: var(--custom-bg-primary, #FFFFFF);
+  --bg-secondary: var(--custom-bg-secondary, #F9FAFB);
+  --bg-tertiary: var(--custom-bg-tertiary, #F3F4F6);
+  --bg-quaternary: var(--custom-bg-quaternary, #E5E7EB);
+  
+  --text-primary: var(--custom-text-primary, #111827);
+  --text-secondary: var(--custom-text-secondary, #6B7280);
+  --text-tertiary: var(--custom-text-tertiary, #9CA3AF);
+  --text-quaternary: var(--custom-text-quaternary, #D1D5DB);
+  --text-inverse: var(--custom-text-inverse, #FFFFFF);
+  
+  --border-primary: var(--custom-border-primary, #E5E7EB);
+  --border-secondary: var(--custom-border-secondary, #D1D5DB);
+  --border-tertiary: var(--custom-border-tertiary, #9CA3AF);
+}
+
+/* 預定義自訂主題 - 藍色主題 */
+[data-theme="blue"] {
+  --color-primary: #2563EB;
+  --color-primary-dark: #1D4ED8;
+  --color-primary-light: #3B82F6;
+  --color-secondary: #64748B;
+  --color-success: #059669;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+  --color-info: #0891B2;
+  
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary: #F1F5F9;
+  --bg-quaternary: #E2E8F0;
+  
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #64748B;
+  --text-quaternary: #94A3B8;
+  --text-inverse: #FFFFFF;
+  
+  --border-primary: #E2E8F0;
+  --border-secondary: #CBD5E1;
+  --border-tertiary: #94A3B8;
+  
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.1), 0 2px 4px -2px rgb(15 23 42 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(15 23 42 / 0.1), 0 4px 6px -4px rgb(15 23 42 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(15 23 42 / 0.1), 0 8px 10px -6px rgb(15 23 42 / 0.1);
+}
+
+/* 預定義自訂主題 - 綠色主題 */
+[data-theme="green"] {
+  --color-primary: #059669;
+  --color-primary-dark: #047857;
+  --color-primary-light: #10B981;
+  --color-secondary: #6B7280;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #06B6D4;
+  
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F9FAFB;
+  --bg-tertiary: #F3F4F6;
+  --bg-quaternary: #E5E7EB;
+  
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --text-quaternary: #D1D5DB;
+  --text-inverse: #FFFFFF;
+  
+  --border-primary: #E5E7EB;
+  --border-secondary: #D1D5DB;
+  --border-tertiary: #9CA3AF;
+  
+  --shadow-sm: 0 1px 2px 0 rgb(17 24 39 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(17 24 39 / 0.1), 0 2px 4px -2px rgb(17 24 39 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(17 24 39 / 0.1), 0 4px 6px -4px rgb(17 24 39 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(17 24 39 / 0.1), 0 8px 10px -6px rgb(17 24 39 / 0.1);
+}
+
+/* 自訂主題預覽模式 */
+.theme-preview-mode {
+  position: relative;
+}
+
+.theme-preview-mode::before {
+  content: '預覽模式';
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background-color: var(--color-warning);
+  color: var(--text-inverse);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  z-index: 9999;
+  box-shadow: var(--shadow-lg);
+  animation: pulse 2s infinite;
+}
+
+/* 自訂主題編輯器樣式 */
+.theme-editor {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background-color: var(--bg-primary);
+  border-left: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+
+.theme-editor.open {
+  transform: translateX(0);
+}
+
+.theme-editor-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-primary);
+  background-color: var(--bg-secondary);
+}
+
+.theme-editor-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.theme-editor-body {
+  padding: 1.5rem;
+}
+
+.theme-color-group {
+  margin-bottom: 2rem;
+}
+
+.theme-color-group-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.theme-color-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.theme-color-label {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.theme-color-input {
+  width: 3rem;
+  height: 2rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+.theme-color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.theme-color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 0.25rem;
+}
+
+.theme-editor-actions {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-primary);
+  background-color: var(--bg-secondary);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.theme-editor-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-editor-btn-primary {
+  background-color: var(--color-primary);
+  color: var(--text-inverse);
+  border-color: var(--color-primary);
+}
+
+.theme-editor-btn-primary:hover {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.theme-editor-btn-secondary {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.theme-editor-btn-secondary:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* 主題選擇器增強樣式 */
+.theme-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid var(--border-primary);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--bg-primary);
+}
+
+.theme-option:hover {
+  border-color: var(--color-primary);
+  background-color: var(--bg-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-option.active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: var(--text-inverse);
+}
+
+.theme-option-preview {
+  width: 60px;
+  height: 40px;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-option-preview-color {
+  flex: 1;
+  height: 100%;
+}
+
+.theme-option-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.theme-option-description {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.theme-option.active .theme-option-description {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 主題匯入/匯出功能 */
+.theme-import-export {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-primary);
+}
+
+.theme-import-export-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.theme-import-export-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.theme-import-btn,
+.theme-export-btn {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-primary);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.theme-import-btn:hover,
+.theme-export-btn:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--color-primary);
+}
+
+/* 主題動畫增強 */
+.theme-transition-enhanced {
+  transition: 
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 主題載入狀態 */
+.theme-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    45deg,
+    var(--bg-primary) 25%,
+    transparent 25%,
+    transparent 75%,
+    var(--bg-primary) 75%
+  );
+  background-size: 20px 20px;
+  animation: theme-loading 1s linear infinite;
+  z-index: 9998;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.theme-loading-overlay.active {
+  opacity: 0.1;
+  visibility: visible;
+}
+
+@keyframes theme-loading {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 20px;
+  }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .theme-editor {
+    width: 100%;
+    transform: translateY(100%);
+  }
+  
+  .theme-editor.open {
+    transform: translateY(0);
+  }
+  
+  .theme-selector-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .theme-option {
+    padding: 0.75rem;
+  }
+  
+  .theme-option-preview {
+    width: 50px;
+    height: 30px;
+  }
+}
+
+/* 高對比模式支援 */
+@media (prefers-contrast: high) {
+  .theme-option {
+    border-width: 3px;
+  }
+  
+  .theme-color-input {
+    border-width: 2px;
+  }
+  
+  .theme-editor-btn {
+    border-width: 2px;
+  }
+}
+
+/* 減少動畫偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition-enhanced,
+  .theme-option,
+  .theme-editor,
+  .theme-loading-overlay {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* 深色模式下的自訂主題調整 */
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"][data-custom-theme] {
+    /* 自動模式下的自訂主題會根據系統偏好調整 */
+    filter: brightness(0.9) contrast(1.1);
+  }
+}
+
+/* 主題系統調試模式 */
+.theme-debug {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 0.75rem;
+  font-family: monospace;
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  max-width: 300px;
+  opacity: 0.8;
+}
+
+.theme-debug-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.theme-debug-info {
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.theme-debug-info strong {
+  color: var(--text-primary);
+}
