@@ -46,6 +46,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Network Retry Configuration
+    |--------------------------------------------------------------------------
+    |
+    | These values configure the network retry mechanism for handling
+    | temporary network failures and connection issues.
+    |
+    */
+
+    'network_retry' => [
+        'max_retries' => env('NETWORK_RETRY_MAX_RETRIES', 3),
+        'base_delay' => env('NETWORK_RETRY_BASE_DELAY', 1000), // milliseconds
+        'backoff_multiplier' => env('NETWORK_RETRY_BACKOFF_MULTIPLIER', 2.0),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |
@@ -171,6 +187,8 @@ return [
         App\Providers\AdminRouteServiceProvider::class,
         App\Providers\MonitoringServiceProvider::class,
         App\Providers\LocalizationServiceProvider::class,
+        App\Providers\RepositoryServiceProvider::class,
+        App\Providers\BladeServiceProvider::class,
     ])->toArray(),
 
     /*

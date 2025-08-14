@@ -98,6 +98,60 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // 使用者管理錯誤日誌
+        'user_management' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/user_management.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
+        // 驗證錯誤日誌
+        'validation' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/validation.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
+
+        // 網路錯誤日誌
+        'network' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/network.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 7,
+            'replace_placeholders' => true,
+        ],
+
+        // 資料庫錯誤日誌
+        'database' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/database.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
+        // 系統錯誤日誌
+        'system' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/system.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
+        // 健康狀態日誌
+        'health' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/health.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 7,
+            'replace_placeholders' => true,
+        ],
+
         'errorlog' => [
             'driver' => 'errorlog',
             'level' => env('LOG_LEVEL', 'debug'),

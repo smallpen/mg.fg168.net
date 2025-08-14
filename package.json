@@ -19,6 +19,8 @@
         "vite-plugin-pwa": "^0.16.4"
     },
     "dependencies": {
-        "@heroicons/react": "^2.0.18"
+        "@heroicons/react": "^2.0.18",
+        "@playwright/test": "^1.54.2",
+        "playwright": "^1.53.1"
     }
 }

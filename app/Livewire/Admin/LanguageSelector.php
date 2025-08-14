@@ -43,7 +43,10 @@ class LanguageSelector extends Component
     {
         // 驗證語言代碼是否支援
         if (!array_key_exists($locale, $this->supportedLocales)) {
-            session()->flash('error', '不支援的語言');
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('admin.language.unsupported')
+            ]);
             return;
         }
         
@@ -51,6 +54,9 @@ class LanguageSelector extends Component
             // 設定應用程式語言
             App::setLocale($locale);
             $this->currentLocale = $locale;
+            
+            // 設定 Carbon 本地化
+            \Carbon\Carbon::setLocale($locale);
             
             // 儲存語言偏好到 session
             Session::put('locale', $locale);
@@ -62,14 +68,29 @@ class LanguageSelector extends Component
             
             // 顯示成功訊息
             $languageName = $this->supportedLocales[$locale];
-            session()->flash('success', "語言已切換為 {$languageName}");
+            $this->dispatch('show-toast', [
+                'type' => 'success',
+                'message' => __('admin.language.switched', ['language' => $languageName])
+            ]);
             
             // 發送語言切換事件（這會觸發頁面重新載入）
             $this->dispatch('language-changed', locale: $locale);
             
         } catch (\Exception $e) {
-            session()->flash('error', '語言切換失敗：' . $e->getMessage());
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('admin.messages.error.update_failed', ['item' => __('admin.language.title')])
+            ]);
         }
+    }
+
+    /**
+     * 監聽來自 JavaScript 的語言切換請求
+     */
+    #[On('switch-language')]
+    public function handleLanguageSwitch($locale)
+    {
+        $this->switchLanguage($locale);
     }
     
     /**

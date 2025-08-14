@@ -1,7 +1,24 @@
 @extends('layouts.admin')
 
-@section('title', __('admin.users.create'))
+@section('title', $pageTitle ?? __('admin.users.create'))
 
 @section('content')
-    <livewire:admin.users.user-form />
+<x-admin.layout.admin-layout :breadcrumbs="$breadcrumbs ?? []">
+    <div class="space-y-6">
+        <!-- 頁面標題 -->
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                {{ __('admin.users.create') }}
+            </h1>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                {{ __('admin.users.create_description') }}
+            </p>
+        </div>
+
+        <!-- 建立使用者表單 -->
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
+            <livewire:admin.users.user-form />
+        </div>
+    </div>
+</x-admin.layout.admin-layout>
 @endsection

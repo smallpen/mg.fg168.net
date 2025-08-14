@@ -104,9 +104,18 @@
                     </button>
                     
                     <div x-show="open" x-transition class="ml-8 mt-2 space-y-1">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('admin.users.list') }}</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('admin.users.create') }}</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('admin.roles.title') }}</a>
+                        <a href="{{ route('admin.users.index') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.users.index') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.users.list') }}
+                        </a>
+                        <a href="{{ route('admin.users.create') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.users.create') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.users.create') }}
+                        </a>
+                        <a href="{{ route('admin.roles.index') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.roles.*') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.roles.title') }}
+                        </a>
                     </div>
                 </div>
                 
@@ -127,9 +136,18 @@
                     </button>
                     
                     <div x-show="open" x-transition class="ml-8 mt-2 space-y-1">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('layout.basic_settings') }}</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('layout.mail_settings') }}</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">{{ __('layout.cache_management') }}</a>
+                        <a href="{{ route('admin.settings.index') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.settings.index') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.settings.general') ?? '基本設定' }}
+                        </a>
+                        <a href="{{ route('admin.settings.security') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.settings.security') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.settings.security') ?? '安全設定' }}
+                        </a>
+                        <a href="{{ route('admin.settings.appearance') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.settings.appearance') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.settings.appearance') ?? '外觀設定' }}
+                        </a>
                     </div>
                 </div>
                 
@@ -169,8 +187,8 @@
          class="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"></div>
     
     <!-- 主內容區域 -->
-    <div class="flex-1 flex flex-col transition-all duration-300 ease-in-out"
-         :class="sidebarOpen && !isMobile ? 'lg:ml-64' : 'lg:ml-0'">
+    <div class="flex-1 flex flex-col transition-all duration-300 ease-in-out lg:ml-64"
+         :class="sidebarOpen && !isMobile ? 'lg:ml-64' : 'lg:ml-64'">
         
         <!-- 頂部導航欄 -->
         <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -259,6 +277,11 @@
         
         <!-- 主要內容 -->
         <main class="flex-1 p-4 sm:p-6 lg:p-8">
+            
+            <!-- 麵包屑導航 -->
+            @if(isset($breadcrumbs) && !empty($breadcrumbs))
+                <x-admin.breadcrumb :breadcrumbs="$breadcrumbs" />
+            @endif
             
             <!-- 頁面內容插槽 -->
             {{ $slot }}

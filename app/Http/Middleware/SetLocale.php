@@ -34,6 +34,9 @@ class SetLocale
         // 設定應用程式語言
         App::setLocale($locale);
         
+        // 設定 Carbon 本地化
+        $this->setCarbonLocale($locale);
+        
         // 儲存語言偏好到 session
         Session::put('locale', $locale);
         
@@ -134,5 +137,22 @@ class SetLocale
         }
         
         return null;
+    }
+    
+    /**
+     * 設定 Carbon 本地化
+     *
+     * @param string $locale
+     * @return void
+     */
+    private function setCarbonLocale(string $locale): void
+    {
+        $carbonLocale = match ($locale) {
+            'zh_TW' => 'zh_TW',
+            'en' => 'en',
+            default => 'zh_TW',
+        };
+        
+        \Carbon\Carbon::setLocale($carbonLocale);
     }
 }

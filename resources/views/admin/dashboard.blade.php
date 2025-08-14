@@ -3,7 +3,9 @@
 @section('title', '儀表板')
 
 @section('content')
+<x-admin.layout.admin-layout>
     <livewire:admin.dashboard />
+</x-admin.layout.admin-layout>
 @endsection
 
 @push('scripts')

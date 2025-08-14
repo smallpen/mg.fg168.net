@@ -118,4 +118,64 @@ class Role extends Model
     {
         return $this->users()->count();
     }
+
+    /**
+     * 取得本地化的角色顯示名稱
+     *
+     * @return string
+     */
+    public function getLocalizedDisplayNameAttribute(): string
+    {
+        // 檢查是否有對應的語言鍵
+        $langKey = "admin.roles.names.{$this->name}";
+        $translated = __($langKey);
+        
+        // 如果翻譯存在且不等於語言鍵本身，使用翻譯
+        if ($translated !== $langKey) {
+            return $translated;
+        }
+        
+        // 否則使用原始的 display_name
+        return $this->display_name;
+    }
+
+    /**
+     * 取得本地化的角色描述
+     *
+     * @return string
+     */
+    public function getLocalizedDescriptionAttribute(): string
+    {
+        // 檢查是否有對應的語言鍵
+        $langKey = "admin.roles.descriptions.{$this->name}";
+        $translated = __($langKey);
+        
+        // 如果翻譯存在且不等於語言鍵本身，使用翻譯
+        if ($translated !== $langKey) {
+            return $translated;
+        }
+        
+        // 否則使用原始的 description
+        return $this->description ?? '';
+    }
+
+    /**
+     * 取得格式化的建立時間
+     *
+     * @return string
+     */
+    public function getFormattedCreatedAtAttribute(): string
+    {
+        return \App\Helpers\DateTimeHelper::formatCreatedAt($this->created_at);
+    }
+
+    /**
+     * 取得格式化的更新時間
+     *
+     * @return string
+     */
+    public function getFormattedUpdatedAtAttribute(): string
+    {
+        return \App\Helpers\DateTimeHelper::formatUpdatedAt($this->updated_at);
+    }
 }

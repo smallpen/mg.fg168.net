@@ -18,9 +18,7 @@
 </head>
 <body class="font-sans antialiased">
     
-    <x-admin.layout.admin-layout>
-        @yield('content')
-    </x-admin.layout.admin-layout>
+    @yield('content')
 
     @livewireScripts
     @stack('scripts')

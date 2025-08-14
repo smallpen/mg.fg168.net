@@ -1,0 +1,415 @@
+<?php
+
+namespace App\Livewire\Admin\Users;
+
+use App\Models\User;
+use App\Repositories\UserRepository;
+use App\Services\PermissionService;
+use App\Services\InputValidationService;
+use App\Services\AuditLogService;
+use Livewire\Component;
+use Livewire\Attributes\On;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
+
+/**
+ * 使用者刪除確認對話框元件
+ * 
+ * 提供使用者刪除的確認介面，包含軟刪除和停用選項
+ */
+class UserDeleteModal extends Component
+{
+    // 對話框狀態
+    public bool $showModal = false;
+    
+    // 使用者資料
+    public ?User $user = null;
+    public int $userId = 0;
+    
+    // 操作選項
+    public string $selectedAction = '';
+    public string $confirmText = '';
+    
+    // 處理狀態
+    public bool $processing = false;
+
+    protected UserRepository $userRepository;
+    protected PermissionService $permissionService;
+    protected InputValidationService $validationService;
+    protected AuditLogService $auditService;
+
+    /**
+     * 驗證規則
+     */
+    protected function rules(): array
+    {
+        return [
+            'selectedAction' => 'required|in:disable,delete',
+            'confirmText' => 'required_if:selectedAction,delete',
+        ];
+    }
+
+    /**
+     * 自訂驗證訊息
+     */
+    protected function messages(): array
+    {
+        return [
+            'selectedAction.required' => '請選擇操作類型',
+            'selectedAction.in' => '無效的操作類型',
+            'confirmText.required_if' => '請輸入使用者名稱以確認刪除',
+        ];
+    }
+
+    /**
+     * 元件初始化
+     */
+    public function boot(
+        UserRepository $userRepository,
+        PermissionService $permissionService,
+        InputValidationService $validationService,
+        AuditLogService $auditService
+    ): void {
+        $this->userRepository = $userRepository;
+        $this->permissionService = $permissionService;
+        $this->validationService = $validationService;
+        $this->auditService = $auditService;
+    }
+
+    /**
+     * 監聽確認刪除事件
+     */
+    #[On('confirm-user-delete')]
+    public function confirmDelete(int $userId): void
+    {
+        try {
+            // 驗證使用者 ID
+            $this->userId = $this->validationService->validateUserId($userId);
+            $this->user = User::find($this->userId);
+            
+            if (!$this->user) {
+                $this->dispatch('show-toast', [
+                    'type' => 'error',
+                    'message' => __('admin.users.user_not_found')
+                ]);
+                return;
+            }
+
+            // 檢查權限
+            if (!$this->permissionService->canPerformActionOnUser('users.delete', $this->user)) {
+                $this->permissionService->logPermissionDenied('users.delete', 'confirm_delete_modal');
+                $this->dispatch('show-toast', [
+                    'type' => 'error',
+                    'message' => __('admin.users.no_permission_delete')
+                ]);
+                return;
+            }
+
+            // 檢查是否可以刪除
+            if (!$this->canDeleteUser()) {
+                return;
+            }
+
+            // 記錄刪除確認對話框開啟
+            $this->auditService->logUserManagementAction('delete_modal_opened', [
+                'target_user_id' => $this->userId,
+            ], $this->user);
+
+            $this->resetForm();
+            $this->showModal = true;
+        } catch (ValidationException $e) {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => '無效的使用者 ID'
+            ]);
+        }
+    }
+
+    /**
+     * 檢查使用者是否可以被刪除
+     */
+    private function canDeleteUser(): bool
+    {
+        // 檢查是否為當前使用者
+        if ($this->user->id === auth()->id()) {
+            $this->auditService->logSecurityEvent('attempt_delete_self', 'high', [
+                'target_user_id' => $this->user->id,
+            ]);
+            
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('admin.users.cannot_delete_self')
+            ]);
+            return false;
+        }
+
+        // 檢查是否為超級管理員
+        if ($this->user->isSuperAdmin() && !auth()->user()->isSuperAdmin()) {
+            $this->auditService->logSecurityEvent('attempt_delete_super_admin', 'high', [
+                'target_user_id' => $this->user->id,
+                'target_username' => $this->user->username,
+            ]);
+            
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('admin.users.cannot_delete_super_admin')
+            ]);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 執行選定的操作
+     */
+    public function executeAction(): void
+    {
+        try {
+            $this->validate();
+
+            // 如果是刪除操作，驗證確認文字
+            if ($this->selectedAction === 'delete') {
+                $this->validationService->validateConfirmText($this->confirmText, $this->user->username);
+            }
+
+            // 再次檢查權限（防止 CSRF 攻擊）
+            $requiredPermission = $this->selectedAction === 'delete' ? 'users.delete' : 'users.edit';
+            if (!$this->permissionService->canPerformActionOnUser($requiredPermission, $this->user)) {
+                $this->auditService->logSecurityEvent('permission_bypass_attempt', 'high', [
+                    'action' => $this->selectedAction,
+                    'target_user_id' => $this->userId,
+                    'required_permission' => $requiredPermission,
+                ]);
+                
+                $this->dispatch('show-toast', [
+                    'type' => 'error',
+                    'message' => '權限驗證失敗'
+                ]);
+                return;
+            }
+
+            $this->processing = true;
+
+            if ($this->selectedAction === 'disable') {
+                $this->disableUser();
+            } else {
+                $this->deleteUser();
+            }
+        } catch (ValidationException $e) {
+            $errors = $e->errors();
+            if (isset($errors['confirm_text'])) {
+                $this->addError('confirmText', $errors['confirm_text'][0]);
+            } else {
+                $this->dispatch('show-toast', [
+                    'type' => 'error',
+                    'message' => '輸入驗證失敗'
+                ]);
+            }
+        } catch (\Exception $e) {
+            $this->auditService->logSecurityEvent('user_operation_failed', 'medium', [
+                'user_id' => $this->userId,
+                'action' => $this->selectedAction,
+                'error' => $e->getMessage(),
+            ]);
+
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('admin.users.delete_failed')
+            ]);
+        } finally {
+            $this->processing = false;
+        }
+    }
+
+    /**
+     * 停用使用者
+     */
+    private function disableUser(): void
+    {
+        $success = $this->userRepository->toggleUserStatus($this->userId);
+        
+        if ($success) {
+            // 記錄審計日誌
+            $this->logAuditAction('user_disabled', [
+                'user_id' => $this->userId,
+                'username' => $this->user->username,
+                'admin_id' => auth()->id(),
+                'admin_username' => auth()->user()->username,
+            ]);
+
+            $this->dispatch('show-toast', [
+                'type' => 'success',
+                'message' => __('admin.users.user_disabled', ['username' => $this->user->username])
+            ]);
+
+            $this->dispatch('user-status-updated', userId: $this->userId);
+            $this->closeModal();
+            
+            // 清除快取
+            Cache::forget('user_list_stats');
+        } else {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('admin.users.delete_failed')
+            ]);
+        }
+    }
+
+    /**
+     * 軟刪除使用者
+     */
+    private function deleteUser(): void
+    {
+        // 執行刪除前的資料檢查
+        $checkResult = $this->performPreDeleteChecks();
+        if (!$checkResult['can_delete']) {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => $checkResult['message']
+            ]);
+            return;
+        }
+
+        $success = $this->userRepository->softDeleteUser($this->userId);
+        
+        if ($success) {
+            // 記錄審計日誌
+            $this->logAuditAction('user_deleted', [
+                'user_id' => $this->userId,
+                'username' => $this->user->username,
+                'admin_id' => auth()->id(),
+                'admin_username' => auth()->user()->username,
+                'related_data' => $checkResult['related_data'] ?? [],
+            ]);
+
+            $this->dispatch('show-toast', [
+                'type' => 'success',
+                'message' => __('admin.users.user_deleted_permanently', ['username' => $this->user->username])
+            ]);
+
+            $this->dispatch('user-delete-confirmed', userId: $this->userId);
+            $this->closeModal();
+            
+            // 清除快取
+            Cache::forget('user_list_stats');
+        } else {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('admin.users.delete_failed')
+            ]);
+        }
+    }
+
+    /**
+     * 執行刪除前的資料檢查
+     */
+    private function performPreDeleteChecks(): array
+    {
+        $relatedData = [];
+        $warnings = [];
+
+        // 檢查使用者是否有相關的重要資料
+        // 這裡可以根據業務需求添加更多檢查
+
+        // 檢查角色關聯
+        $roleCount = $this->user->roles()->count();
+        if ($roleCount > 0) {
+            $relatedData['roles'] = $roleCount;
+            $warnings[] = "使用者擁有 {$roleCount} 個角色";
+        }
+
+        // 檢查是否為系統關鍵使用者
+        if ($this->user->isSuperAdmin()) {
+            return [
+                'can_delete' => false,
+                'message' => __('admin.users.cannot_delete_super_admin'),
+                'related_data' => $relatedData
+            ];
+        }
+
+        return [
+            'can_delete' => true,
+            'message' => '',
+            'related_data' => $relatedData,
+            'warnings' => $warnings
+        ];
+    }
+
+    /**
+     * 記錄審計日誌
+     */
+    private function logAuditAction(string $action, array $data): void
+    {
+        $this->auditService->logUserManagementAction($action, $data, $this->user);
+    }
+
+    /**
+     * 關閉對話框
+     */
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetForm();
+    }
+
+    /**
+     * 重置表單
+     */
+    private function resetForm(): void
+    {
+        $this->selectedAction = '';
+        $this->confirmText = '';
+        $this->processing = false;
+        $this->resetErrorBag();
+    }
+
+    /**
+     * 取得確認文字標籤
+     */
+    public function getConfirmLabelProperty(): string
+    {
+        if (!$this->user) {
+            return '';
+        }
+
+        return __('admin.users.confirm_username_label', ['username' => $this->user->username]);
+    }
+
+    /**
+     * 檢查是否顯示確認輸入框
+     */
+    public function getShowConfirmInputProperty(): bool
+    {
+        return $this->selectedAction === 'delete';
+    }
+
+    /**
+     * 檢查確認按鈕是否可用
+     */
+    public function getCanConfirmProperty(): bool
+    {
+        if ($this->processing) {
+            return false;
+        }
+
+        if (empty($this->selectedAction)) {
+            return false;
+        }
+
+        if ($this->selectedAction === 'delete' && $this->confirmText !== $this->user?->username) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 渲染元件
+     */
+    public function render()
+    {
+        return view('livewire.admin.users.user-delete-modal');
+    }
+}

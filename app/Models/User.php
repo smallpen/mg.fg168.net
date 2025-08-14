@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -17,7 +18,7 @@ use App\Traits\HasPermissions;
  */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasPermissions;
+    use HasApiTokens, HasFactory, Notifiable, HasPermissions, SoftDeletes;
 
     /**
      * 可批量賦值的屬性
@@ -185,5 +186,212 @@ class User extends Authenticatable
     public function getAuthIdentifierName()
     {
         return 'username';
+    }
+
+    /**
+     * 取得使用者的主要角色
+     *
+     * @return string|null
+     */
+    public function getPrimaryRoleAttribute(): ?string
+    {
+        $role = $this->roles()->orderBy('name')->first();
+        return $role ? $role->display_name : null;
+    }
+
+    /**
+     * 取得本地化的主要角色名稱
+     *
+     * @return string|null
+     */
+    public function getLocalizedPrimaryRoleAttribute(): ?string
+    {
+        $role = $this->roles()->orderBy('name')->first();
+        
+        if (!$role) {
+            return __('admin.users.no_role');
+        }
+
+        // 嘗試從語言檔案取得本地化名稱
+        $localizedName = __("admin.roles.names.{$role->name}");
+        
+        // 如果找不到本地化名稱，使用 display_name
+        return $localizedName !== "admin.roles.names.{$role->name}" 
+            ? $localizedName 
+            : $role->display_name;
+    }
+
+    /**
+     * 取得所有角色的本地化名稱
+     *
+     * @return array
+     */
+    public function getLocalizedRolesAttribute(): array
+    {
+        return $this->roles->map(function ($role) {
+            $localizedName = __("admin.roles.names.{$role->name}");
+            return $localizedName !== "admin.roles.names.{$role->name}" 
+                ? $localizedName 
+                : $role->display_name;
+        })->toArray();
+    }
+
+    /**
+     * 取得角色數量的本地化顯示
+     *
+     * @return string
+     */
+    public function getRoleCountDisplayAttribute(): string
+    {
+        $count = $this->roles()->count();
+        
+        if ($count === 0) {
+            return __('admin.users.no_role');
+        }
+        
+        if ($count === 1) {
+            return $this->localized_primary_role;
+        }
+        
+        return $this->localized_primary_role . ' +' . ($count - 1);
+    }
+
+    /**
+     * 取得使用者頭像 URL
+     *
+     * @return string
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->avatar) {
+            return asset('storage/avatars/' . $this->avatar);
+        }
+        
+        // 使用 Gravatar 作為預設頭像
+        $hash = md5(strtolower(trim($this->email ?? $this->username)));
+        return "https://www.gravatar.com/avatar/{$hash}?d=identicon&s=40";
+    }
+
+    /**
+     * 取得格式化的建立時間
+     *
+     * @return string
+     */
+    public function getFormattedCreatedAtAttribute(): string
+    {
+        return \App\Helpers\DateTimeHelper::formatForUserList($this->created_at);
+    }
+
+    /**
+     * 取得格式化的更新時間
+     *
+     * @return string
+     */
+    public function getFormattedUpdatedAtAttribute(): string
+    {
+        return \App\Helpers\DateTimeHelper::formatForUserList($this->updated_at);
+    }
+
+    /**
+     * 取得相對時間格式的建立時間
+     *
+     * @return string
+     */
+    public function getCreatedAtRelativeAttribute(): string
+    {
+        return \App\Helpers\DateTimeHelper::format($this->created_at, 'relative');
+    }
+
+    /**
+     * 取得最後登入時間的格式化顯示
+     *
+     * @return string
+     */
+    public function getFormattedLastLoginAttribute(): string
+    {
+        return \App\Helpers\DateTimeHelper::formatStatusChangeTime($this->last_login_at ?? null);
+    }
+
+    /**
+     * 取得帳號狀態變更時間的格式化顯示
+     *
+     * @return string
+     */
+    public function getFormattedStatusChangedAtAttribute(): string
+    {
+        return \App\Helpers\DateTimeHelper::formatStatusChangeTime($this->updated_at);
+    }
+
+    /**
+     * 取得本地化的狀態文字
+     *
+     * @return string
+     */
+    public function getLocalizedStatusAttribute(): string
+    {
+        return $this->is_active 
+            ? __('admin.users.active') 
+            : __('admin.users.inactive');
+    }
+
+    /**
+     * 檢查是否可以被刪除
+     *
+     * @return bool
+     */
+    public function canBeDeleted(): bool
+    {
+        // 檢查是否為超級管理員
+        if ($this->isSuperAdmin()) {
+            return false;
+        }
+
+        // 檢查是否為當前登入使用者
+        if (auth()->check() && auth()->id() === $this->id) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 軟刪除使用者
+     *
+     * @return bool
+     */
+    public function softDelete(): bool
+    {
+        if (!$this->canBeDeleted()) {
+            return false;
+        }
+
+        // 先停用使用者
+        $this->update(['is_active' => false]);
+        
+        // 移除所有角色關聯
+        $this->roles()->detach();
+        
+        // 執行軟刪除
+        return $this->delete();
+    }
+
+    /**
+     * 恢復軟刪除的使用者
+     *
+     * @return bool
+     */
+    public function restoreUser(): bool
+    {
+        return $this->restore();
+    }
+
+    /**
+     * 切換使用者狀態
+     *
+     * @return bool
+     */
+    public function toggleStatus(): bool
+    {
+        return $this->update(['is_active' => !$this->is_active]);
     }
 }

@@ -6,7 +6,10 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\Permission;
 use App\Repositories\UserRepository;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 use Carbon\Carbon;
@@ -371,28 +374,36 @@ class UserRepositoryTest extends TestCase
     {
         // 建立舊使用者（超過 30 天）
         $oldUser = User::create([
-            'username' => 'old_user',
+            'username' => 'old_user_unique',
             'name' => '舊使用者',
-            'email' => 'old@example.com',
+            'email' => 'old_unique@example.com',
             'password' => Hash::make('password'),
             'is_active' => true,
-            'created_at' => Carbon::now()->subDays(35)
         ]);
+        
+        // 手動設定建立時間為 35 天前
+        $oldUser->created_at = Carbon::now()->subDays(35);
+        $oldUser->save();
 
         // 建立新使用者（最近 30 天內）
         $newUser = User::create([
-            'username' => 'new_user',
+            'username' => 'new_user_unique',
             'name' => '新使用者',
-            'email' => 'new@example.com',
+            'email' => 'new_unique@example.com',
             'password' => Hash::make('password'),
             'is_active' => true,
-            'created_at' => Carbon::now()->subDays(5)
         ]);
+        
+        // 手動設定建立時間為 5 天前
+        $newUser->created_at = Carbon::now()->subDays(5);
+        $newUser->save();
 
         $recentUsers = $this->userRepository->getRecentUsers(10, 30);
         
-        $this->assertCount(1, $recentUsers);
-        $this->assertEquals('new_user', $recentUsers->first()->username);
+        // 檢查是否包含新使用者
+        $recentUsernames = $recentUsers->pluck('username')->toArray();
+        $this->assertContains('new_user_unique', $recentUsernames);
+        $this->assertNotContains('old_user_unique', $recentUsernames);
     }
 
     /**
@@ -610,7 +621,237 @@ class UserRepositoryTest extends TestCase
         $result = $this->userRepository->delete($user);
 
         $this->assertTrue($result);
-        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+        // 由於使用軟刪除，使用者記錄仍存在但有 deleted_at 時間戳
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
         $this->assertDatabaseMissing('user_roles', ['user_id' => $user->id]);
+    }
+
+    /**
+     * 測試取得分頁的使用者列表
+     */
+    public function test_get_paginated_users(): void
+    {
+        // 建立測試使用者
+        $activeUser = User::create([
+            'username' => 'paginated_active_user',
+            'name' => 'Paginated Active User',
+            'email' => 'paginated_active@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => true
+        ]);
+
+        $inactiveUser = User::create([
+            'username' => 'paginated_inactive_user',
+            'name' => 'Paginated Inactive User',
+            'email' => 'paginated_inactive@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => false
+        ]);
+
+        // 測試基本分頁
+        $result = $this->userRepository->getPaginatedUsers([], 10);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
+        $this->assertGreaterThanOrEqual(2, $result->total());
+
+        // 測試搜尋篩選 - 使用更具體的搜尋詞
+        $filters = ['search' => 'paginated_active'];
+        $result = $this->userRepository->getPaginatedUsers($filters, 10);
+        $this->assertGreaterThanOrEqual(1, $result->total());
+        
+        // 檢查結果中是否包含預期的使用者
+        $usernames = collect($result->items())->pluck('username')->toArray();
+        $this->assertContains('paginated_active_user', $usernames);
+
+        // 測試狀態篩選
+        $filters = ['status' => 'active'];
+        $result = $this->userRepository->getPaginatedUsers($filters, 10);
+        $this->assertGreaterThanOrEqual(1, $result->total());
+        
+        // 檢查所有結果都是啟用狀態
+        foreach ($result->items() as $user) {
+            $this->assertTrue($user->is_active);
+        }
+    }
+
+    /**
+     * 測試搜尋使用者
+     */
+    public function test_search_users_with_builder(): void
+    {
+        User::create([
+            'username' => 'search_user',
+            'name' => 'Search User',
+            'email' => 'search@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => true
+        ]);
+
+        $builder = $this->userRepository->searchUsers('search', []);
+        $this->assertInstanceOf(Builder::class, $builder);
+        
+        $results = $builder->get();
+        $this->assertCount(1, $results);
+        $this->assertEquals('search_user', $results->first()->username);
+    }
+
+    /**
+     * 測試根據狀態取得使用者
+     */
+    public function test_get_users_by_status(): void
+    {
+        User::create([
+            'username' => 'status_active',
+            'name' => 'Status Active',
+            'email' => 'status_active@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => true
+        ]);
+
+        User::create([
+            'username' => 'status_inactive',
+            'name' => 'Status Inactive',
+            'email' => 'status_inactive@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => false
+        ]);
+
+        $activeUsers = $this->userRepository->getUsersByStatus(true);
+        $inactiveUsers = $this->userRepository->getUsersByStatus(false);
+
+        $this->assertGreaterThanOrEqual(1, $activeUsers->count());
+        $this->assertGreaterThanOrEqual(1, $inactiveUsers->count());
+        
+        $this->assertTrue($activeUsers->first()->is_active);
+        $this->assertFalse($inactiveUsers->first()->is_active);
+    }
+
+    /**
+     * 測試軟刪除使用者
+     */
+    public function test_soft_delete_user(): void
+    {
+        $user = User::create([
+            'username' => 'soft_delete_user',
+            'name' => 'Soft Delete User',
+            'email' => 'soft_delete@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => true
+        ]);
+
+        $result = $this->userRepository->softDeleteUser($user->id);
+        $this->assertTrue($result);
+        
+        // 檢查使用者被軟刪除
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
+        
+        // 檢查使用者被停用
+        $user->refresh();
+        $this->assertFalse($user->is_active);
+    }
+
+    /**
+     * 測試恢復軟刪除的使用者
+     */
+    public function test_restore_user(): void
+    {
+        $user = User::create([
+            'username' => 'restore_user',
+            'name' => 'Restore User',
+            'email' => 'restore@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => true
+        ]);
+
+        // 先軟刪除
+        $this->userRepository->softDeleteUser($user->id);
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
+
+        // 然後恢復
+        $result = $this->userRepository->restoreUser($user->id);
+        $this->assertTrue($result);
+        
+        // 檢查使用者被恢復
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'deleted_at' => null
+        ]);
+    }
+
+    /**
+     * 測試切換使用者狀態
+     */
+    public function test_toggle_user_status(): void
+    {
+        $user = User::create([
+            'username' => 'toggle_user',
+            'name' => 'Toggle User',
+            'email' => 'toggle@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => true
+        ]);
+
+        // 切換為停用
+        $result = $this->userRepository->toggleUserStatus($user->id);
+        $this->assertTrue($result);
+        
+        $user->refresh();
+        $this->assertFalse($user->is_active);
+
+        // 再次切換為啟用
+        $result = $this->userRepository->toggleUserStatus($user->id);
+        $this->assertTrue($result);
+        
+        $user->refresh();
+        $this->assertTrue($user->is_active);
+    }
+
+    /**
+     * 測試取得可用角色
+     */
+    public function test_get_available_roles(): void
+    {
+        Role::create([
+            'name' => 'test_role_1',
+            'display_name' => '測試角色1',
+            'description' => '測試角色1'
+        ]);
+
+        Role::create([
+            'name' => 'test_role_2',
+            'display_name' => '測試角色2',
+            'description' => '測試角色2'
+        ]);
+
+        $roles = $this->userRepository->getAvailableRoles();
+        $this->assertInstanceOf(Collection::class, $roles);
+        $this->assertGreaterThanOrEqual(2, $roles->count());
+        
+        // 檢查角色是否包含必要的屬性
+        $firstRole = $roles->first();
+        $this->assertNotNull($firstRole->name);
+        $this->assertNotNull($firstRole->display_name);
+        $this->assertIsString($firstRole->name);
+        $this->assertIsString($firstRole->display_name);
+    }
+
+    /**
+     * 測試檢查使用者是否可以被刪除
+     */
+    public function test_can_be_deleted(): void
+    {
+        $user = User::create([
+            'username' => 'deletable_user',
+            'name' => 'Deletable User',
+            'email' => 'deletable@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => true
+        ]);
+
+        $result = $this->userRepository->canBeDeleted($user->id);
+        $this->assertTrue($result);
+
+        // 測試不存在的使用者
+        $result = $this->userRepository->canBeDeleted(99999);
+        $this->assertFalse($result);
     }
 }

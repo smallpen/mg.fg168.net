@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "uvx",
+      "args": ["mcp-playwright@latest"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "mcp_playwright_playwright_navigate",
+        "mcp_playwright_playwright_screenshot", 
+        "mcp_playwright_playwright_click",
+        "mcp_playwright_playwright_fill",
+        "mcp_playwright_playwright_get_visible_text",
+        "mcp_playwright_playwright_get_visible_html",
+        "mcp_playwright_playwright_evaluate",
+        "mcp_playwright_playwright_console_logs"
+      ]
+    },
+    "mysql": {
+      "command": "uvx", 
+      "args": ["mcp-mysql@latest"],
+      "env": {
+        "MYSQL_HOST": "localhost",
+        "MYSQL_PORT": "3306", 
+        "MYSQL_USER": "root",
+        "MYSQL_PASSWORD": "password",
+        "MYSQL_DATABASE": "mg_fg168_net",
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "mcp_mysql_list_databases",
+        "mcp_mysql_list_tables", 
+        "mcp_mysql_describe_table",
+        "mcp_mysql_execute_query"
+      ]
+    }
+  }
+}

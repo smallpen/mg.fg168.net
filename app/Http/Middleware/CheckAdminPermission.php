@@ -96,7 +96,8 @@ class CheckAdminPermission
             return $this->handleInsufficientPermission($request, "您沒有存取此頁面的權限");
         }
         
-        // 檢查模組存取權限
+        // 檢查模組存取權限（暫時停用，因為我們使用具體的功能權限）
+        /*
         $modulePermission = $this->getModulePermission($request);
         if ($modulePermission && !$user->hasPermission($modulePermission)) {
             $this->logAccessAttempt($request, 'module_permission_denied', $user->id, [
@@ -106,6 +107,7 @@ class CheckAdminPermission
             
             return $this->handleInsufficientPermission($request, "您沒有存取此模組的權限");
         }
+        */
 
         // 暫時允許所有已登入的使用者存取（用於測試主題切換功能）
         // 在實際環境中，應該取消註解以下程式碼來檢查管理員權限
@@ -209,6 +211,7 @@ class CheckAdminPermission
             'admin.users.create' => 'users.create',
             'admin.users.show' => 'users.view',
             'admin.users.edit' => 'users.edit',
+            'admin.users.delete' => 'users.delete',
             'admin.roles.index' => 'roles.view',
             'admin.roles.create' => 'roles.create',
             'admin.roles.edit' => 'roles.edit',

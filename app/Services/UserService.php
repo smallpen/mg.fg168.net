@@ -207,7 +207,7 @@ class UserService
         }
 
         // 檢查是否為當前登入使用者（不能刪除自己）
-        if (auth()->id() === $user->id) {
+        if (auth()->id() === $user->username) {
             throw new \InvalidArgumentException('Cannot delete current user');
         }
 
@@ -301,7 +301,7 @@ class UserService
         }
 
         // 檢查是否為當前登入使用者（不能停用自己）
-        if (auth()->id() === $user->id) {
+        if (auth()->id() === $user->username) {
             throw new \InvalidArgumentException('Cannot deactivate current user');
         }
 
@@ -719,7 +719,7 @@ class UserService
         }
 
         // 檢查是否為當前登入使用者
-        if (auth()->id() === $user->id) {
+        if (auth()->id() === $user->username) {
             $dependencies['current_user'] = '無法刪除當前登入的使用者';
         }
 

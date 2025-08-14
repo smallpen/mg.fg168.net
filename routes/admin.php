@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,21 +27,21 @@ Route::middleware('admin')
     
     // 使用者管理路由群組
     Route::prefix('users')->name('users.')->group(function () {
-        Route::get('/', function () {
-            return view('admin.users.index');
-        })->name('index')->middleware('can:users.view');
+        Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'index'])
+             ->name('index')
+             ->middleware('can:users.view');
         
-        Route::get('/create', function () {
-            return view('admin.users.create');
-        })->name('create')->middleware('can:users.create');
+        Route::get('/create', [App\Http\Controllers\Admin\UserController::class, 'create'])
+             ->name('create')
+             ->middleware('can:users.create');
         
-        Route::get('/{user}', function ($user) {
-            return view('admin.users.show', compact('user'));
-        })->name('show')->middleware('can:users.view');
+        Route::get('/{user}', [App\Http\Controllers\Admin\UserController::class, 'show'])
+             ->name('show')
+             ->middleware('can:users.view');
         
-        Route::get('/{user}/edit', function ($user) {
-            return view('admin.users.edit', compact('user'));
-        })->name('edit')->middleware('can:users.edit');
+        Route::get('/{user}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])
+             ->name('edit')
+             ->middleware('can:users.edit');
     });
     
     // 角色管理路由群組

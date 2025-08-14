@@ -69,6 +69,25 @@ return [
         'inactive_users' => 'Inactive Users',
         'users_with_roles' => 'Users with Roles',
         'no_role' => 'No Role',
+        'recent_users' => 'Recent Users',
+        'statistics' => 'Statistics',
+        'show_details' => 'Show Details',
+        'hide_details' => 'Hide Details',
+        'refresh' => 'Refresh',
+        'loading_stats' => 'Loading statistics...',
+        'stats_refreshed' => 'Statistics refreshed',
+        'total_users_desc' => 'All users in the system',
+        'active_users_desc' => 'Currently active users',
+        'inactive_users_desc' => 'Currently inactive users',
+        'recent_users_desc' => 'Users added in the last 30 days',
+        'activity_rate' => 'Activity Rate',
+        'active_vs_total' => 'Active / Total',
+        'top_role' => 'Most Popular Role',
+        'users_count' => ':count users',
+        'role_distribution' => 'Role Distribution',
+        'users_without_roles_warning' => 'Warning: Some users have no roles assigned',
+        'users_without_roles_count' => ':count users have no roles',
+        'no_roles' => 'No Roles',
         'toggle_status' => 'Toggle Status',
         'cannot_disable_self' => 'You cannot disable your own account',
         'cannot_modify_super_admin' => 'You do not have permission to modify super admin status',
@@ -104,6 +123,9 @@ return [
         'cannot_disable_self' => 'You cannot disable your own account',
         'type_username_to_confirm' => 'Please type the complete username to confirm this action',
         'user_not_found' => 'The specified user was not found',
+        'never' => 'Never',
+        'just_now' => 'Just now',
+        'loading' => 'Loading...',
     ],
 
     // Role management
@@ -120,6 +142,24 @@ return [
         'users_count' => 'Users Count',
         'permissions_count' => 'Permissions Count',
         'no_roles' => 'No roles found',
+        
+        // Role names localization
+        'names' => [
+            'super_admin' => 'Super Administrator',
+            'admin' => 'Administrator',
+            'moderator' => 'Moderator',
+            'user' => 'User',
+            'guest' => 'Guest',
+        ],
+        
+        // Role descriptions localization
+        'descriptions' => [
+            'super_admin' => 'Highest level administrator with all system permissions',
+            'admin' => 'System administrator with most management permissions',
+            'moderator' => 'Moderator with content management permissions',
+            'user' => 'Regular system user',
+            'guest' => 'Guest user with limited permissions',
+        ],
         'management' => 'Manage system roles and permission settings',
         'add_role' => 'Add Role',
         'search' => 'Search Roles',
@@ -246,6 +286,7 @@ return [
         'next' => 'Next',
         'showing' => 'Showing :first to :last of :total results',
         'per_page' => 'Per page',
+        'navigation' => 'Pagination Navigation',
     ],
 
     // Theme and language
