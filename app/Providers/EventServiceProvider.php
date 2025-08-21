@@ -11,6 +11,10 @@ use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use App\Listeners\SecurityEventListener;
+use App\Listeners\RoleStatisticsCacheListener;
+use App\Services\RoleStatisticsCacheManager;
+use App\Models\Role;
+use App\Models\Permission;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -42,7 +46,42 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // 註冊角色統計快取清除監聽器
+        $this->registerRoleStatisticsCacheListeners();
+    }
+
+    /**
+     * 註冊角色統計快取監聽器
+     */
+    private function registerRoleStatisticsCacheListeners(): void
+    {
+        $listener = app(RoleStatisticsCacheListener::class);
+
+        // 角色模型事件
+        Role::created(function ($role) use ($listener) {
+            $listener->handleRoleCreated($role);
+        });
+
+        Role::updated(function ($role) use ($listener) {
+            $listener->handleRoleUpdated($role);
+        });
+
+        Role::deleted(function ($role) use ($listener) {
+            $listener->handleRoleDeleted($role);
+        });
+
+        // 權限模型事件
+        Permission::updated(function ($permission) use ($listener) {
+            $listener->handlePermissionUpdated($permission);
+        });
+
+        Permission::created(function ($permission) {
+            app(RoleStatisticsCacheManager::class)->clearSystemCache();
+        });
+
+        Permission::deleted(function ($permission) {
+            app(RoleStatisticsCacheManager::class)->clearSystemCache();
+        });
     }
 
     /**

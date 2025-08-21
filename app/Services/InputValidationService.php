@@ -134,6 +134,30 @@ class InputValidationService
     }
 
     /**
+     * 驗證通用 ID
+     * 
+     * @param mixed $id
+     * @return int
+     * @throws ValidationException
+     */
+    public function validateId($id): int
+    {
+        $validator = Validator::make(['id' => $id], [
+            'id' => 'required|integer|min:1',
+        ], [
+            'id.required' => 'ID 不能為空',
+            'id.integer' => 'ID 必須為整數',
+            'id.min' => 'ID 必須大於 0',
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        return (int) $id;
+    }
+
+    /**
      * 驗證確認文字
      * 
      * @param string $confirmText
@@ -308,5 +332,28 @@ class InputValidationService
             'user_ids' => array_values(array_unique($data['user_ids'])),
             'confirm' => $data['confirm'] ?? false,
         ];
+    }
+
+    /**
+     * 清理輸入資料陣列
+     * 
+     * @param array $data
+     * @return array
+     */
+    public function sanitizeInput(array $data): array
+    {
+        $sanitized = [];
+        
+        foreach ($data as $key => $value) {
+            if (is_string($value)) {
+                $sanitized[$key] = $this->sanitizeString($value);
+            } elseif (is_array($value)) {
+                $sanitized[$key] = $this->sanitizeInput($value);
+            } else {
+                $sanitized[$key] = $value;
+            }
+        }
+        
+        return $sanitized;
     }
 }

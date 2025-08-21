@@ -85,6 +85,16 @@ class User extends Authenticatable
     }
 
     /**
+     * 使用者的設定變更記錄關聯
+     * 
+     * @return HasMany
+     */
+    public function settingChanges(): HasMany
+    {
+        return $this->hasMany(SettingChange::class, 'changed_by');
+    }
+
+    /**
      * 檢查使用者是否擁有特定角色
      * 
      * @param string $role

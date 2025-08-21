@@ -375,7 +375,7 @@ class EnhancedErrorLoggingService
             'debug_mode' => config('app.debug'),
             'memory_usage' => memory_get_usage(true),
             'memory_peak' => memory_get_peak_usage(true),
-            'execution_time' => microtime(true) - LARAVEL_START,
+            'execution_time' => defined('LARAVEL_START') ? microtime(true) - LARAVEL_START : 0,
             'server_time' => now()->toISOString(),
         ];
     }

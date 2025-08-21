@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         processIsolation="false"
+         stopOnFailure="false"
+         cacheDirectory=".phpunit.cache"
+         backupGlobals="false"
+         backupStaticAttributes="false">
+    
+    <testsuites>
+        <testsuite name="Role Management Integration">
+            <directory suffix="Test.php">./tests/Integration/RoleManagement</directory>
+        </testsuite>
+        <testsuite name="Role Management Performance">
+            <directory suffix="Test.php">./tests/Performance/RoleManagement</directory>
+        </testsuite>
+        <testsuite name="Role Management Browser">
+            <directory suffix="Test.php">./tests/Browser/RoleManagement</directory>
+        </testsuite>
+    </testsuites>
+    
+    <coverage>
+        <include>
+            <directory suffix=".php">./app/Livewire/Admin/Roles</directory>
+            <directory suffix=".php">./app/Services</directory>
+            <directory suffix=".php">./app/Repositories</directory>
+            <directory suffix=".php">./app/Models</directory>
+        </include>
+        <exclude>
+            <directory suffix=".php">./app/Models/Factories</directory>
+            <directory suffix=".php">./tests</directory>
+        </exclude>
+        <report>
+            <html outputDirectory="coverage/role-management-integration"/>
+            <text outputFile="coverage/role-management-integration.txt"/>
+            <xml outputDirectory="coverage/role-management-integration-xml"/>
+        </report>
+    </coverage>
+    
+    <php>
+        <server name="APP_ENV" value="testing"/>
+        <server name="BCRYPT_ROUNDS" value="4"/>
+        <server name="CACHE_DRIVER" value="array"/>
+        <server name="DB_CONNECTION" value="sqlite"/>
+        <server name="DB_DATABASE" value=":memory:"/>
+        <server name="MAIL_MAILER" value="array"/>
+        <server name="QUEUE_CONNECTION" value="sync"/>
+        <server name="SESSION_DRIVER" value="array"/>
+        <server name="TELESCOPE_ENABLED" value="false"/>
+    </php>
+    
+    <groups>
+        <include>
+            <group>role-management</group>
+            <group>integration</group>
+        </include>
+    </groups>
+    
+    <logging>
+        <junit outputFile="reports/role-management-integration-junit.xml"/>
+        <teamcity outputFile="reports/role-management-integration-teamcity.txt"/>
+        <testdoxHtml outputFile="reports/role-management-integration-testdox.html"/>
+        <testdoxText outputFile="reports/role-management-integration-testdox.txt"/>
+    </logging>
+</phpunit>

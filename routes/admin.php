@@ -45,33 +45,109 @@ Route::middleware('admin')
     });
     
     // 角色管理路由群組
-    Route::prefix('roles')->name('roles.')->group(function () {
-        Route::get('/', function () {
-            return view('admin.roles.index');
-        })->name('index')->middleware('can:roles.view');
+    Route::prefix('roles')->name('roles.')->middleware('role.security')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\RoleController::class, 'index'])
+             ->name('index')
+             ->middleware('can:roles.view');
         
-        Route::get('/create', function () {
-            return view('admin.roles.create');
-        })->name('create')->middleware('can:roles.create');
+        Route::get('/create', [App\Http\Controllers\Admin\RoleController::class, 'create'])
+             ->name('create')
+             ->middleware('can:roles.create');
         
-        Route::get('/{role}/edit', function ($role) {
-            return view('admin.roles.edit', compact('role'));
-        })->name('edit')->middleware('can:roles.edit');
+        Route::get('/{role}', [App\Http\Controllers\Admin\RoleController::class, 'show'])
+             ->name('show')
+             ->middleware('can:roles.view');
+        
+        Route::get('/{role}/edit', [App\Http\Controllers\Admin\RoleController::class, 'edit'])
+             ->name('edit')
+             ->middleware('can:roles.edit');
+        
+        // 角色統計路由
+        Route::get('/statistics', [App\Http\Controllers\Admin\RoleController::class, 'statistics'])
+             ->name('statistics')
+             ->middleware('can:roles.view');
+        
+        Route::get('/{role}/statistics', [App\Http\Controllers\Admin\RoleController::class, 'roleStatistics'])
+             ->name('role-statistics')
+             ->middleware('can:roles.view');
+        
+        // 權限矩陣路由
+        Route::get('/permissions/matrix', [App\Http\Controllers\Admin\RoleController::class, 'permissionMatrix'])
+             ->name('permission-matrix')
+             ->middleware('can:roles.edit');
+        
+        Route::get('/{role}/permissions', [App\Http\Controllers\Admin\RoleController::class, 'permissionMatrix'])
+             ->name('permissions')
+             ->middleware('can:roles.edit');
+        
+        // 角色操作路由
+        Route::post('/{role}/duplicate', [App\Http\Controllers\Admin\RoleController::class, 'duplicate'])
+             ->name('duplicate')
+             ->middleware('can:roles.create');
+        
+        Route::get('/{role}/export', [App\Http\Controllers\Admin\RoleController::class, 'export'])
+             ->name('export')
+             ->middleware('can:roles.view');
+        
+        Route::post('/bulk-action', [App\Http\Controllers\Admin\RoleController::class, 'bulkAction'])
+             ->name('bulk-action')
+             ->middleware('can:roles.edit');
     });
     
     // 權限管理路由群組
     Route::prefix('permissions')->name('permissions.')->group(function () {
-        Route::get('/', function () {
-            return view('admin.permissions.index');
-        })->name('index')->middleware('can:permissions.view');
+        Route::get('/', [App\Http\Controllers\Admin\PermissionController::class, 'index'])
+             ->name('index')
+             ->middleware('can:permissions.view');
         
-        Route::get('/create', function () {
-            return view('admin.permissions.create');
-        })->name('create')->middleware('can:permissions.create');
+        Route::get('/matrix', [App\Http\Controllers\Admin\PermissionController::class, 'matrix'])
+             ->name('matrix')
+             ->middleware('can:roles.edit');
         
-        Route::get('/{permission}/edit', function ($permission) {
-            return view('admin.permissions.edit', compact('permission'));
-        })->name('edit')->middleware('can:permissions.edit');
+        Route::get('/create', [App\Http\Controllers\Admin\PermissionController::class, 'create'])
+             ->name('create');
+        
+        Route::get('/{permission}', [App\Http\Controllers\Admin\PermissionController::class, 'show'])
+             ->name('show')
+             ->middleware('can:permissions.view');
+        
+        Route::get('/{permission}/edit', [App\Http\Controllers\Admin\PermissionController::class, 'edit'])
+             ->name('edit')
+             ->middleware(['can:permissions.edit', 'permission.security:update']);
+        
+        // 權限匯入匯出路由
+        Route::prefix('import-export')->name('import-export.')->group(function () {
+            Route::post('/export', [App\Http\Controllers\Admin\PermissionImportExportController::class, 'export'])
+                 ->name('export')
+                 ->middleware(['can:permissions.export', 'permission.security:export']);
+            
+            Route::post('/import', [App\Http\Controllers\Admin\PermissionImportExportController::class, 'import'])
+                 ->name('import')
+                 ->middleware(['can:permissions.import', 'permission.security:import']);
+            
+            Route::post('/preview', [App\Http\Controllers\Admin\PermissionImportExportController::class, 'preview'])
+                 ->name('preview')
+                 ->middleware(['can:permissions.import', 'permission.security:import']);
+            
+            Route::get('/stats', [App\Http\Controllers\Admin\PermissionImportExportController::class, 'stats'])
+                 ->name('stats')
+                 ->middleware('can:permissions.view');
+        });
+
+        // 權限模板路由
+        Route::get('/templates', function () {
+            return view('admin.permissions.templates');
+        })->name('templates')->middleware(['can:permissions.manage', 'permission.security:view']);
+
+        // 權限測試路由
+        Route::get('/test', function () {
+            return view('admin.permissions.test');
+        })->name('test')->middleware(['can:permissions.test', 'permission.security:test']);
+
+        // 權限依賴關係圖表路由
+        Route::get('/dependencies', [App\Http\Controllers\Admin\PermissionController::class, 'dependencies'])
+             ->name('dependencies')
+             ->middleware('can:permissions.view');
     });
     
     // 系統設定路由群組
@@ -80,21 +156,41 @@ Route::middleware('admin')
             return view('admin.settings.index');
         })->name('index')->middleware('can:settings.view');
         
+        // 系統設定管理路由
+        Route::get('/system', App\Livewire\Admin\Settings\SettingsList::class)
+             ->name('system')
+             ->middleware('can:system.settings');
+        
+        // 設定備份管理路由
+        Route::get('/backups', App\Livewire\Admin\Settings\SettingBackupManager::class)
+             ->name('backups')
+             ->middleware('can:system.settings');
+        
+        // 設定變更歷史路由
+        Route::get('/history', App\Livewire\Admin\Settings\SettingChangeHistory::class)
+             ->name('history')
+             ->middleware('can:system.settings');
+        
+        // 基本設定管理路由
+        Route::get('/basic', App\Livewire\Admin\Settings\BasicSettings::class)
+             ->name('basic')
+             ->middleware('can:system.settings');
+        
         Route::get('/general', function () {
             return view('admin.settings.general');
         })->name('general')->middleware('can:settings.general');
         
-        Route::get('/security', function () {
-            return view('admin.settings.security');
-        })->name('security')->middleware('can:settings.security');
+        Route::get('/security', App\Livewire\Admin\Settings\SecuritySettings::class)
+             ->name('security')
+             ->middleware('can:settings.security');
         
         Route::get('/appearance', function () {
             return view('admin.settings.appearance');
         })->name('appearance')->middleware('can:settings.appearance');
         
-        Route::get('/notifications', function () {
-            return view('admin.settings.notifications');
-        })->name('notifications')->middleware('can:settings.notifications');
+        Route::get('/notifications', App\Livewire\Admin\Settings\NotificationSettings::class)
+             ->name('notifications')
+             ->middleware('can:system.settings');
     });
     
     // 活動記錄路由群組

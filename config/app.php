@@ -189,6 +189,10 @@ return [
         App\Providers\LocalizationServiceProvider::class,
         App\Providers\RepositoryServiceProvider::class,
         App\Providers\BladeServiceProvider::class,
+        App\Providers\RoleOptimizationServiceProvider::class,
+        App\Providers\RoleLocalizationServiceProvider::class,
+        App\Providers\PermissionLanguageServiceProvider::class,
+        App\Providers\SystemSettingsServiceProvider::class,
     ])->toArray(),
 
     /*
@@ -204,6 +208,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
+        'SystemSettings' => App\Facades\SystemSettings::class,
     ])->toArray(),
 
 ];

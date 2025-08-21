@@ -69,7 +69,7 @@
                         wire:model="moduleFilter"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                     <option value="">{{ __('admin.permissions.all_modules') }}</option>
-                    @foreach($modules as $module)
+                    @foreach($this->modules as $module)
                         <option value="{{ $module }}">{{ ucfirst($module) }}</option>
                     @endforeach
                 </select>
@@ -105,9 +105,9 @@
                         待應用的權限變更
                     </h3>
                     <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                        <p>總計 {{ $changeStats['total'] }} 個變更：
-                            <span class="text-green-600 dark:text-green-400">新增 {{ $changeStats['add'] }} 個</span>，
-                            <span class="text-red-600 dark:text-red-400">移除 {{ $changeStats['remove'] }} 個</span>
+                        <p>總計 {{ $this->changeStats['total'] }} 個變更：
+                            <span class="text-green-600 dark:text-green-400">新增 {{ $this->changeStats['add'] }} 個</span>，
+                            <span class="text-red-600 dark:text-red-400">移除 {{ $this->changeStats['remove'] }} 個</span>
                         </p>
                     </div>
                 </div>
@@ -167,7 +167,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider sticky left-0 bg-gray-50 dark:bg-gray-900 z-10">
                                 權限 / 角色
                             </th>
-                            @foreach($roles as $role)
+                            @foreach($this->roles as $role)
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-24">
                                     <div class="flex flex-col items-center">
                                         <span class="mb-1">{{ $role->display_name }}</span>
@@ -178,35 +178,55 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($filteredPermissions as $module => $permissions)
+                        @foreach($this->filteredPermissions as $module => $permissions)
                             {{-- 模組標題行 --}}
                             <tr class="bg-gray-100 dark:bg-gray-700">
                                 <td class="px-6 py-3 text-sm font-medium text-gray-900 dark:text-white sticky left-0 bg-gray-100 dark:bg-gray-700 z-10">
                                     <div class="flex items-center justify-between">
                                         <span>{{ ucfirst($module) }} 模組 ({{ $permissions->count() }})</span>
-                                        <div class="flex space-x-1">
-                                            @foreach($roles as $role)
-                                                <div class="flex space-x-1">
-                                                    @if(!$this->roleHasAllModulePermissions($role->id, $module))
-                                                        <button wire:click="assignModuleToRole({{ $role->id }}, '{{ $module }}')"
-                                                                class="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300"
-                                                                title="指派 {{ $module }} 模組給 {{ $role->display_name }}">
-                                                            +
-                                                        </button>
-                                                    @endif
-                                                    @if($this->roleHasAllModulePermissions($role->id, $module) || $this->roleHasSomeModulePermissions($role->id, $module))
-                                                        <button wire:click="revokeModuleFromRole({{ $role->id }}, '{{ $module }}')"
-                                                                class="text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
-                                                                title="移除 {{ $module }} 模組從 {{ $role->display_name }}">
-                                                            -
-                                                        </button>
-                                                    @endif
-                                                </div>
-                                            @endforeach
+                                        <div class="flex items-center space-x-2">
+                                            {{-- 模組批量操作按鈕 --}}
+                                            <div class="flex space-x-1">
+                                                <button wire:click="assignModuleToAllRoles('{{ $module }}')"
+                                                        class="text-xs px-2 py-1 bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 rounded transition-colors duration-200"
+                                                        title="將 {{ $module }} 模組指派給所有角色">
+                                                    全部指派
+                                                </button>
+                                                <button wire:click="revokeModuleFromAllRoles('{{ $module }}')"
+                                                        class="text-xs px-2 py-1 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 rounded transition-colors duration-200"
+                                                        title="從所有角色移除 {{ $module }} 模組">
+                                                    全部移除
+                                                </button>
+                                            </div>
+                                            {{-- 個別角色操作按鈕 --}}
+                                            <div class="flex space-x-1">
+                                                @foreach($this->roles as $role)
+                                                    <div class="flex space-x-1">
+                                                        @if(!$this->roleHasAllModulePermissions($role->id, $module))
+                                                            <button wire:click="assignModuleToRole({{ $role->id }}, '{{ $module }}')"
+                                                                    class="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-200"
+                                                                    title="指派 {{ $module }} 模組給 {{ $role->display_name }}">
+                                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                                                </svg>
+                                                            </button>
+                                                        @endif
+                                                        @if($this->roleHasAllModulePermissions($role->id, $module) || $this->roleHasSomeModulePermissions($role->id, $module))
+                                                            <button wire:click="revokeModuleFromRole({{ $role->id }}, '{{ $module }}')"
+                                                                    class="text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
+                                                                    title="移除 {{ $module }} 模組從 {{ $role->display_name }}">
+                                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path>
+                                                                </svg>
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
-                                @foreach($roles as $role)
+                                @foreach($this->roles as $role)
                                     <td class="px-3 py-3 text-center">
                                         @if($this->roleHasAllModulePermissions($role->id, $module))
                                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
@@ -231,9 +251,26 @@
                                     <td class="px-6 py-3 text-sm text-gray-900 dark:text-white sticky left-0 bg-white dark:bg-gray-800 z-10">
                                         <div class="flex items-center justify-between">
                                             <div>
-                                                <div class="font-medium">{{ $permission->display_name }}</div>
+                                                <div class="font-medium flex items-center">
+                                                    {{ $permission->display_name }}
+                                                    {{-- 權限依賴關係指示器 --}}
+                                                    @if($permission->dependencies && $permission->dependencies->count() > 0)
+                                                        <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" title="此權限有 {{ $permission->dependencies->count() }} 個依賴項">
+                                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                                            </svg>
+                                                            {{ $permission->dependencies->count() }}
+                                                        </span>
+                                                    @endif
+                                                </div>
                                                 @if($showDescriptions && $permission->description)
                                                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $permission->description }}</div>
+                                                @endif
+                                                {{-- 顯示權限依賴列表 --}}
+                                                @if($showDescriptions && $permission->dependencies && $permission->dependencies->count() > 0)
+                                                    <div class="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                                        依賴：{{ $permission->dependencies->pluck('display_name')->join('、') }}
+                                                    </div>
                                                 @endif
                                             </div>
                                             <div class="flex space-x-1">
@@ -250,7 +287,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    @foreach($roles as $role)
+                                    @foreach($this->roles as $role)
                                         <td class="px-3 py-3 text-center">
                                             <button wire:click="togglePermission({{ $role->id }}, {{ $permission->id }})"
                                                     class="relative inline-flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 hover:scale-110">
@@ -286,7 +323,7 @@
     @else
         {{-- 列表檢視 --}}
         <div class="space-y-6">
-            @foreach($filteredPermissions as $module => $permissions)
+            @foreach($this->filteredPermissions as $module => $permissions)
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
                     <div class="bg-gray-50 dark:bg-gray-900 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -323,7 +360,7 @@
                                         </div>
                                     </div>
                                     <div class="mt-3 flex flex-wrap gap-2">
-                                        @foreach($roles as $role)
+                                        @foreach($this->roles as $role)
                                             @php
                                                 $hasPermission = $this->roleHasPermission($role->id, $permission->id);
                                                 $changeStatus = $this->getPermissionChangeStatus($role->id, $permission->id);
@@ -352,7 +389,7 @@
     @endif
 
     {{-- 空狀態 --}}
-    @if($filteredPermissions->isEmpty())
+    @if($this->filteredPermissions->isEmpty())
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
             <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>

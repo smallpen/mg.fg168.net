@@ -2,278 +2,291 @@
 
 namespace App\Services;
 
-use App\Models\Notification;
+use App\Models\NotificationTemplate;
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
-use Carbon\Carbon;
+use App\Repositories\SettingsRepositoryInterface;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\RateLimiter;
 
+/**
+ * 通知服務
+ * 
+ * 處理系統通知的發送，包含郵件通知、範本渲染和頻率限制
+ */
 class NotificationService
 {
     /**
-     * 獲取使用者通知
+     * 發送通知郵件
      */
-    public function getUserNotifications(User $user, array $filters = []): LengthAwarePaginator
+    public function sendEmail(string $templateKey, $recipient, array $variables = []): bool
     {
-        $query = $user->notifications()->latest();
-
-        // 套用篩選條件
-        if (isset($filters['type']) && $filters['type'] !== 'all') {
-            $query->ofType($filters['type']);
-        }
-
-        if (isset($filters['status'])) {
-            if ($filters['status'] === 'unread') {
-                $query->unread();
-            } elseif ($filters['status'] === 'read') {
-                $query->read();
+        try {
+            // 檢查頻率限制
+            if (!$this->checkRateLimit()) {
+                Log::warning('通知發送被頻率限制阻止', [
+                    'template' => $templateKey,
+                    'recipient' => $this->getRecipientInfo($recipient),
+                ]);
+                return false;
             }
-        }
 
-        if (isset($filters['priority'])) {
-            $query->ofPriority($filters['priority']);
-        }
+            // 取得範本
+            $template = $this->getTemplate($templateKey);
+            if (!$template) {
+                Log::error('找不到通知範本', ['template_key' => $templateKey]);
+                return false;
+            }
 
-        if (isset($filters['days'])) {
-            $query->recent((int) $filters['days']);
-        }
+            // 準備收件者資訊
+            $recipientInfo = $this->prepareRecipient($recipient);
+            if (!$recipientInfo) {
+                Log::error('無效的收件者資訊', ['recipient' => $recipient]);
+                return false;
+            }
 
-        $perPage = $filters['per_page'] ?? 10;
-        
-        return $query->paginate($perPage);
-    }
+            // 合併預設變數
+            $variables = array_merge($this->getDefaultVariables(), $variables);
 
-    /**
-     * 建立通知
-     */
-    public function createNotification(array $data): Notification
-    {
-        // 設定預設值
-        $data = array_merge([
-            'priority' => Notification::PRIORITY_NORMAL,
-            'is_browser_notification' => false,
-        ], $data);
+            // 渲染範本
+            $rendered = $template->render($variables);
 
-        // 根據類型設定預設圖示和顏色
-        if (!isset($data['icon']) || !isset($data['color'])) {
-            $typeConfig = Notification::getTypeConfig();
-            $config = $typeConfig[$data['type']] ?? $typeConfig[Notification::TYPE_SYSTEM];
-            
-            $data['icon'] = $data['icon'] ?? $config['icon'];
-            $data['color'] = $data['color'] ?? $config['color'];
-        }
+            // 發送郵件
+            Mail::raw($rendered['content'], function ($message) use ($recipientInfo, $rendered) {
+                $message->to($recipientInfo['email'], $recipientInfo['name'])
+                        ->subject($rendered['subject'])
+                        ->from(
+                            config('mail.from.address', 'noreply@example.com'),
+                            config('mail.from.name', 'System')
+                        );
+            });
 
-        $notification = Notification::create($data);
-
-        // 如果是高優先級通知，發送瀏覽器通知
-        if (in_array($data['priority'], [Notification::PRIORITY_HIGH, Notification::PRIORITY_URGENT])) {
-            $this->sendBrowserNotification($notification->user, [
-                'title' => $notification->title,
-                'message' => $notification->message,
-                'icon' => $notification->icon,
-                'url' => $notification->action_url,
+            // 記錄成功發送
+            Log::info('通知郵件發送成功', [
+                'template' => $templateKey,
+                'recipient' => $recipientInfo['email'],
+                'subject' => $rendered['subject'],
             ]);
-        }
 
-        return $notification;
+            return true;
+
+        } catch (\Exception $e) {
+            Log::error('通知郵件發送失敗', [
+                'template' => $templateKey,
+                'recipient' => $this->getRecipientInfo($recipient),
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 
     /**
-     * 批量建立通知
+     * 批量發送通知郵件
      */
-    public function createBulkNotifications(array $users, array $notificationData): Collection
+    public function sendBulkEmail(string $templateKey, array $recipients, array $variables = []): array
     {
-        $notifications = collect();
+        $results = [
+            'success' => 0,
+            'failed' => 0,
+            'skipped' => 0,
+            'errors' => [],
+        ];
 
-        foreach ($users as $user) {
-            $data = array_merge($notificationData, ['user_id' => $user->id]);
-            $notifications->push($this->createNotification($data));
+        foreach ($recipients as $recipient) {
+            if (!$this->checkRateLimit()) {
+                $results['skipped']++;
+                continue;
+            }
+
+            if ($this->sendEmail($templateKey, $recipient, $variables)) {
+                $results['success']++;
+            } else {
+                $results['failed']++;
+                $results['errors'][] = $this->getRecipientInfo($recipient);
+            }
+
+            // 短暫延遲以避免過載
+            usleep(100000); // 0.1 秒
         }
 
-        return $notifications;
+        return $results;
     }
 
     /**
-     * 標記通知為已讀
+     * 發送系統通知
      */
-    public function markAsRead(int $notificationId, User $user): bool
+    public function sendSystemNotification(string $templateKey, array $variables = []): bool
     {
-        $notification = $user->notifications()->find($notificationId);
-        
-        if (!$notification) {
+        // 取得系統管理員
+        $admins = User::whereHas('roles', function ($query) {
+            $query->whereIn('name', ['super_admin', 'admin']);
+        })->where('is_active', true)->get();
+
+        if ($admins->isEmpty()) {
+            Log::warning('沒有找到系統管理員，無法發送系統通知', [
+                'template' => $templateKey,
+            ]);
             return false;
         }
 
-        return $notification->markAsRead();
+        $results = $this->sendBulkEmail($templateKey, $admins->toArray(), $variables);
+
+        return $results['success'] > 0;
     }
 
     /**
-     * 標記所有通知為已讀
+     * 檢查頻率限制
      */
-    public function markAllAsRead(User $user): int
+    protected function checkRateLimit(): bool
     {
-        return $user->notifications()
-            ->unread()
-            ->update(['read_at' => Carbon::now()]);
+        $key = 'notification_rate_limit';
+        $maxAttempts = (int) app(SettingsRepositoryInterface::class)
+                            ->getSetting('notification.rate_limit_per_minute')
+                            ?->value ?? 10;
+
+        return RateLimiter::attempt($key, $maxAttempts, function () {
+            // 允許發送
+        }, 60);
     }
 
     /**
-     * 刪除通知
+     * 取得通知範本
      */
-    public function deleteNotification(int $notificationId, User $user): bool
+    protected function getTemplate(string $templateKey): ?NotificationTemplate
     {
-        $notification = $user->notifications()->find($notificationId);
-        
-        if (!$notification) {
-            return false;
+        return Cache::remember("notification_template_{$templateKey}", 3600, function () use ($templateKey) {
+            return NotificationTemplate::where('key', $templateKey)
+                                      ->where('is_active', true)
+                                      ->first();
+        });
+    }
+
+    /**
+     * 準備收件者資訊
+     */
+    protected function prepareRecipient($recipient): ?array
+    {
+        if (is_string($recipient)) {
+            // 如果是字串，假設是電子郵件地址
+            if (filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+                return [
+                    'email' => $recipient,
+                    'name' => $recipient,
+                ];
+            }
+            return null;
         }
 
-        return $notification->delete();
+        if (is_array($recipient)) {
+            // 如果是陣列，檢查必要欄位
+            if (isset($recipient['email']) && filter_var($recipient['email'], FILTER_VALIDATE_EMAIL)) {
+                return [
+                    'email' => $recipient['email'],
+                    'name' => $recipient['name'] ?? $recipient['email'],
+                ];
+            }
+            return null;
+        }
+
+        if ($recipient instanceof User) {
+            // 如果是 User 模型
+            return [
+                'email' => $recipient->email,
+                'name' => $recipient->name ?? $recipient->username,
+            ];
+        }
+
+        return null;
     }
 
     /**
-     * 獲取未讀通知數量
+     * 取得收件者資訊（用於日誌）
      */
-    public function getUnreadCount(User $user): int
+    protected function getRecipientInfo($recipient): string
     {
-        return $user->notifications()->unread()->count();
+        if (is_string($recipient)) {
+            return $recipient;
+        }
+
+        if (is_array($recipient)) {
+            return $recipient['email'] ?? 'unknown';
+        }
+
+        if ($recipient instanceof User) {
+            return $recipient->email;
+        }
+
+        return 'unknown';
     }
 
     /**
-     * 獲取最近通知
+     * 取得預設變數
      */
-    public function getRecentNotifications(User $user, int $limit = 10): Collection
+    protected function getDefaultVariables(): array
     {
-        return $user->notifications()
-            ->latest()
-            ->limit($limit)
-            ->get();
-    }
-
-    /**
-     * 獲取通知統計
-     */
-    public function getNotificationStats(User $user): array
-    {
-        $notifications = $user->notifications();
-
         return [
-            'total' => $notifications->count(),
-            'unread' => $notifications->unread()->count(),
-            'today' => $notifications->whereDate('created_at', Carbon::today())->count(),
-            'this_week' => $notifications->where('created_at', '>=', Carbon::now()->startOfWeek())->count(),
-            'by_type' => $notifications->selectRaw('type, COUNT(*) as count')
-                ->groupBy('type')
-                ->pluck('count', 'type')
-                ->toArray(),
-            'by_priority' => $notifications->selectRaw('priority, COUNT(*) as count')
-                ->groupBy('priority')
-                ->pluck('count', 'priority')
-                ->toArray(),
+            'app_name' => config('app.name', 'Laravel Admin System'),
+            'app_url' => config('app.url', 'http://localhost'),
+            'login_url' => route('admin.login'),
+            'current_year' => date('Y'),
+            'current_date' => now()->format('Y-m-d'),
+            'current_time' => now()->format('H:i:s'),
         ];
     }
 
     /**
-     * 發送瀏覽器通知
+     * 測試通知設定
      */
-    public function sendBrowserNotification(User $user, array $data): void
+    public function testConfiguration(string $testEmail): array
     {
-        // 這裡可以整合 WebSocket 或 Server-Sent Events
-        // 目前先記錄到日誌，實際實作時可以使用 Pusher、Laravel Echo 等
-        \Log::info('Browser notification sent', [
-            'user_id' => $user->id,
-            'data' => $data,
-        ]);
-
-        // 標記通知需要顯示瀏覽器通知
-        if (isset($data['notification_id'])) {
-            Notification::find($data['notification_id'])?->update([
-                'is_browser_notification' => true
+        try {
+            // 發送測試郵件
+            $result = $this->sendEmail('system_test', $testEmail, [
+                'test_message' => '這是一封測試郵件，用於驗證通知設定是否正確。',
+                'test_time' => now()->format('Y-m-d H:i:s'),
             ]);
+
+            return [
+                'success' => $result,
+                'message' => $result ? '測試郵件發送成功' : '測試郵件發送失敗',
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => '測試失敗：' . $e->getMessage(),
+            ];
         }
     }
 
     /**
-     * 清理舊通知
+     * 取得通知統計資訊
      */
-    public function cleanupOldNotifications(int $daysToKeep = 30): int
+    public function getStatistics(): array
     {
-        $cutoffDate = Carbon::now()->subDays($daysToKeep);
+        // 這裡可以從日誌或專門的統計表中取得資料
+        return [
+            'total_sent' => 0, // 實際應用中從資料庫取得
+            'success_rate' => 0,
+            'failed_count' => 0,
+            'rate_limited' => 0,
+            'templates_count' => NotificationTemplate::active()->count(),
+        ];
+    }
+
+    /**
+     * 清除通知快取
+     */
+    public function clearCache(): void
+    {
+        Cache::forget('notification_templates');
         
-        return Notification::where('created_at', '<', $cutoffDate)
-            ->where('read_at', '<', $cutoffDate)
-            ->delete();
-    }
-
-    /**
-     * 建立系統通知
-     */
-    public function createSystemNotification(User $user, string $title, string $message, array $options = []): Notification
-    {
-        return $this->createNotification(array_merge([
-            'user_id' => $user->id,
-            'type' => Notification::TYPE_SYSTEM,
-            'title' => $title,
-            'message' => $message,
-        ], $options));
-    }
-
-    /**
-     * 建立安全通知
-     */
-    public function createSecurityNotification(User $user, string $title, string $message, array $options = []): Notification
-    {
-        return $this->createNotification(array_merge([
-            'user_id' => $user->id,
-            'type' => Notification::TYPE_SECURITY,
-            'title' => $title,
-            'message' => $message,
-            'priority' => Notification::PRIORITY_HIGH,
-        ], $options));
-    }
-
-    /**
-     * 建立使用者操作通知
-     */
-    public function createUserActionNotification(User $user, string $title, string $message, array $options = []): Notification
-    {
-        return $this->createNotification(array_merge([
-            'user_id' => $user->id,
-            'type' => Notification::TYPE_USER_ACTION,
-            'title' => $title,
-            'message' => $message,
-        ], $options));
-    }
-
-    /**
-     * 建立報告通知
-     */
-    public function createReportNotification(User $user, string $title, string $message, array $options = []): Notification
-    {
-        return $this->createNotification(array_merge([
-            'user_id' => $user->id,
-            'type' => Notification::TYPE_REPORT,
-            'title' => $title,
-            'message' => $message,
-        ], $options));
-    }
-
-    /**
-     * 獲取通知類型列表
-     */
-    public function getNotificationTypes(): array
-    {
-        return Notification::getTypeConfig();
-    }
-
-    /**
-     * 檢查使用者是否有未讀的高優先級通知
-     */
-    public function hasUnreadHighPriorityNotifications(User $user): bool
-    {
-        return $user->notifications()
-            ->unread()
-            ->highPriority()
-            ->exists();
+        // 清除所有範本快取
+        $templates = NotificationTemplate::pluck('key');
+        foreach ($templates as $key) {
+            Cache::forget("notification_template_{$key}");
+        }
     }
 }

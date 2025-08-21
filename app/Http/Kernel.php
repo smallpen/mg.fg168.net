@@ -37,6 +37,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\ApplyBasicSettings::class,
         ],
 
         'api' => [
@@ -53,6 +54,8 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\ApplyBasicSettings::class,
+            \App\Http\Middleware\ApplySecuritySettings::class,
             \App\Http\Middleware\Authenticate::class,
             \App\Http\Middleware\AdminLayoutMiddleware::class,
             \App\Http\Middleware\CheckAdminPermission::class,
@@ -83,5 +86,8 @@ class Kernel extends HttpKernel
         'admin.layout' => \App\Http\Middleware\AdminLayoutMiddleware::class,
         'admin.permission' => \App\Http\Middleware\CheckAdminPermission::class,
         'security.check' => \App\Http\Middleware\SecurityCheckMiddleware::class,
+        'role.localization' => \App\Http\Middleware\RoleLocalizationMiddleware::class,
+        'role.security' => \App\Http\Middleware\RoleSecurityMiddleware::class,
+        'permission.security' => \App\Http\Middleware\PermissionSecurityMiddleware::class,
     ];
 }

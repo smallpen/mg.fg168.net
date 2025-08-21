@@ -29,6 +29,11 @@ class PermissionServiceTest extends TestCase
         
         $this->permissionService = new PermissionService();
         
+        // 在測試期間停用安全觀察者
+        Permission::unsetEventDispatcher();
+        Role::unsetEventDispatcher();
+        User::unsetEventDispatcher();
+        
         // 建立測試資料
         $this->createTestData();
     }
@@ -80,7 +85,7 @@ class PermissionServiceTest extends TestCase
         $this->permissionService->clearUserPermissionCache($this->user);
         
         // 使用者沒有角色時應該沒有權限
-        $this->assertFalse($this->permissionService->hasPermission($this->user, 'user.manage'));
+        $this->assertFalse($this->permissionService->hasPermission('user.manage', $this->user));
 
         // 指派角色後應該有權限
         $this->user->assignRole($this->adminRole);
@@ -92,6 +97,6 @@ class PermissionServiceTest extends TestCase
         // 清除權限快取
         $this->permissionService->clearUserPermissionCache($this->user);
         
-        $this->assertTrue($this->permissionService->hasPermission($this->user, 'user.manage'));
+        $this->assertTrue($this->permissionService->hasPermission('user.manage', $this->user));
     }
 }

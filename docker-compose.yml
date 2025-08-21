@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Nginx 網頁伺服器
   nginx:

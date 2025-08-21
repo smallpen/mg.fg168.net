@@ -57,3 +57,23 @@ Route::get('/health/info', [HealthController::class, 'info'])->name('api.health.
 
 // 完整系統檢查
 Route::get('/health/full', [HealthController::class, 'fullCheck'])->name('api.health.full');
+
+/*
+|--------------------------------------------------------------------------
+| 角色管理翻譯 API 路由
+|--------------------------------------------------------------------------
+|
+| 提供前端所需的角色管理翻譯資料
+|
+*/
+
+use App\Http\Controllers\Api\RoleTranslationController;
+
+// 取得所有角色管理翻譯資料
+Route::get('/role-translations', [RoleTranslationController::class, 'index'])->name('api.role-translations.index');
+
+// 取得特定類型的翻譯資料
+Route::get('/role-translations/{type}', [RoleTranslationController::class, 'show'])->name('api.role-translations.show');
+
+// 清除翻譯快取（需要認證）
+Route::middleware('auth:sanctum')->delete('/role-translations/cache', [RoleTranslationController::class, 'clearCache'])->name('api.role-translations.clear-cache');

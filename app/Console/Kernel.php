@@ -60,6 +60,48 @@ class Kernel extends ConsoleKernel
                  ->hourly()
                  ->withoutOverlapping()
                  ->runInBackground();
+
+        // 每月第一天凌晨 3 點清理權限審計日誌（保留 365 天）
+        $schedule->command('permission:audit-cleanup --days=365 --force')
+                 ->monthlyOn(1, '03:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+
+        // 每週日凌晨 4 點清理一般審計日誌（保留 90 天）
+        $schedule->command('audit:cleanup --days=90')
+                 ->weekly()
+                 ->sundays()
+                 ->at('04:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
+
+        // 權限系統效能優化
+        $schedule->command('permission:optimize --warmup --cleanup')
+                ->daily()
+                ->at('02:30')
+                ->withoutOverlapping()
+                ->runInBackground()
+                ->description('每日權限系統效能優化');
+
+        // 權限效能分析報告
+        $schedule->command('permission:optimize --analyze --report')
+                ->weekly()
+                ->sundays()
+                ->at('03:30')
+                ->withoutOverlapping()
+                ->runInBackground()
+                ->description('每週權限效能分析報告');
+
+        // 清理過期快取
+        $schedule->call(function () {
+            // 檢查是否需要清除快取
+            if (\Illuminate\Support\Facades\Cache::get('permission_cache_needs_clear', false)) {
+                // 簡單清除快取，不依賴服務
+                \Illuminate\Support\Facades\Cache::flush();
+                \Illuminate\Support\Facades\Cache::forget('permission_cache_needs_clear');
+                \Illuminate\Support\Facades\Log::info('自動清除權限快取');
+            }
+        })->everyFiveMinutes()->description('檢查並清理權限快取');
     }
 
     /**

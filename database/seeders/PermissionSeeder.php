@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Permission;
+use App\Observers\PermissionSecurityObserver;
 
 /**
  * 權限種子檔案
@@ -16,6 +17,20 @@ class PermissionSeeder extends Seeder
      * 執行權限種子
      */
     public function run(): void
+    {
+        // 在種子期間暫時停用安全觀察者
+        Permission::unsetEventDispatcher();
+        
+        // 或者可以使用 withoutEvents 方法
+        Permission::withoutEvents(function () {
+            $this->seedPermissions();
+        });
+    }
+    
+    /**
+     * 建立權限資料
+     */
+    private function seedPermissions(): void
     {
         // 定義系統基本權限
         $permissions = [

@@ -164,6 +164,17 @@ class PermissionService
     }
 
     /**
+     * 清除指定使用者的權限快取
+     * 
+     * @param User $user
+     * @return void
+     */
+    public function clearUserPermissionCache(User $user): void
+    {
+        Cache::forget($this->getPermissionCacheKey($user->id));
+    }
+
+    /**
      * 批量檢查權限
      * 
      * @param array $permissions

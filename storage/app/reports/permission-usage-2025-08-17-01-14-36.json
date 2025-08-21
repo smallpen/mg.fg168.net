@@ -1,0 +1,19 @@
+{
+    "generated_at": "2025-08-16T17:14:36.796468Z",
+    "overall_stats": {
+        "total_permissions": 0,
+        "used_permissions": 0,
+        "unused_permissions": 0,
+        "system_permissions": 0,
+        "custom_permissions": 0,
+        "usage_percentage": 0,
+        "unused_percentage": 0,
+        "total_roles": 0,
+        "total_users": 0,
+        "average_permissions_per_role": 0,
+        "average_permissions_per_user": 0
+    },
+    "module_stats": [],
+    "unused_permissions": [],
+    "heatmap_data": []
+}

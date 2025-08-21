@@ -89,7 +89,7 @@
                 </a>
                 
                 <!-- 使用者管理 -->
-                <div x-data="{ open: {{ request()->routeIs('admin.users.*') ? 'true' : 'false' }} }">
+                <div x-data="{ open: {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') ? 'true' : 'false' }} }">
                     <button @click="open = !open" 
                             class="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-150">
                         <div class="flex items-center">
@@ -116,6 +116,12 @@
                            class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.roles.*') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
                             {{ __('admin.roles.title') }}
                         </a>
+                        @can('permissions.view')
+                            <a href="{{ route('admin.permissions.index') }}" 
+                               class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.permissions.*') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                                {{ __('admin.permissions.title', ['default' => '權限管理']) }}
+                            </a>
+                        @endcan
                     </div>
                 </div>
                 

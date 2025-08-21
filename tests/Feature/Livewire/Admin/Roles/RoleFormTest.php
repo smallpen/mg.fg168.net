@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Livewire\Admin\Roles;
 
-use App\Http\Livewire\Admin\Roles\RoleForm;
+use App\Livewire\Admin\Roles\RoleForm;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -23,9 +23,29 @@ class RoleFormTest extends TestCase
     {
         parent::setUp();
         
-        // 建立測試角色和權限
-        $this->adminRole = Role::factory()->create(['name' => 'admin']);
-        $this->permissions = Permission::factory()->count(5)->create();
+        // 建立角色管理相關權限
+        $rolePermissions = [
+            Permission::firstOrCreate(['name' => 'roles.view', 'display_name' => '檢視角色', 'module' => 'roles']),
+            Permission::firstOrCreate(['name' => 'roles.create', 'display_name' => '建立角色', 'module' => 'roles']),
+            Permission::firstOrCreate(['name' => 'roles.edit', 'display_name' => '編輯角色', 'module' => 'roles']),
+            Permission::firstOrCreate(['name' => 'roles.delete', 'display_name' => '刪除角色', 'module' => 'roles']),
+        ];
+        
+        // 建立一些測試權限（使用唯一名稱避免衝突）
+        $this->permissions = collect();
+        for ($i = 1; $i <= 5; $i++) {
+            $this->permissions->push(
+                Permission::firstOrCreate([
+                    'name' => "test.permission.{$i}",
+                    'display_name' => "測試權限 {$i}",
+                    'module' => 'test'
+                ])
+            );
+        }
+        
+        // 建立測試角色
+        $this->adminRole = Role::factory()->create(['name' => 'test_admin_' . time()]);
+        $this->adminRole->permissions()->attach(collect($rolePermissions)->pluck('id'));
         
         // 建立管理員使用者
         $this->admin = User::factory()->create();
@@ -41,11 +61,12 @@ class RoleFormTest extends TestCase
 
         Livewire::test(RoleForm::class)
             ->assertStatus(200)
-            ->assertSee('建立角色')
+            ->assertSee('建立新角色')
             ->assertSee('角色名稱')
             ->assertSee('顯示名稱')
-            ->assertSee('描述')
-            ->assertSee('權限設定');
+            ->assertSee('角色描述')
+            ->assertSee('父角色設定')
+            ->assertSee('啟用此角色');
     }
 
     /**

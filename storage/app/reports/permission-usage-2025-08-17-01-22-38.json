@@ -1,0 +1,87 @@
+{
+    "generated_at": "2025-08-16T17:22:38.793306Z",
+    "overall_stats": {
+        "total_permissions": 3,
+        "used_permissions": 2,
+        "unused_permissions": 1,
+        "system_permissions": 1,
+        "custom_permissions": 2,
+        "usage_percentage": 66.67,
+        "unused_percentage": 33.33,
+        "total_roles": 1,
+        "total_users": 0,
+        "average_permissions_per_role": 2,
+        "average_permissions_per_user": 0
+    },
+    "module_stats": [
+        {
+            "module": "admin",
+            "total_permissions": 1,
+            "used_permissions": 0,
+            "unused_permissions": 1,
+            "usage_percentage": 0,
+            "total_users": 0,
+            "average_permissions_per_user": 0
+        },
+        {
+            "module": "reports",
+            "total_permissions": 1,
+            "used_permissions": 0,
+            "unused_permissions": 1,
+            "usage_percentage": 0,
+            "total_users": 0,
+            "average_permissions_per_user": 0
+        },
+        {
+            "module": "users",
+            "total_permissions": 1,
+            "used_permissions": 0,
+            "unused_permissions": 1,
+            "usage_percentage": 0,
+            "total_users": 0,
+            "average_permissions_per_user": 0
+        }
+    ],
+    "unused_permissions": [
+        {
+            "id": 40,
+            "name": "reports.export",
+            "display_name": "報告匯出",
+            "module": "reports",
+            "type": "export",
+            "created_at": "2025-08-16T17:16:09.000000Z",
+            "has_dependencies": false,
+            "has_dependents": false,
+            "is_system_permission": false
+        }
+    ],
+    "heatmap_data": [
+        {
+            "id": 38,
+            "name": "admin.dashboard",
+            "module": "admin",
+            "type": "view",
+            "user_count": 0,
+            "role_count": 1,
+            "intensity": 0.1
+        },
+        {
+            "id": 39,
+            "name": "users.manage",
+            "module": "users",
+            "type": "manage",
+            "user_count": 0,
+            "role_count": 1,
+            "intensity": 0.1
+        },
+        {
+            "id": 40,
+            "name": "reports.export",
+            "module": "reports",
+            "type": "export",
+            "user_count": 0,
+            "role_count": 0,
+            "intensity": 0
+        }
+    ]
+}

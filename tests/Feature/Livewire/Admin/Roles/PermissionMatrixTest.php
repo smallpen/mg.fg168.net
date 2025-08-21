@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Livewire\Admin\Roles;
 
-use App\Http\Livewire\Admin\Roles\PermissionMatrix;
+use App\Livewire\Admin\Roles\PermissionMatrix;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;

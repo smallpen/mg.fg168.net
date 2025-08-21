@@ -18,6 +18,18 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\PermissionService::class);
         $this->app->singleton(\App\Services\InputValidationService::class);
         $this->app->singleton(\App\Services\AuditLogService::class);
+        $this->app->singleton(\App\Services\PermissionAuditService::class);
+        
+        // 註冊 Repository 介面綁定
+        $this->app->bind(
+            \App\Repositories\PermissionRepositoryInterface::class,
+            \App\Repositories\PermissionRepository::class
+        );
+        
+        $this->app->bind(
+            \App\Repositories\SettingsRepositoryInterface::class,
+            \App\Repositories\SettingsRepository::class
+        );
     }
 
     /**
@@ -27,6 +39,22 @@ class AppServiceProvider extends ServiceProvider
     {
         // 設定 Carbon 本地化
         $this->configureCarbonLocalization();
+        
+        // 註冊模型觀察者
+        $this->registerModelObservers();
+        
+        // 註冊 Blade 指令
+        $this->registerBladeDirectives();
+    }
+
+    /**
+     * 註冊模型觀察者
+     */
+    private function registerModelObservers(): void
+    {
+        \App\Models\Permission::observe(\App\Observers\PermissionObserver::class);
+        \App\Models\Permission::observe(\App\Observers\PermissionSecurityObserver::class);
+        \App\Models\Setting::observe(\App\Observers\SettingObserver::class);
     }
 
     /**
@@ -55,5 +83,36 @@ class AppServiceProvider extends ServiceProvider
         ];
 
         return $mapping[$locale] ?? 'zh_TW';
+    }
+
+    /**
+     * 註冊 Blade 指令
+     */
+    private function registerBladeDirectives(): void
+    {
+        // 日期格式化指令
+        \Blade::directive('formatDate', function ($expression) {
+            return "<?php echo \App\Helpers\DateTimeHelper::formatDate($expression); ?>";
+        });
+
+        // 時間格式化指令
+        \Blade::directive('formatTime', function ($expression) {
+            return "<?php echo \App\Helpers\DateTimeHelper::formatTime($expression); ?>";
+        });
+
+        // 日期時間格式化指令
+        \Blade::directive('formatDateTime', function ($expression) {
+            return "<?php echo \App\Helpers\DateTimeHelper::formatDateTime($expression); ?>";
+        });
+
+        // 相對時間格式化指令
+        \Blade::directive('formatRelative', function ($expression) {
+            return "<?php echo \App\Helpers\DateTimeHelper::formatRelative($expression); ?>";
+        });
+
+        // 人類可讀格式化指令
+        \Blade::directive('formatHuman', function ($expression) {
+            return "<?php echo \App\Helpers\DateTimeHelper::formatHuman($expression); ?>";
+        });
     }
 }
