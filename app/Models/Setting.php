@@ -284,21 +284,28 @@ class Setting extends Model
     {
         if (class_exists(\App\Models\SettingChange::class) && auth()->check()) {
             try {
-                \App\Models\SettingChange::create([
-                    'setting_key' => $this->key,
-                    'old_value' => $oldValue,
-                    'new_value' => $newValue,
-                    'changed_by' => auth()->id(),
-                    'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ]);
+                // 使用安全服務記錄變更
+                $securityService = app(\App\Services\SettingsSecurityService::class);
+                $securityService->logSettingChange($this->key, $oldValue, $newValue);
             } catch (\Exception $e) {
-                // 如果記錄變更失敗，記錄錯誤但不影響主要操作
-                \Log::error('記錄設定變更失敗', [
-                    'setting_key' => $this->key,
-                    'error' => $e->getMessage(),
-                    'user_id' => auth()->id(),
-                ]);
+                // 如果安全服務不可用，回退到基本記錄
+                try {
+                    \App\Models\SettingChange::create([
+                        'setting_key' => $this->key,
+                        'old_value' => $oldValue,
+                        'new_value' => $newValue,
+                        'changed_by' => auth()->id(),
+                        'ip_address' => request()->ip(),
+                        'user_agent' => request()->userAgent(),
+                    ]);
+                } catch (\Exception $fallbackError) {
+                    // 如果記錄變更失敗，記錄錯誤但不影響主要操作
+                    \Log::error('記錄設定變更失敗', [
+                        'setting_key' => $this->key,
+                        'error' => $fallbackError->getMessage(),
+                        'user_id' => auth()->id(),
+                    ]);
+                }
             }
         }
     }

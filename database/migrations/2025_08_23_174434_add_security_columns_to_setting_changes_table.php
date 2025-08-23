@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('activities', function (Blueprint $table) {
-            $table->string('event')->nullable()->after('type'); // 事件名稱：created, updated, deleted, login, logout, etc.
+        Schema::table('setting_changes', function (Blueprint $table) {
+            // Columns already exist, no need to add them
+            // This migration is kept for consistency but does nothing
         });
     }
 
@@ -21,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('activities', function (Blueprint $table) {
-            $table->dropColumn('event');
+        Schema::table('setting_changes', function (Blueprint $table) {
+            // No columns to drop as they weren't added
         });
     }
 };

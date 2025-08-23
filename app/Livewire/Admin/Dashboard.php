@@ -301,8 +301,12 @@ class Dashboard extends Component
     /**
      * 翻譯事件名稱
      */
-    protected function translateEventName(string $event): string
+    protected function translateEventName(?string $event): string
     {
+        if (!$event) {
+            return '未知事件';
+        }
+        
         $translations = [
             'created' => '建立',
             'updated' => '更新',
@@ -321,8 +325,12 @@ class Dashboard extends Component
     /**
      * 取得活動圖示
      */
-    protected function getActivityIcon(string $event): string
+    protected function getActivityIcon(?string $event): string
     {
+        if (!$event) {
+            return 'activity';
+        }
+        
         $icons = [
             'created' => 'plus-circle',
             'updated' => 'edit',
@@ -341,8 +349,12 @@ class Dashboard extends Component
     /**
      * 取得活動顏色
      */
-    protected function getActivityColor(string $event): string
+    protected function getActivityColor(?string $event): string
     {
+        if (!$event) {
+            return 'gray';
+        }
+        
         $colors = [
             'created' => 'green',
             'updated' => 'blue',

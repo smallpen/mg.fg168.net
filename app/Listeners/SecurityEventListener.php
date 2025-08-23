@@ -2,118 +2,125 @@
 
 namespace App\Listeners;
 
-use Illuminate\Auth\Events\Login;
-use Illuminate\Auth\Events\Failed;
-use Illuminate\Auth\Events\Logout;
-use Illuminate\Auth\Events\Lockout;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Events\ActivityLogged;
+use App\Jobs\AnalyzeSecurityEventJob;
+use App\Services\SecurityAnalyzer;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use App\Services\AuditLogService;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 安全事件監聽器
  * 
- * 監聽認證相關的安全事件並記錄日誌
+ * 監聽活動記錄事件並觸發安全分析
  */
-class SecurityEventListener
+class SecurityEventListener implements ShouldQueue
 {
-    protected AuditLogService $auditService;
+    use InteractsWithQueue;
 
     /**
-     * 建立事件監聽器實例
+     * 安全分析器
      */
-    public function __construct(AuditLogService $auditService)
+    protected SecurityAnalyzer $analyzer;
+
+    /**
+     * 建立監聽器實例
+     */
+    public function __construct(SecurityAnalyzer $analyzer)
     {
-        $this->auditService = $auditService;
+        $this->analyzer = $analyzer;
     }
 
     /**
-     * 處理使用者登入事件
+     * 處理事件
      */
-    public function handleLogin(Login $event): void
+    public function handle(ActivityLogged $event): void
     {
-        $this->auditService->logLoginAttempt(
-            $event->user->username,
-            true,
-            'successful_login'
-        );
+        $activity = $event->activity;
 
-        $this->auditService->logUserManagementAction('user_login', [
-            'login_time' => now()->toISOString(),
-            'guard' => $event->guard,
-        ], $event->user);
-    }
+        try {
+            // 快速檢查是否需要進行安全分析
+            if ($this->shouldAnalyze($activity)) {
+                // 對於高風險操作，立即進行同步分析
+                if ($this->isHighRiskOperation($activity)) {
+                    $this->performImmediateAnalysis($activity);
+                } else {
+                    // 其他操作使用非同步分析
+                    AnalyzeSecurityEventJob::dispatch($activity->id);
+                }
+            }
 
-    /**
-     * 處理登入失敗事件
-     */
-    public function handleFailed(Failed $event): void
-    {
-        $username = $event->credentials['username'] ?? 
-                   $event->credentials['email'] ?? 
-                   'unknown';
-
-        $this->auditService->logLoginAttempt(
-            $username,
-            false,
-            'invalid_credentials'
-        );
-
-        $this->auditService->logSecurityEvent('login_failed', 'medium', [
-            'attempted_username' => $username,
-            'guard' => $event->guard,
-            'credentials_provided' => array_keys($event->credentials),
-        ]);
-    }
-
-    /**
-     * 處理使用者登出事件
-     */
-    public function handleLogout(Logout $event): void
-    {
-        if ($event->user) {
-            $this->auditService->logUserManagementAction('user_logout', [
-                'logout_time' => now()->toISOString(),
-                'guard' => $event->guard,
-            ], $event->user);
+        } catch (\Exception $e) {
+            Log::error('Security event listener failed', [
+                'activity_id' => $activity->id,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
     /**
-     * 處理帳號鎖定事件
+     * 判斷是否需要進行安全分析
      */
-    public function handleLockout(Lockout $event): void
+    protected function shouldAnalyze($activity): bool
     {
-        $this->auditService->logSecurityEvent('account_lockout', 'high', [
-            'request_data' => $event->request->only(['username', 'email']),
-            'ip_address' => $event->request->ip(),
-            'user_agent' => $event->request->userAgent(),
-        ]);
+        // 排除一些低風險的操作
+        $lowRiskTypes = [
+            'dashboard.view',
+            'profile.view',
+            'logout'
+        ];
+
+        return !in_array($activity->type, $lowRiskTypes);
     }
 
     /**
-     * 註冊監聽器的事件
+     * 判斷是否為高風險操作
      */
-    public function subscribe($events): void
+    protected function isHighRiskOperation($activity): bool
     {
-        $events->listen(
-            Login::class,
-            [SecurityEventListener::class, 'handleLogin']
-        );
+        $highRiskTypes = [
+            'login', // 登入操作需要立即檢查
+            'users.delete',
+            'roles.delete',
+            'permissions.delete',
+            'system.settings',
+            'security'
+        ];
 
-        $events->listen(
-            Failed::class,
-            [SecurityEventListener::class, 'handleFailed']
-        );
+        foreach ($highRiskTypes as $type) {
+            if (str_contains($activity->type, $type)) {
+                return true;
+            }
+        }
 
-        $events->listen(
-            Logout::class,
-            [SecurityEventListener::class, 'handleLogout']
-        );
+        // 檢查是否為失敗操作
+        return $activity->result === 'failed';
+    }
 
-        $events->listen(
-            Lockout::class,
-            [SecurityEventListener::class, 'handleLockout']
-        );
+    /**
+     * 執行立即安全分析
+     */
+    protected function performImmediateAnalysis($activity): void
+    {
+        $analysis = $this->analyzer->analyzeActivity($activity);
+        
+        // 更新風險等級
+        $activity->update([
+            'risk_level' => SecurityAnalyzer::RISK_LEVELS[$analysis['risk_level']]
+        ]);
+
+        // 生成安全警報
+        if (!empty($analysis['security_events'])) {
+            $alert = $this->analyzer->generateSecurityAlert($activity, $analysis['security_events']);
+            
+            if ($alert && $alert->severity === 'critical') {
+                // 對於嚴重警報，可以觸發即時通知
+                Log::critical('Critical security alert generated', [
+                    'alert_id' => $alert->id,
+                    'activity_id' => $activity->id,
+                    'description' => $alert->description
+                ]);
+            }
+        }
     }
 }

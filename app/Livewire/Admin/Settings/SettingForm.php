@@ -658,6 +658,48 @@ class SettingForm extends AdminComponent
     }
 
     /**
+     * 自動儲存設定
+     */
+    public function autoSave(string $settingKey): void
+    {
+        if ($settingKey !== $this->settingKey) {
+            return;
+        }
+
+        // 只有在有變更時才自動儲存
+        if (!$this->hasChanges) {
+            return;
+        }
+
+        try {
+            // 即時驗證
+            if (!$this->validateValue()) {
+                return;
+            }
+
+            // 更新設定
+            $result = $this->getSettingsRepository()->updateSetting($this->settingKey, $this->value);
+
+            if ($result) {
+                $this->originalValue = $this->value;
+                $this->dispatch('setting-updated', settingKey: $this->settingKey);
+                
+                // 如果支援預覽，觸發預覽更新
+                if ($this->supportsPreview) {
+                    $this->dispatch('setting-preview-updated', [
+                        'key' => $this->settingKey,
+                        'value' => $this->value
+                    ]);
+                }
+            }
+
+        } catch (\Exception $e) {
+            // 自動儲存失敗時不顯示錯誤，讓使用者手動儲存
+            logger()->warning("Auto-save failed for setting {$this->settingKey}: " . $e->getMessage());
+        }
+    }
+
+    /**
      * 渲染元件
      */
     public function render()

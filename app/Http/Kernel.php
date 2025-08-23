@@ -38,12 +38,14 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\ApplyBasicSettings::class,
+            \App\Http\Middleware\ActivityLoggingMiddleware::class,
         ],
 
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\ApiActivityLoggingMiddleware::class,
         ],
 
         'admin' => [
@@ -60,6 +62,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\AdminLayoutMiddleware::class,
             \App\Http\Middleware\CheckAdminPermission::class,
             \App\Http\Middleware\SecurityCheckMiddleware::class,
+            \App\Http\Middleware\ActivityLoggingMiddleware::class,
         ],
     ];
 
@@ -89,5 +92,9 @@ class Kernel extends HttpKernel
         'role.localization' => \App\Http\Middleware\RoleLocalizationMiddleware::class,
         'role.security' => \App\Http\Middleware\RoleSecurityMiddleware::class,
         'permission.security' => \App\Http\Middleware\PermissionSecurityMiddleware::class,
+        'settings.access' => \App\Http\Middleware\SettingsAccessControl::class,
+        'settings.performance' => \App\Http\Middleware\SettingsPerformanceMonitor::class,
+        'activity.logging' => \App\Http\Middleware\ActivityLoggingMiddleware::class,
+        'api.activity.logging' => \App\Http\Middleware\ApiActivityLoggingMiddleware::class,
     ];
 }

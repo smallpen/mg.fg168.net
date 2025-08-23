@@ -171,6 +171,104 @@ class PermissionSeeder extends Seeder
                 'description' => '可以編輯自己的個人資料',
                 'module' => 'profile'
             ],
+
+            // 活動日誌權限
+            [
+                'name' => 'activity_logs.view',
+                'display_name' => '檢視活動日誌',
+                'description' => '可以檢視系統活動日誌',
+                'module' => 'activity_logs'
+            ],
+            [
+                'name' => 'activity_logs.export',
+                'display_name' => '匯出活動日誌',
+                'description' => '可以匯出活動日誌資料',
+                'module' => 'activity_logs'
+            ],
+            [
+                'name' => 'activity_logs.delete',
+                'display_name' => '刪除活動日誌',
+                'description' => '可以刪除舊的活動日誌記錄',
+                'module' => 'activity_logs'
+            ],
+
+            // 通知權限
+            [
+                'name' => 'notifications.view',
+                'display_name' => '檢視通知',
+                'description' => '可以檢視系統通知',
+                'module' => 'notifications'
+            ],
+            [
+                'name' => 'notifications.create',
+                'display_name' => '建立通知',
+                'description' => '可以建立和發送通知',
+                'module' => 'notifications'
+            ],
+            [
+                'name' => 'notifications.edit',
+                'display_name' => '編輯通知',
+                'description' => '可以編輯通知內容和設定',
+                'module' => 'notifications'
+            ],
+            [
+                'name' => 'notifications.delete',
+                'display_name' => '刪除通知',
+                'description' => '可以刪除通知記錄',
+                'module' => 'notifications'
+            ],
+            [
+                'name' => 'notifications.send',
+                'display_name' => '發送通知',
+                'description' => '可以發送通知給使用者',
+                'module' => 'notifications'
+            ],
+
+            // 設定管理權限
+            [
+                'name' => 'settings.view',
+                'display_name' => '檢視設定',
+                'description' => '可以檢視系統設定',
+                'module' => 'settings'
+            ],
+            [
+                'name' => 'settings.edit',
+                'display_name' => '編輯設定',
+                'description' => '可以修改系統設定',
+                'module' => 'settings'
+            ],
+            [
+                'name' => 'settings.backup',
+                'display_name' => '備份設定',
+                'description' => '可以備份和還原系統設定',
+                'module' => 'settings'
+            ],
+            [
+                'name' => 'settings.reset',
+                'display_name' => '重置設定',
+                'description' => '可以重置系統設定為預設值',
+                'module' => 'settings'
+            ],
+
+            // 安全管理權限
+            [
+                'name' => 'security.view',
+                'display_name' => '檢視安全資訊',
+                'description' => '可以檢視安全事件和報告',
+                'module' => 'security'
+            ],
+            [
+                'name' => 'security.incidents',
+                'display_name' => '管理安全事件',
+                'description' => '可以處理和管理安全事件',
+                'module' => 'security'
+            ],
+            [
+                'name' => 'security.audit',
+                'display_name' => '安全稽核',
+                'description' => '可以執行安全稽核和檢查',
+                'module' => 'security'
+            ],
         ];
 
         // 建立權限記錄

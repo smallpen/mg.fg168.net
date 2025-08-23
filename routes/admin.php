@@ -151,61 +151,119 @@ Route::middleware('admin')
     });
     
     // 系統設定路由群組
-    Route::prefix('settings')->name('settings.')->group(function () {
-        Route::get('/', function () {
-            return view('admin.settings.index');
-        })->name('index')->middleware('can:settings.view');
+    Route::prefix('settings')->name('settings.')->middleware(['settings.access', 'settings.performance'])->group(function () {
+        // 主要設定頁面路由
+        Route::get('/', [App\Http\Controllers\Admin\SettingsController::class, 'index'])
+             ->name('index')
+             ->middleware('can:system.settings');
         
         // 系統設定管理路由
-        Route::get('/system', App\Livewire\Admin\Settings\SettingsList::class)
+        Route::get('/system', [App\Http\Controllers\Admin\SettingsController::class, 'system'])
              ->name('system')
              ->middleware('can:system.settings');
         
+        // 基本設定管理路由
+        Route::get('/basic', [App\Http\Controllers\Admin\SettingsController::class, 'basic'])
+             ->name('basic')
+             ->middleware('can:system.settings');
+        
+        // 安全設定路由
+        Route::get('/security', [App\Http\Controllers\Admin\SettingsController::class, 'security'])
+             ->name('security')
+             ->middleware('can:settings.security');
+        
+        // 外觀設定路由
+        Route::get('/appearance', [App\Http\Controllers\Admin\SettingsController::class, 'appearance'])
+             ->name('appearance')
+             ->middleware('can:system.settings');
+        
+        // 通知設定路由
+        Route::get('/notifications', [App\Http\Controllers\Admin\SettingsController::class, 'notifications'])
+             ->name('notifications')
+             ->middleware('can:system.settings');
+
+        // 整合設定路由
+        Route::get('/integration', [App\Http\Controllers\Admin\SettingsController::class, 'integration'])
+             ->name('integration')
+             ->middleware('can:system.settings');
+
+        // 維護設定路由
+        Route::get('/maintenance', [App\Http\Controllers\Admin\SettingsController::class, 'maintenance'])
+             ->name('maintenance')
+             ->middleware('can:system.settings');
+        
         // 設定備份管理路由
-        Route::get('/backups', App\Livewire\Admin\Settings\SettingBackupManager::class)
+        Route::get('/backups', [App\Http\Controllers\Admin\SettingsController::class, 'backups'])
              ->name('backups')
              ->middleware('can:system.settings');
         
         // 設定變更歷史路由
-        Route::get('/history', App\Livewire\Admin\Settings\SettingChangeHistory::class)
+        Route::get('/history', [App\Http\Controllers\Admin\SettingsController::class, 'history'])
              ->name('history')
              ->middleware('can:system.settings');
-        
-        // 基本設定管理路由
-        Route::get('/basic', App\Livewire\Admin\Settings\BasicSettings::class)
-             ->name('basic')
-             ->middleware('can:system.settings');
-        
-        Route::get('/general', function () {
-            return view('admin.settings.general');
-        })->name('general')->middleware('can:settings.general');
-        
-        Route::get('/security', App\Livewire\Admin\Settings\SecuritySettings::class)
-             ->name('security')
-             ->middleware('can:settings.security');
-        
-        Route::get('/appearance', function () {
-            return view('admin.settings.appearance');
-        })->name('appearance')->middleware('can:settings.appearance');
-        
-        Route::get('/notifications', App\Livewire\Admin\Settings\NotificationSettings::class)
-             ->name('notifications')
-             ->middleware('can:system.settings');
+
+        // API 路由群組
+        Route::prefix('api')->name('api.')->group(function () {
+            // 設定查詢 API
+            Route::get('/all', [App\Http\Controllers\Admin\SettingsController::class, 'getAllSettings'])
+                 ->name('all')
+                 ->middleware('can:system.settings');
+            
+            Route::get('/{key}', [App\Http\Controllers\Admin\SettingsController::class, 'getSetting'])
+                 ->name('get')
+                 ->middleware('can:system.settings')
+                 ->where('key', '.*');
+            
+            // 設定更新 API
+            Route::put('/{key}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSetting'])
+                 ->name('update')
+                 ->middleware('can:system.settings')
+                 ->where('key', '.*');
+            
+            Route::post('/batch-update', [App\Http\Controllers\Admin\SettingsController::class, 'batchUpdate'])
+                 ->name('batch-update')
+                 ->middleware('can:system.settings');
+            
+            // 設定重設 API
+            Route::post('/{key}/reset', [App\Http\Controllers\Admin\SettingsController::class, 'resetSetting'])
+                 ->name('reset')
+                 ->middleware('can:system.settings')
+                 ->where('key', '.*');
+            
+            // 連線測試 API
+            Route::post('/test-connection', [App\Http\Controllers\Admin\SettingsController::class, 'testConnection'])
+                 ->name('test-connection')
+                 ->middleware('can:system.settings');
+            
+            // 匯入匯出 API
+            Route::post('/export', [App\Http\Controllers\Admin\SettingsController::class, 'exportSettings'])
+                 ->name('export')
+                 ->middleware('can:system.settings');
+            
+            Route::post('/import', [App\Http\Controllers\Admin\SettingsController::class, 'importSettings'])
+                 ->name('import')
+                 ->middleware('can:system.settings');
+            
+            // 快取管理 API
+            Route::post('/clear-cache', [App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])
+                 ->name('clear-cache')
+                 ->middleware('can:system.settings');
+        });
     });
     
     // 活動記錄路由群組
     Route::prefix('activities')->name('activities.')->group(function () {
         Route::get('/', function () {
             return view('admin.activities.index');
-        })->name('index')->middleware('can:activities.view');
+        })->name('index');
         
         Route::get('/security', function () {
             return view('admin.activities.security');
-        })->name('security')->middleware('can:activities.security');
+        })->name('security')->middleware('can:system.logs');
         
-        Route::get('/statistics', function () {
-            return view('admin.activities.statistics');
-        })->name('statistics')->middleware('can:activities.statistics');
+        Route::get('/stats', function () {
+            return view('admin.activities.stats');
+        })->name('stats')->middleware('can:system.logs');
     });
     
     // 個人資料和帳號管理路由

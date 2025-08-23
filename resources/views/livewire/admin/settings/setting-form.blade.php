@@ -124,169 +124,19 @@
 
                     {{-- 設定表單 --}}
                     <form wire:submit.prevent="save" class="space-y-6">
-                        {{-- 設定值輸入 --}}
-                        <div>
-                            <label for="setting-value" class="block text-sm font-medium text-gray-700 mb-2">
-                                設定值
-                                @if($this->isRequired())
-                                    <span class="text-red-500">*</span>
-                                @endif
-                            </label>
-
-                            {{-- 根據設定類型顯示不同的輸入元件 --}}
-                            @switch($this->inputType)
-                                @case('text')
-                                    <input type="text"
-                                           id="setting-value"
-                                           wire:model.live="value"
-                                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('value') border-red-300 @enderror"
-                                           placeholder="{{ $this->options['placeholder'] ?? '' }}"
-                                           @if(isset($this->options['max_length'])) maxlength="{{ $this->options['max_length'] }}" @endif>
-                                    @break
-
-                                @case('textarea')
-                                    <textarea id="setting-value"
-                                              wire:model.live="value"
-                                              rows="{{ $this->options['rows'] ?? 3 }}"
-                                              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('value') border-red-300 @enderror"
-                                              placeholder="{{ $this->options['placeholder'] ?? '' }}"
-                                              @if(isset($this->options['max_length'])) maxlength="{{ $this->options['max_length'] }}" @endif></textarea>
-                                    @break
-
-                                @case('number')
-                                    <input type="number"
-                                           id="setting-value"
-                                           wire:model.live="value"
-                                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('value') border-red-300 @enderror"
-                                           @if(isset($this->options['min'])) min="{{ $this->options['min'] }}" @endif
-                                           @if(isset($this->options['max'])) max="{{ $this->options['max'] }}" @endif
-                                           @if(isset($this->options['step'])) step="{{ $this->options['step'] }}" @endif>
-                                    @break
-
-                                @case('email')
-                                    <input type="email"
-                                           id="setting-value"
-                                           wire:model.live="value"
-                                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('value') border-red-300 @enderror"
-                                           placeholder="{{ $this->options['placeholder'] ?? '' }}">
-                                    @break
-
-                                @case('password')
-                                    <input type="password"
-                                           id="setting-value"
-                                           wire:model.live="value"
-                                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('value') border-red-300 @enderror"
-                                           placeholder="{{ $this->isSensitive() ? '輸入新密碼以變更' : '' }}">
-                                    @break
-
-                                @case('boolean')
-                                    <div class="flex items-center">
-                                        <input type="checkbox"
-                                               id="setting-value"
-                                               wire:model.live="value"
-                                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                                        <label for="setting-value" class="ml-2 block text-sm text-gray-900">
-                                            啟用此設定
-                                        </label>
-                                    </div>
-                                    @break
-
-                                @case('select')
-                                    <select id="setting-value"
-                                            wire:model.live="value"
-                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('value') border-red-300 @enderror">
-                                        @if(!$this->isRequired())
-                                            <option value="">請選擇...</option>
-                                        @endif
-                                        @if(isset($this->settingConfig['options']))
-                                            @foreach($this->settingConfig['options'] as $optionValue => $optionLabel)
-                                                <option value="{{ $optionValue }}">{{ $optionLabel }}</option>
-                                            @endforeach
-                                        @endif
-                                    </select>
-                                    @break
-
-                                @case('color')
-                                    <div class="flex items-center space-x-3">
-                                        <input type="color"
-                                               wire:model.live="value"
-                                               class="h-10 w-20 border border-gray-300 rounded cursor-pointer">
-                                        <input type="text"
-                                               id="setting-value"
-                                               wire:model.live="value"
-                                               class="block flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('value') border-red-300 @enderror"
-                                               placeholder="#000000"
-                                               pattern="^#[0-9A-Fa-f]{6}$">
-                                    </div>
-                                    @break
-
-                                @case('file')
-                                @case('image')
-                                    <div class="space-y-3">
-                                        @if($value)
-                                            <div class="flex items-center space-x-3">
-                                                @if($this->inputType === 'image')
-                                                    <img src="{{ $value }}" alt="目前圖片" class="h-16 w-16 object-cover rounded-lg border">
-                                                @endif
-                                                <div>
-                                                    <p class="text-sm text-gray-600">目前檔案：</p>
-                                                    <a href="{{ $value }}" target="_blank" class="text-blue-600 hover:text-blue-500 text-sm">
-                                                        {{ basename($value) }}
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        @endif
-                                        
-                                        <input type="file"
-                                               wire:model="uploadedFile"
-                                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                               @if($this->inputType === 'image') accept="image/*" @endif>
-                                        
-                                        @if($uploadedFile)
-                                            <div class="text-sm text-green-600">
-                                                已選擇新檔案：{{ $uploadedFile->getClientOriginalName() }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                    @break
-
-                                @default
-                                    <input type="text"
-                                           id="setting-value"
-                                           wire:model.live="value"
-                                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('value') border-red-300 @enderror">
-                            @endswitch
-
-                            {{-- 設定說明 --}}
-                            @if($this->getSettingHelp())
-                                <p class="mt-2 text-sm text-gray-500">
-                                    {{ $this->getSettingHelp() }}
-                                </p>
-                            @endif
-
-                            {{-- 驗證錯誤訊息 --}}
-                            @if(!empty($validationErrors['value']))
-                                <div class="mt-2">
-                                    @foreach($validationErrors['value'] as $error)
-                                        <p class="text-sm text-red-600">{{ $error }}</p>
-                                    @endforeach
-                                </div>
-                            @endif
-
-                            {{-- 數值範圍提示 --}}
-                            @if($this->inputType === 'number' && (isset($this->options['min']) || isset($this->options['max'])))
-                                <p class="mt-1 text-xs text-gray-500">
-                                    範圍：
-                                    @if(isset($this->options['min']) && isset($this->options['max']))
-                                        {{ $this->options['min'] }} - {{ $this->options['max'] }}
-                                    @elseif(isset($this->options['min']))
-                                        最小值 {{ $this->options['min'] }}
-                                    @elseif(isset($this->options['max']))
-                                        最大值 {{ $this->options['max'] }}
-                                    @endif
-                                </p>
-                            @endif
-                        </div>
+                        {{-- 使用統一的表單欄位元件 --}}
+                        <x-admin.settings.form-field
+                            :label="'設定值'"
+                            :name="'setting-value'"
+                            :type="$this->inputType"
+                            :required="$this->isRequired()"
+                            :error="$validationErrors['value'] ?? null"
+                            :help="$this->getSettingHelp()"
+                            :value="$value"
+                            :options="array_merge($this->options, $this->settingConfig['options'] ?? [])"
+                            :dependencyWarnings="$dependencyWarnings"
+                            :autoSave="false" />
+                    </form>
 
                         {{-- 表單按鈕 --}}
                         <div class="flex items-center justify-between pt-4 border-t border-gray-200">

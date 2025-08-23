@@ -2,9 +2,9 @@
     {{-- 頁面標頭 --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">基本設定</h1>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ __('settings.categories.basic.name') }}</h1>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                管理應用程式的基本資訊、時區、語言和日期時間格式設定
+                {{ __('settings.categories.basic.description') }}
             </p>
         </div>
         
@@ -13,7 +13,7 @@
             @if($this->hasChanges)
                 <span class="badge badge-warning">
                     <x-heroicon-o-exclamation-triangle class="w-3 h-3 mr-1" />
-                    有未儲存的變更
+                    {{ __('settings.messages.unsaved_changes') }}
                 </span>
             @endif
             
@@ -22,10 +22,10 @@
                 <button 
                     wire:click="startPreview"
                     class="btn btn-outline btn-sm"
-                    title="預覽變更"
+                    title="{{ __('settings.actions.preview') }}"
                 >
                     <x-heroicon-o-eye class="w-4 h-4" />
-                    預覽
+                    {{ __('settings.actions.preview') }}
                 </button>
             @endif
             
@@ -33,11 +33,11 @@
             <button 
                 wire:click="resetAll"
                 class="btn btn-ghost btn-sm text-orange-600 hover:text-orange-700"
-                title="重設所有設定為預設值"
-                onclick="return confirm('確定要重設所有基本設定為預設值嗎？此操作無法復原。')"
+                title="{{ __('settings.actions.reset') }}"
+                onclick="return confirm('{{ __('settings.messages.confirm_reset') }}')"
             >
                 <x-heroicon-o-arrow-path class="w-4 h-4" />
-                重設全部
+                {{ __('settings.actions.reset') }}
             </button>
         </div>
     </div>
@@ -47,21 +47,21 @@
         <div class="alert alert-info">
             <x-heroicon-o-information-circle class="w-5 h-5" />
             <div>
-                <h3 class="font-medium">預覽模式</h3>
-                <p class="text-sm mt-1">您正在預覽設定變更，變更尚未儲存。</p>
+                <h3 class="font-medium">{{ __('settings.preview.preview_mode') }}</h3>
+                <p class="text-sm mt-1">{{ __('settings.preview.preview_warning') }}</p>
             </div>
             <div class="flex gap-2">
                 <button 
                     wire:click="applyPreview"
                     class="btn btn-success btn-sm"
                 >
-                    套用變更
+                    {{ __('settings.actions.apply') }}
                 </button>
                 <button 
                     wire:click="stopPreview"
                     class="btn btn-ghost btn-sm"
                 >
-                    取消預覽
+                    {{ __('settings.actions.cancel') }}
                 </button>
             </div>
         </div>

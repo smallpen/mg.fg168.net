@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Collection;
 use Carbon\Carbon;
 
 /**
@@ -33,6 +35,9 @@ class Activity extends Model
         'properties',
         'ip_address',
         'user_agent',
+        'result',
+        'risk_level',
+        'signature',
     ];
 
     /**
@@ -44,6 +49,7 @@ class Activity extends Model
         'properties' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'risk_level' => 'integer',
     ];
 
     /**
@@ -103,6 +109,18 @@ class Activity extends Model
     {
         return $this->morphTo();
     }
+
+    /**
+     * 此活動觸發的安全警報
+     *
+     * @return HasMany
+     */
+    public function alerts(): HasMany
+    {
+        return $this->hasMany(SecurityAlert::class);
+    }
+
+
 
     /**
      * 取得活動的圖示
@@ -238,6 +256,183 @@ class Activity extends Model
     }
 
     /**
+     * 範圍查詢：按日期範圍篩選
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $from
+     * @param string $to
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeByDateRange($query, string $from, string $to)
+    {
+        return $query->whereBetween('created_at', [
+            Carbon::parse($from)->startOfDay(),
+            Carbon::parse($to)->endOfDay()
+        ]);
+    }
+
+    /**
+     * 範圍查詢：安全事件
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeSecurityEvents($query)
+    {
+        return $query->whereIn('type', [
+            'login_failed',
+            'permission_escalation',
+            'sensitive_data_access',
+            'system_config_change',
+            'suspicious_ip_access',
+            'bulk_operation'
+        ]);
+    }
+
+    /**
+     * 範圍查詢：高風險活動
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeHighRisk($query)
+    {
+        return $query->where('risk_level', '>=', 7);
+    }
+
+    /**
+     * 範圍查詢：按結果篩選
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $result
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeByResult($query, string $result)
+    {
+        return $query->where('result', $result);
+    }
+
+    /**
+     * 範圍查詢：按IP位址篩選
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $ip
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeByIp($query, string $ip)
+    {
+        return $query->where('ip_address', 'like', "%{$ip}%");
+    }
+
+    /**
+     * 取得格式化的屬性資料
+     *
+     * @return array
+     */
+    public function getFormattedPropertiesAttribute(): array
+    {
+        if (!$this->properties) {
+            return [];
+        }
+
+        return $this->properties;
+    }
+
+    /**
+     * 取得風險等級文字
+     *
+     * @return string
+     */
+    public function getRiskLevelTextAttribute(): string
+    {
+        return match ($this->risk_level ?? 0) {
+            0, 1, 2 => '低',
+            3, 4, 5 => '中',
+            6, 7, 8 => '高',
+            9, 10 => '極高',
+            default => '未知',
+        };
+    }
+
+    /**
+     * 是否為安全事件
+     *
+     * @return bool
+     */
+    public function getIsSecurityEventAttribute(): bool
+    {
+        return in_array($this->type, [
+            'login_failed',
+            'permission_escalation',
+            'sensitive_data_access',
+            'system_config_change',
+            'suspicious_ip_access',
+            'bulk_operation'
+        ]);
+    }
+
+    /**
+     * 取得相關活動
+     *
+     * @return Collection
+     */
+    public function getRelatedActivitiesAttribute(): Collection
+    {
+        return static::where('id', '!=', $this->id)
+            ->where(function ($query) {
+                $query->where('user_id', $this->user_id)
+                      ->orWhere(function ($q) {
+                          if ($this->subject_id && $this->subject_type) {
+                              $q->where('subject_id', $this->subject_id)
+                                ->where('subject_type', $this->subject_type);
+                          }
+                      })
+                      ->orWhere('ip_address', $this->ip_address);
+            })
+            ->where('created_at', '>=', $this->created_at->subHours(24))
+            ->where('created_at', '<=', $this->created_at->addHours(24))
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+    }
+
+    /**
+     * 驗證完整性
+     *
+     * @return bool
+     */
+    public function verifyIntegrity(): bool
+    {
+        if (!config('activity-log.integrity.enabled', true)) {
+            return true; // 如果未啟用完整性檢查，視為通過
+        }
+
+        $integrityService = app(\App\Services\ActivityIntegrityService::class);
+        return $integrityService->verifyActivity($this);
+    }
+
+    /**
+     * 生成數位簽章
+     *
+     * @param array|null $data
+     * @return string
+     */
+    public function generateSignature(?array $data = null): string
+    {
+        if (!config('activity-log.integrity.enabled', true)) {
+            return ''; // 如果未啟用完整性檢查，返回空字串
+        }
+
+        $integrityService = app(\App\Services\ActivityIntegrityService::class);
+        
+        if ($data) {
+            return $integrityService->generateSignature($data);
+        }
+        
+        return $integrityService->protectActivity($this);
+    }
+
+    /**
      * 建立活動記錄的靜態方法
      *
      * @param string $type
@@ -247,7 +442,7 @@ class Activity extends Model
      */
     public static function log(string $type, string $description, array $options = []): static
     {
-        return static::create([
+        $data = [
             'type' => $type,
             'description' => $description,
             'module' => $options['module'] ?? null,
@@ -257,6 +452,14 @@ class Activity extends Model
             'properties' => $options['properties'] ?? null,
             'ip_address' => $options['ip_address'] ?? request()->ip(),
             'user_agent' => $options['user_agent'] ?? request()->userAgent(),
-        ]);
+            'result' => $options['result'] ?? 'success',
+            'risk_level' => $options['risk_level'] ?? 1,
+        ];
+
+        // 生成數位簽章
+        $payload = json_encode(array_filter($data), 64); // JSON_SORT_KEYS
+        $data['signature'] = hash_hmac('sha256', $payload, config('app.key'));
+
+        return static::create($data);
     }
 }

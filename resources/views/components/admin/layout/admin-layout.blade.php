@@ -126,7 +126,7 @@
                 </div>
                 
                 <!-- 系統設定 -->
-                <div x-data="{ open: false }">
+                <div x-data="{ open: {{ request()->routeIs('admin.settings.*') ? 'true' : 'false' }} }">
                     <button @click="open = !open" 
                             class="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-150">
                         <div class="flex items-center">
@@ -153,6 +153,22 @@
                         <a href="{{ route('admin.settings.appearance') }}" 
                            class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.settings.appearance') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
                             {{ __('admin.settings.appearance') ?? '外觀設定' }}
+                        </a>
+                        <a href="{{ route('admin.settings.notifications') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.settings.notifications') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.settings.notifications') ?? '通知設定' }}
+                        </a>
+                        <a href="{{ route('admin.settings.integration') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.settings.integration') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.settings.integration') ?? '整合設定' }}
+                        </a>
+                        <a href="{{ route('admin.settings.maintenance') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.settings.maintenance') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.settings.maintenance') ?? '維護設定' }}
+                        </a>
+                        <a href="{{ route('admin.settings.backups') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.settings.backups') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.settings.backups') ?? '備份管理' }}
                         </a>
                     </div>
                 </div>

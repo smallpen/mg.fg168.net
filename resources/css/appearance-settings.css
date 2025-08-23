@@ -1,0 +1,379 @@
+/**
+ * 外觀設定專用樣式
+ */
+
+/* 預覽區域樣式 */
+.appearance-preview {
+    transition: all 0.3s ease;
+}
+
+.appearance-preview.mobile {
+    max-width: 375px;
+}
+
+.appearance-preview.tablet {
+    max-width: 768px;
+}
+
+.appearance-preview.desktop {
+    max-width: 100%;
+}
+
+/* 顏色選擇器增強樣式 */
+input[type="color"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+}
+
+input[type="color"]::-moz-color-swatch {
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+}
+
+input[type="color"]:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* 檔案上傳預覽樣式 */
+.file-preview {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.file-preview:hover {
+    border-color: #3b82f6;
+}
+
+/* 響應式切換按鈕樣式 */
+.device-switch-buttons {
+    display: flex;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.device-switch-buttons button {
+    flex: 1;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.device-switch-buttons button.active {
+    background-color: #3b82f6;
+    color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.device-switch-buttons button:not(.active) {
+    color: #6b7280;
+}
+
+.device-switch-buttons button:not(.active):hover {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+/* 預覽框架樣式 */
+.preview-frame {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.preview-content {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* 主題預覽樣式 */
+.theme-light {
+    background-color: #ffffff;
+    color: #111827;
+}
+
+.theme-dark {
+    background-color: #1f2937;
+    color: #f9fafb;
+}
+
+.theme-dark .border-gray-200 {
+    border-color: #374151 !important;
+}
+
+.theme-dark .bg-gray-50 {
+    background-color: #374151 !important;
+}
+
+.theme-dark .text-gray-500 {
+    color: #9ca3af !important;
+}
+
+.theme-dark .text-gray-900 {
+    color: #f9fafb !important;
+}
+
+/* 響應式表格樣式 */
+.responsive-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+    .responsive-table table {
+        font-size: 14px;
+    }
+    
+    .responsive-table th,
+    .responsive-table td {
+        padding: 8px 12px;
+        white-space: nowrap;
+    }
+}
+
+/* 觸控友善樣式 */
+.touch-friendly {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+.touch-friendly button,
+.touch-friendly a {
+    padding: 12px 16px;
+    margin: 4px;
+}
+
+/* 載入動畫 */
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 成功/錯誤狀態樣式 */
+.status-success {
+    background-color: #d1fae5;
+    border-color: #10b981;
+    color: #065f46;
+}
+
+.status-error {
+    background-color: #fee2e2;
+    border-color: #ef4444;
+    color: #991b1b;
+}
+
+.status-warning {
+    background-color: #fef3c7;
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+/* 自訂 CSS 編輯器樣式 */
+.css-editor {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.css-editor:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* 響應式斷點指示器 */
+.breakpoint-indicator {
+    position: relative;
+    display: inline-block;
+}
+
+.breakpoint-indicator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -20px;
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    transform: translateY(-50%);
+}
+
+.breakpoint-indicator.invalid::after {
+    background-color: #ef4444;
+}
+
+/* 預覽裝置框架 */
+.device-frame {
+    position: relative;
+    margin: 0 auto;
+    background: #333;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.device-frame.mobile {
+    width: 375px;
+    height: 667px;
+}
+
+.device-frame.tablet {
+    width: 768px;
+    height: 1024px;
+}
+
+.device-frame.desktop {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    padding: 0;
+    background: transparent;
+}
+
+.device-frame::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: #666;
+    border-radius: 2px;
+}
+
+.device-frame.desktop::before {
+    display: none;
+}
+
+/* 動畫效果 */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+/* 工具提示樣式 */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* 深色模式支援 */
+@media (prefers-color-scheme: dark) {
+    .auto-theme {
+        background-color: #1f2937;
+        color: #f9fafb;
+    }
+    
+    .auto-theme .border-gray-200 {
+        border-color: #374151;
+    }
+    
+    .auto-theme .bg-gray-50 {
+        background-color: #374151;
+    }
+    
+    .auto-theme .text-gray-500 {
+        color: #9ca3af;
+    }
+    
+    .auto-theme .text-gray-900 {
+        color: #f9fafb;
+    }
+}
+
+/* 無障礙支援 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* 高對比模式支援 */
+@media (prefers-contrast: high) {
+    .preview-content {
+        border: 2px solid currentColor;
+    }
+    
+    button {
+        border: 2px solid currentColor;
+    }
+    
+    input[type="color"] {
+        border: 2px solid currentColor;
+    }
+}

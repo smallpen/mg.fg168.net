@@ -216,4 +216,39 @@ interface SettingsRepositoryInterface
      * @return void
      */
     public function setCachedSetting(string $key, $value, int $ttl = 3600): void;
+
+    /**
+     * 解密設定值
+     * 
+     * @param string $key 設定鍵值
+     * @param mixed $value 設定值
+     * @return mixed
+     */
+    public function decryptSettingValue(string $key, $value);
+
+    /**
+     * 取得解密後的設定值
+     * 
+     * @param string $key 設定鍵值
+     * @param mixed $default 預設值
+     * @return mixed
+     */
+    public function getDecryptedSetting(string $key, $default = null);
+
+    /**
+     * 批量取得解密後的設定
+     * 
+     * @param array $keys 設定鍵值陣列
+     * @return Collection
+     */
+    public function getDecryptedSettings(array $keys): Collection;
+
+    /**
+     * 安全地顯示敏感設定值
+     * 
+     * @param string $key 設定鍵值
+     * @param mixed $value 設定值
+     * @return string
+     */
+    public function maskSensitiveValue(string $key, $value): string;
 }

@@ -11,10 +11,14 @@ use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use App\Listeners\SecurityEventListener;
+use App\Listeners\SystemEventListener;
 use App\Listeners\RoleStatisticsCacheListener;
 use App\Services\RoleStatisticsCacheManager;
 use App\Models\Role;
 use App\Models\Permission;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -26,18 +30,31 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
+            SystemEventListener::class . '@handleRegistered',
         ],
         Login::class => [
             SecurityEventListener::class . '@handleLogin',
+            SystemEventListener::class . '@handleLogin',
         ],
         Failed::class => [
             SecurityEventListener::class . '@handleFailed',
+            SystemEventListener::class . '@handleLoginFailed',
         ],
         Logout::class => [
             SecurityEventListener::class . '@handleLogout',
+            SystemEventListener::class . '@handleLogout',
         ],
         Lockout::class => [
             SecurityEventListener::class . '@handleLockout',
+        ],
+        PasswordReset::class => [
+            SystemEventListener::class . '@handlePasswordReset',
+        ],
+        JobFailed::class => [
+            SystemEventListener::class . '@handleJobFailed',
+        ],
+        JobProcessed::class => [
+            SystemEventListener::class . '@handleJobProcessed',
         ],
     ];
 

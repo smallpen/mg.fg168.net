@@ -5,6 +5,8 @@ namespace App\Livewire\Admin\Settings;
 use App\Livewire\Admin\AdminComponent;
 use App\Repositories\SettingsRepositoryInterface;
 use App\Services\ConfigurationService;
+use App\Services\SettingsSecurityService;
+use App\Http\Middleware\SettingsAccessControl;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
@@ -50,6 +52,21 @@ class SecuritySettings extends AdminComponent
     public array $validationErrors = [];
 
     /**
+     * 安全統計資訊
+     */
+    public array $securityStats = [];
+
+    /**
+     * 顯示 IP 管理對話框
+     */
+    public bool $showIpManagement = false;
+
+    /**
+     * 顯示審計日誌清理對話框
+     */
+    public bool $showAuditCleanup = false;
+
+    /**
      * 安全設定鍵值列表
      */
     protected array $securitySettingKeys = [
@@ -64,6 +81,9 @@ class SecuritySettings extends AdminComponent
         'security.session_lifetime',
         'security.force_https',
         'security.two_factor_enabled',
+        'security.allowed_ips',
+        'security.enable_audit_logging',
+        'security.audit_log_retention_days',
     ];
 
     /**
@@ -83,12 +103,21 @@ class SecuritySettings extends AdminComponent
     }
 
     /**
+     * 取得安全服務
+     */
+    protected function getSecurityService(): SettingsSecurityService
+    {
+        return app(SettingsSecurityService::class);
+    }
+
+    /**
      * 初始化元件
      */
     public function mount(): void
     {
         parent::mount();
         $this->loadSettings();
+        $this->loadSecurityStats();
     }
 
     /**
@@ -603,6 +632,202 @@ class SecuritySettings extends AdminComponent
     {
         if (in_array($settingKey, $this->securitySettingKeys)) {
             $this->loadSettings();
+        }
+    }
+
+    /**
+     * 載入安全統計資訊
+     */
+    public function loadSecurityStats(): void
+    {
+        try {
+            $this->securityStats = $this->getSecurityService()->generateSecurityReport();
+        } catch (\Exception $e) {
+            $this->securityStats = [
+                'error' => '無法載入安全統計資訊: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * 顯示 IP 管理對話框
+     */
+    public function showIpManagementModal(): void
+    {
+        $this->showIpManagement = true;
+    }
+
+    /**
+     * 隱藏 IP 管理對話框
+     */
+    public function hideIpManagementModal(): void
+    {
+        $this->showIpManagement = false;
+    }
+
+    /**
+     * 清除 IP 限制快取
+     */
+    public function clearIpCache(): void
+    {
+        try {
+            SettingsAccessControl::clearIpCache();
+            $this->addFlash('success', 'IP 限制快取已清除');
+        } catch (\Exception $e) {
+            $this->addFlash('error', '清除 IP 快取失敗: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 解鎖指定 IP
+     */
+    public function unlockIp(string $ip): void
+    {
+        try {
+            SettingsAccessControl::unlockIp($ip);
+            $this->addFlash('success', "IP {$ip} 已解鎖");
+        } catch (\Exception $e) {
+            $this->addFlash('error', '解鎖 IP 失敗: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 顯示審計日誌清理對話框
+     */
+    public function showAuditCleanupModal(): void
+    {
+        $this->showAuditCleanup = true;
+    }
+
+    /**
+     * 隱藏審計日誌清理對話框
+     */
+    public function hideAuditCleanupModal(): void
+    {
+        $this->showAuditCleanup = false;
+    }
+
+    /**
+     * 清理審計日誌
+     */
+    public function cleanupAuditLogs(): void
+    {
+        try {
+            $retentionDays = (int) ($this->settings['security.audit_log_retention_days'] ?? 90);
+            $deletedCount = $this->getSecurityService()->cleanupAuditLogs($retentionDays);
+            
+            $this->addFlash('success', "已清理 {$deletedCount} 筆過期的審計日誌");
+            $this->loadSecurityStats();
+            $this->hideAuditCleanupModal();
+            
+        } catch (\Exception $e) {
+            $this->addFlash('error', '清理審計日誌失敗: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 建立加密備份
+     */
+    public function createEncryptedBackup(): void
+    {
+        try {
+            $backupName = '安全設定加密備份 - ' . now()->format('Y-m-d H:i:s');
+            $result = $this->getSecurityService()->createEncryptedBackup($backupName, '系統自動建立的加密備份', ['security']);
+            
+            if ($result['success']) {
+                $this->addFlash('success', '加密備份建立成功');
+                $this->loadSecurityStats();
+            } else {
+                $this->addFlash('error', '建立加密備份失敗: ' . ($result['error'] ?? '未知錯誤'));
+            }
+            
+        } catch (\Exception $e) {
+            $this->addFlash('error', '建立加密備份失敗: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 測試 IP 限制設定
+     */
+    public function testIpRestriction(): void
+    {
+        try {
+            $allowedIps = $this->settings['security.allowed_ips'] ?? '';
+            $currentIp = request()->ip();
+            
+            if (empty($allowedIps)) {
+                $this->addFlash('info', "目前沒有設定 IP 限制，所有 IP 都可以存取。您的 IP: {$currentIp}");
+                return;
+            }
+            
+            // 簡單的 IP 檢查邏輯
+            $ips = array_map('trim', explode("\n", $allowedIps));
+            $isAllowed = in_array($currentIp, $ips);
+            
+            if ($isAllowed) {
+                $this->addFlash('success', "您的 IP ({$currentIp}) 在允許清單中");
+            } else {
+                $this->addFlash('warning', "警告：您的 IP ({$currentIp}) 不在允許清單中，儲存後您可能無法存取設定管理");
+            }
+            
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'IP 限制測試失敗: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 取得當前使用者 IP
+     */
+    #[Computed]
+    public function currentUserIp(): string
+    {
+        return request()->ip();
+    }
+
+    /**
+     * 取得被鎖定的 IP 清單
+     */
+    #[Computed]
+    public function lockedIps(): array
+    {
+        try {
+            return SettingsAccessControl::getLockedIps();
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * 檢查是否啟用審計日誌
+     */
+    #[Computed]
+    public function isAuditLoggingEnabled(): bool
+    {
+        return (bool) ($this->settings['security.enable_audit_logging'] ?? true);
+    }
+
+    /**
+     * 取得審計日誌統計
+     */
+    #[Computed]
+    public function auditLogStats(): array
+    {
+        try {
+            $totalLogs = \App\Models\SettingChange::count();
+            $recentLogs = \App\Models\SettingChange::where('created_at', '>=', now()->subDays(7))->count();
+            $retentionDays = (int) ($this->settings['security.audit_log_retention_days'] ?? 90);
+            $expiredLogs = \App\Models\SettingChange::where('created_at', '<', now()->subDays($retentionDays))->count();
+            
+            return [
+                'total' => $totalLogs,
+                'recent' => $recentLogs,
+                'expired' => $expiredLogs,
+                'retention_days' => $retentionDays,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => $e->getMessage()
+            ];
         }
     }
 

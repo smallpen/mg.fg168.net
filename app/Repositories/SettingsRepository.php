@@ -2,9 +2,17 @@
 
 namespace App\Repositories;
 
+use App\Events\SettingUpdated;
+use App\Events\SettingsBatchUpdated;
+use App\Events\SettingCacheCleared;
 use App\Models\Setting;
 use App\Models\SettingBackup;
 use App\Models\SettingChange;
+use App\Models\SettingPerformanceMetric;
+use App\Models\SettingCache;
+use App\Services\EncryptionService;
+use App\Services\SettingsCacheService;
+use App\Services\SettingsPerformanceService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +33,45 @@ class SettingsRepository implements SettingsRepositoryInterface
      * 預設快取時間（秒）
      */
     private const DEFAULT_CACHE_TTL = 3600;
+
+    /**
+     * 加密服務
+     */
+    protected EncryptionService $encryptionService;
+
+    /**
+     * 快取服務
+     */
+    protected ?SettingsCacheService $cacheService = null;
+
+    /**
+     * 效能服務
+     */
+    protected ?SettingsPerformanceService $performanceService = null;
+
+    /**
+     * 建構函式
+     */
+    public function __construct(EncryptionService $encryptionService)
+    {
+        $this->encryptionService = $encryptionService;
+    }
+
+    /**
+     * 設定快取服務
+     */
+    public function setCacheService(SettingsCacheService $cacheService): void
+    {
+        $this->cacheService = $cacheService;
+    }
+
+    /**
+     * 設定效能服務
+     */
+    public function setPerformanceService(SettingsPerformanceService $performanceService): void
+    {
+        $this->performanceService = $performanceService;
+    }
 
     /**
      * 取得所有設定
@@ -75,6 +122,29 @@ class SettingsRepository implements SettingsRepositoryInterface
      */
     public function getSetting(string $key): ?Setting
     {
+        $startTime = microtime(true);
+        
+        // 如果有快取服務，使用多層快取
+        if ($this->cacheService) {
+            $setting = $this->cacheService->get($key);
+            
+            if ($setting === null) {
+                $setting = Setting::where('key', $key)->first();
+                if ($setting) {
+                    $this->cacheService->set($key, $setting);
+                }
+                
+                // 記錄快取未命中
+                $this->recordCacheMetric('cache_miss', $startTime);
+            } else {
+                // 記錄快取命中
+                $this->recordCacheMetric('cache_hit', $startTime);
+            }
+            
+            return $setting;
+        }
+
+        // 回退到原始快取實作
         return Cache::remember(self::CACHE_PREFIX . "key_{$key}", self::DEFAULT_CACHE_TTL, function () use ($key) {
             return Setting::where('key', $key)->first();
         });
@@ -124,6 +194,16 @@ class SettingsRepository implements SettingsRepositoryInterface
             return false;
         }
 
+        // 處理加密
+        if ($this->shouldEncryptSetting($key)) {
+            try {
+                $value = $this->encryptionService->encrypt($value);
+            } catch (\Exception $e) {
+                Log::error("Failed to encrypt setting {$key}", ['error' => $e->getMessage()]);
+                return false;
+            }
+        }
+
         $result = $setting->updateValue($value);
         
         if ($result) {
@@ -145,6 +225,13 @@ class SettingsRepository implements SettingsRepositoryInterface
             return true;
         }
 
+        // 如果有效能服務，使用優化的批量更新
+        if ($this->performanceService) {
+            $results = $this->performanceService->batchUpdateSettings($settings);
+            return $results['success'];
+        }
+
+        // 回退到原始實作
         DB::beginTransaction();
         
         try {
@@ -157,6 +244,10 @@ class SettingsRepository implements SettingsRepositoryInterface
             DB::commit();
             $this->clearCache();
             
+            // 觸發批量更新事件
+            $affectedCategories = $this->getAffectedCategories(array_keys($settings));
+            event(new SettingsBatchUpdated($settings, $affectedCategories));
+            
             return true;
         } catch (\Exception $e) {
             DB::rollBack();
@@ -167,6 +258,26 @@ class SettingsRepository implements SettingsRepositoryInterface
             
             return false;
         }
+    }
+
+    /**
+     * 取得受影響的分類
+     * 
+     * @param array $keys 設定鍵值陣列
+     * @return array 分類陣列
+     */
+    protected function getAffectedCategories(array $keys): array
+    {
+        $categories = [];
+        
+        foreach ($keys as $key) {
+            $setting = $this->getSetting($key);
+            if ($setting && !in_array($setting->category, $categories)) {
+                $categories[] = $setting->category;
+            }
+        }
+
+        return $categories;
     }
 
     /**
@@ -804,5 +915,191 @@ class SettingsRepository implements SettingsRepositoryInterface
         }
 
         return true;
+    }
+
+    /**
+     * 檢查設定是否需要加密
+     * 
+     * @param string $key 設定鍵值
+     * @return bool
+     */
+    protected function shouldEncryptSetting(string $key): bool
+    {
+        // 從配置檔案中取得需要加密的設定
+        $encryptedSettings = config('system-settings.settings', []);
+        
+        if (isset($encryptedSettings[$key]['encrypted']) && $encryptedSettings[$key]['encrypted']) {
+            return true;
+        }
+
+        // 根據鍵值模式判斷
+        $encryptPatterns = [
+            '*_secret*',
+            '*_password*',
+            '*_key*',
+            '*_token*',
+            '*client_secret*',
+            '*webhook_secret*',
+            '*api_keys*',
+        ];
+
+        foreach ($encryptPatterns as $pattern) {
+            if (fnmatch($pattern, $key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 解密設定值
+     * 
+     * @param string $key 設定鍵值
+     * @param mixed $value 設定值
+     * @return mixed
+     */
+    public function decryptSettingValue(string $key, $value)
+    {
+        if (!$this->shouldEncryptSetting($key) || empty($value)) {
+            return $value;
+        }
+
+        try {
+            return $this->encryptionService->decrypt($value);
+        } catch (\Exception $e) {
+            Log::warning("Failed to decrypt setting {$key}, returning original value", [
+                'error' => $e->getMessage()
+            ]);
+            return $value;
+        }
+    }
+
+    /**
+     * 取得解密後的設定值
+     * 
+     * @param string $key 設定鍵值
+     * @param mixed $default 預設值
+     * @return mixed
+     */
+    public function getDecryptedSetting(string $key, $default = null)
+    {
+        $setting = $this->getSetting($key);
+        
+        if (!$setting) {
+            return $default;
+        }
+
+        return $this->decryptSettingValue($key, $setting->value);
+    }
+
+    /**
+     * 批量取得解密後的設定
+     * 
+     * @param array $keys 設定鍵值陣列
+     * @return Collection
+     */
+    public function getDecryptedSettings(array $keys): Collection
+    {
+        $settings = $this->getSettings($keys);
+        
+        return $settings->map(function ($setting) {
+            $decryptedValue = $this->decryptSettingValue($setting->key, $setting->value);
+            $setting->decrypted_value = $decryptedValue;
+            return $setting;
+        });
+    }
+
+    /**
+     * 安全地顯示敏感設定值
+     * 
+     * @param string $key 設定鍵值
+     * @param mixed $value 設定值
+     * @return string
+     */
+    public function maskSensitiveValue(string $key, $value): string
+    {
+        if (!$this->shouldEncryptSetting($key) || empty($value)) {
+            return (string) $value;
+        }
+
+        // 先解密再遮罩
+        $decryptedValue = $this->decryptSettingValue($key, $value);
+        return $this->encryptionService->maskSensitiveData($decryptedValue);
+    }
+
+    /**
+     * 記錄快取效能指標
+     * 
+     * @param string $operation 操作名稱
+     * @param float $startTime 開始時間
+     * @return void
+     */
+    protected function recordCacheMetric(string $operation, float $startTime): void
+    {
+        try {
+            $executionTime = (microtime(true) - $startTime) * 1000;
+            SettingPerformanceMetric::record('cache', $operation, $executionTime, 'ms');
+        } catch (\Exception $e) {
+            // 效能指標記錄失敗不應影響主要功能
+            Log::debug('記錄快取效能指標失敗', [
+                'operation' => $operation,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * 延遲載入設定
+     * 
+     * @param string $category 分類
+     * @param callable|null $callback 載入完成回調
+     * @return \Generator
+     */
+    public function lazyLoadSettingsByCategory(string $category, ?callable $callback = null): \Generator
+    {
+        if ($this->performanceService) {
+            yield from $this->performanceService->lazyLoadSettingsByCategory($category, $callback);
+        } else {
+            // 回退到簡單的分批載入
+            $offset = 0;
+            $limit = 50;
+            
+            do {
+                $settings = Setting::byCategory($category)
+                    ->orderBy('sort_order')
+                    ->orderBy('key')
+                    ->offset($offset)
+                    ->limit($limit)
+                    ->get();
+
+                foreach ($settings as $setting) {
+                    yield $setting;
+                }
+
+                if ($callback && $settings->isNotEmpty()) {
+                    $callback($settings, $offset, $offset + $settings->count());
+                }
+
+                $offset += $limit;
+            } while ($settings->count() === $limit);
+        }
+    }
+
+    /**
+     * 批量載入設定（優化版本）
+     * 
+     * @param array $keys 設定鍵值陣列
+     * @param bool $useCache 是否使用快取
+     * @return Collection
+     */
+    public function batchLoadSettings(array $keys, bool $useCache = true): Collection
+    {
+        if ($this->performanceService) {
+            return $this->performanceService->batchLoadSettings($keys, $useCache);
+        }
+
+        // 回退到原始實作
+        return $this->getSettings($keys);
     }
 }

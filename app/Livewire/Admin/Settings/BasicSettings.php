@@ -517,6 +517,13 @@ class BasicSettings extends AdminComponent
      */
     public function getSettingDisplayName(string $key): string
     {
+        // 優先使用語言檔案中的翻譯
+        $translationKey = "settings.settings.{$key}.name";
+        if (__($translationKey) !== $translationKey) {
+            return __($translationKey);
+        }
+        
+        // 回退到配置檔案
         $config = $this->getConfigService()->getSettingConfig($key);
         return $config['description'] ?? $key;
     }
@@ -526,6 +533,13 @@ class BasicSettings extends AdminComponent
      */
     public function getSettingHelp(string $key): string
     {
+        // 優先使用語言檔案中的翻譯
+        $translationKey = "settings.settings.{$key}.description";
+        if (__($translationKey) !== $translationKey) {
+            return __($translationKey);
+        }
+        
+        // 回退到配置檔案
         $config = $this->getConfigService()->getSettingConfig($key);
         return $config['help'] ?? '';
     }

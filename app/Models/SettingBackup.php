@@ -35,6 +35,7 @@ class SettingBackup extends Model
         'backup_type',
         'settings_count',
         'checksum',
+        'is_encrypted',
     ];
 
     /**
@@ -61,6 +62,7 @@ class SettingBackup extends Model
     protected $casts = [
         'settings_data' => 'json',
         'settings_count' => 'integer',
+        'is_encrypted' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

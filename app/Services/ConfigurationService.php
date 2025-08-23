@@ -638,4 +638,44 @@ class ConfigurationService
         
         return $preview;
     }
+
+    /**
+     * 取得指定分類的所有設定
+     *
+     * @param string $category 分類名稱
+     * @return array
+     */
+    public function getSettingsByCategory(string $category): array
+    {
+        $settings = [];
+        $settingsCollection = $this->settingsRepository->getSettingsByCategory($category);
+        
+        foreach ($settingsCollection as $setting) {
+            $settings[$setting->key] = $setting->value;
+        }
+        
+        return $settings;
+    }
+
+    /**
+     * 更新多個設定
+     *
+     * @param array $settings 設定陣列
+     * @return bool
+     */
+    public function updateSettings(array $settings): bool
+    {
+        try {
+            foreach ($settings as $key => $value) {
+                $this->settingsRepository->updateSetting($key, $value);
+            }
+            return true;
+        } catch (\Exception $e) {
+            Log::error('更新設定失敗', [
+                'error' => $e->getMessage(),
+                'settings' => $settings,
+            ]);
+            return false;
+        }
+    }
 }

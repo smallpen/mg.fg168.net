@@ -277,6 +277,26 @@ class NotificationService
     }
 
     /**
+     * 取得使用者未讀通知數量
+     */
+    public function getUnreadCount(User $user): int
+    {
+        // 這裡應該從通知表中取得未讀通知數量
+        // 目前先返回 0，實際應用中需要實作通知系統
+        return 0;
+    }
+
+    /**
+     * 取得使用者通知列表
+     */
+    public function getUserNotifications(User $user, array $options = []): array
+    {
+        // 這裡應該從通知表中取得使用者通知
+        // 目前先返回空陣列，實際應用中需要實作通知系統
+        return [];
+    }
+
+    /**
      * 清除通知快取
      */
     public function clearCache(): void

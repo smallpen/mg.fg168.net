@@ -472,4 +472,209 @@ class BackupService
             ];
         }
     }
+
+    /**
+     * 執行測試備份
+     *
+     * @return array
+     */
+    public function performTestBackup(): array
+    {
+        $this->loggingService->logBackupOperation('test_backup', 'started');
+
+        $results = [
+            'started_at' => now()->toISOString(),
+            'test_database' => null,
+            'test_files' => null,
+            'storage_check' => null,
+            'completed_at' => null,
+            'success' => false,
+        ];
+
+        try {
+            // 1. 測試資料庫備份（不實際執行，只檢查連線和權限）
+            $results['test_database'] = $this->testDatabaseBackup();
+            
+            // 2. 測試檔案備份（建立小型測試檔案）
+            $results['test_files'] = $this->testFileBackup();
+            
+            // 3. 檢查儲存空間
+            $results['storage_check'] = $this->checkStorageSpace();
+            
+            $results['completed_at'] = now()->toISOString();
+            $results['success'] = true;
+
+            $this->loggingService->logBackupOperation('test_backup', 'completed', $results);
+
+            return $results;
+
+        } catch (\Exception $e) {
+            $results['completed_at'] = now()->toISOString();
+            $results['error'] = $e->getMessage();
+            $results['success'] = false;
+
+            $this->loggingService->logBackupOperation('test_backup', 'failed', [
+                'error' => $e->getMessage(),
+                'results' => $results,
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * 測試資料庫備份
+     *
+     * @return array
+     */
+    protected function testDatabaseBackup(): array
+    {
+        try {
+            // 檢查資料庫連線
+            DB::connection()->getPdo();
+            
+            // 檢查 mysqldump 命令是否可用
+            $mysqldumpPath = config('database.backup.mysqldump_path', 'mysqldump');
+            $process = Process::run("which {$mysqldumpPath}");
+            
+            if (!$process->successful()) {
+                throw new \Exception('mysqldump 命令不可用');
+            }
+
+            return [
+                'status' => 'success',
+                'message' => '資料庫備份測試成功',
+                'connection' => 'OK',
+                'mysqldump' => 'Available',
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => '資料庫備份測試失敗：' . $e->getMessage(),
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * 測試檔案備份
+     *
+     * @return array
+     */
+    protected function testFileBackup(): array
+    {
+        try {
+            $testDir = storage_path('backups/test');
+            $testFile = $testDir . '/test_backup.txt';
+            $testContent = 'Test backup content - ' . now()->toISOString();
+
+            // 建立測試目錄
+            if (!File::exists($testDir)) {
+                File::makeDirectory($testDir, 0755, true);
+            }
+
+            // 建立測試檔案
+            File::put($testFile, $testContent);
+
+            // 建立測試壓縮檔
+            $testArchive = $testDir . '/test_backup.tar.gz';
+            $process = Process::run("tar -czf {$testArchive} -C {$testDir} test_backup.txt");
+
+            if (!$process->successful()) {
+                throw new \Exception('檔案壓縮測試失敗');
+            }
+
+            // 驗證壓縮檔
+            if (!File::exists($testArchive) || File::size($testArchive) === 0) {
+                throw new \Exception('壓縮檔建立失敗');
+            }
+
+            // 清理測試檔案
+            File::delete($testFile);
+            File::delete($testArchive);
+
+            return [
+                'status' => 'success',
+                'message' => '檔案備份測試成功',
+                'compression' => 'OK',
+                'cleanup' => 'OK',
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => '檔案備份測試失敗：' . $e->getMessage(),
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * 檢查儲存空間
+     *
+     * @return array
+     */
+    protected function checkStorageSpace(): array
+    {
+        try {
+            $backupPath = storage_path('backups');
+            
+            if (!File::exists($backupPath)) {
+                File::makeDirectory($backupPath, 0755, true);
+            }
+
+            $totalSpace = disk_total_space($backupPath);
+            $freeSpace = disk_free_space($backupPath);
+            $usedSpace = $totalSpace - $freeSpace;
+            $usagePercent = ($usedSpace / $totalSpace) * 100;
+
+            $status = 'success';
+            $message = '儲存空間檢查正常';
+
+            if ($freeSpace < 1024 * 1024 * 1024) { // 少於 1GB
+                $status = 'warning';
+                $message = '可用空間不足 1GB，建議清理舊備份';
+            }
+
+            if ($usagePercent > 90) {
+                $status = 'error';
+                $message = '磁碟使用率超過 90%，請立即清理空間';
+            }
+
+            return [
+                'status' => $status,
+                'message' => $message,
+                'total_space' => $this->formatBytes($totalSpace),
+                'free_space' => $this->formatBytes($freeSpace),
+                'used_space' => $this->formatBytes($usedSpace),
+                'usage_percent' => round($usagePercent, 2),
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => '儲存空間檢查失敗：' . $e->getMessage(),
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * 格式化位元組大小
+     *
+     * @param int $bytes
+     * @param int $precision
+     * @return string
+     */
+    protected function formatBytes($bytes, $precision = 2)
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
+        }
+        
+        return round($bytes, $precision) . ' ' . $units[$i];
+    }
 }

@@ -193,6 +193,10 @@ return [
         App\Providers\RoleLocalizationServiceProvider::class,
         App\Providers\PermissionLanguageServiceProvider::class,
         App\Providers\SystemSettingsServiceProvider::class,
+        App\Providers\SettingsPerformanceServiceProvider::class,
+        App\Providers\ActivityLogServiceProvider::class,
+        App\Providers\ActivityIntegrityServiceProvider::class,
+        App\Providers\SecurityServiceProvider::class,
     ])->toArray(),
 
     /*

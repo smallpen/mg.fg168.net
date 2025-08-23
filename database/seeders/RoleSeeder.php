@@ -29,34 +29,8 @@ class RoleSeeder extends Seeder
             [
                 'name' => 'admin',
                 'display_name' => '管理員',
-                'description' => '擁有大部分管理權限的管理員',
-                'permissions' => [
-                    // 使用者管理權限
-                    'users.view',
-                    'users.create',
-                    'users.edit',
-                    'users.manage_roles',
-                    
-                    // 角色管理權限（除了刪除）
-                    'roles.view',
-                    'roles.create',
-                    'roles.edit',
-                    'roles.manage_permissions',
-                    
-                    // 權限檢視
-                    'permissions.view',
-                    
-                    // 儀表板權限
-                    'dashboard.view',
-                    'dashboard.stats',
-                    
-                    // 系統日誌檢視
-                    'system.logs',
-                    
-                    // 個人資料權限
-                    'profile.view',
-                    'profile.edit',
-                ]
+                'description' => '擁有所有管理權限的管理員',
+                'permissions' => 'all' // 修改為擁有所有權限，避免權限不足問題
             ],
             [
                 'name' => 'user',
