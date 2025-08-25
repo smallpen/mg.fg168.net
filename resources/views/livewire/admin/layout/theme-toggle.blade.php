@@ -5,8 +5,8 @@
             wire:click="toggleTheme"
             type="button"
             class="theme-toggle-btn {{ $isLoading ? 'theme-loading' : '' }}"
-            title="當前主題：{{ $this->themeName }}，點擊切換"
-            aria-label="當前主題：{{ $this->themeName }}，點擊切換"
+            title="{{ __('theme.current') }}：{{ $this->themeName }}，{{ __('theme.toggle') }}"
+            aria-label="{{ __('theme.current') }}：{{ $this->themeName }}，{{ __('theme.toggle') }}"
             @disabled($isLoading)
         >
         <!-- 亮色主題圖示 (太陽) -->
@@ -71,8 +71,8 @@
             @click="open = !open"
             type="button"
             class="ml-2 relative inline-flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-            title="主題選項"
-            aria-label="主題選項"
+            title="{{ __('theme.title') }}"
+            aria-label="{{ __('theme.title') }}"
         >
             <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -101,7 +101,7 @@
                     <svg class="theme-dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
-                    亮色主題
+                    {{ __('theme.light') }}
                     @if($currentTheme === 'light')
                         <svg class="theme-dropdown-check" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -118,7 +118,7 @@
                     <svg class="theme-dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                     </svg>
-                    暗色主題
+                    {{ __('theme.dark') }}
                     @if($currentTheme === 'dark')
                         <svg class="theme-dropdown-check" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -135,8 +135,8 @@
                     <svg class="theme-dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
-                    自動模式
-                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">(跟隨系統)</span>
+                    {{ __('theme.auto') }}
+                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">({{ __('theme.follow_system') }})</span>
                     @if($currentTheme === 'auto')
                         <svg class="theme-dropdown-check" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>

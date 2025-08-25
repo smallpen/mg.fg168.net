@@ -283,7 +283,7 @@
                             @foreach($groupedPermissions as $module => $permissions)
                             <div class="permission-module has-permissions">
                                 <h4 class="text-base font-medium text-gray-900 dark:text-white mb-3">
-                                    {{ __("admin.permissions.modules.{$module}") }}
+                                    {{ __("permissions.modules.{$module}") }}
                                     <span class="text-sm text-gray-500 dark:text-gray-400 font-normal">
                                         ({{ $permissions->count() }})
                                     </span>

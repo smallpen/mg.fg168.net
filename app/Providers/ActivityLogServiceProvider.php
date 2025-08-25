@@ -28,6 +28,9 @@ class ActivityLogServiceProvider extends ServiceProvider
     {
         // 註冊活動記錄服務為單例
         $this->app->singleton(\App\Services\ActivityLogger::class);
+        
+        // 註冊活動記錄匯出服務為單例
+        $this->app->singleton(\App\Services\ActivityExportService::class);
     }
 
     /**

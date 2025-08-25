@@ -3,7 +3,6 @@
 @section('title', $pageTitle ?? __('admin.users.edit_user', ['name' => $user->name]))
 
 @section('content')
-<x-admin.layout.admin-layout :breadcrumbs="$breadcrumbs ?? []">
     <div class="space-y-6">
         <!-- 頁面標題 -->
         <div>
@@ -20,5 +19,4 @@
             <livewire:admin.users.user-form :user="$user" />
         </div>
     </div>
-</x-admin.layout.admin-layout>
 @endsection

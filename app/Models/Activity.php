@@ -101,6 +101,22 @@ class Activity extends Model
     }
 
     /**
+     * 取得 causer_id 屬性（相容性）
+     */
+    public function getCauserIdAttribute(): ?int
+    {
+        return $this->user_id;
+    }
+
+    /**
+     * 取得 causer_type 屬性（相容性）
+     */
+    public function getCauserTypeAttribute(): string
+    {
+        return User::class;
+    }
+
+    /**
      * 被操作的對象關聯（多型關聯）
      *
      * @return MorphTo
@@ -403,7 +419,7 @@ class Activity extends Model
      */
     public function verifyIntegrity(): bool
     {
-        if (!config('activity-log.integrity.enabled', true)) {
+        if (!config('activity-security.integrity.enabled', true)) {
             return true; // 如果未啟用完整性檢查，視為通過
         }
 
@@ -419,7 +435,7 @@ class Activity extends Model
      */
     public function generateSignature(?array $data = null): string
     {
-        if (!config('activity-log.integrity.enabled', true)) {
+        if (!config('activity-security.integrity.enabled', true)) {
             return ''; // 如果未啟用完整性檢查，返回空字串
         }
 
@@ -429,7 +445,98 @@ class Activity extends Model
             return $integrityService->generateSignature($data);
         }
         
-        return $integrityService->protectActivity($this);
+        return $integrityService->regenerateSignature($this);
+    }
+
+    /**
+     * 檢查使用者是否有權限存取此活動記錄
+     *
+     * @param \App\Models\User|null $user
+     * @param string $action
+     * @return bool
+     */
+    public function canAccess(?User $user = null, string $action = 'view'): bool
+    {
+        if (!$user) {
+            $user = auth()->user();
+        }
+
+        if (!$user) {
+            return false;
+        }
+
+        $securityService = app(\App\Services\ActivitySecurityService::class);
+        $result = $securityService->checkAccessPermission($user, $action, $this);
+        
+        return $result['allowed'];
+    }
+
+    /**
+     * 取得過濾後的活動記錄資料
+     *
+     * @param \App\Models\User|null $user
+     * @return array
+     */
+    public function getFilteredData(?User $user = null): array
+    {
+        if (!$user) {
+            $user = auth()->user();
+        }
+
+        if (!$user) {
+            return [];
+        }
+
+        $securityService = app(\App\Services\ActivitySecurityService::class);
+        return $securityService->filterActivityData($this, $user);
+    }
+
+    /**
+     * 檢查是否為敏感活動記錄
+     *
+     * @return bool
+     */
+    public function isSensitive(): bool
+    {
+        $sensitiveTypes = [
+            'login_failed',
+            'permission_escalation', 
+            'sensitive_data_access',
+            'system_config_change',
+            'unauthorized_access',
+            'data_breach',
+            'privilege_abuse'
+        ];
+
+        return in_array($this->type, $sensitiveTypes) || ($this->risk_level ?? 0) >= 7;
+    }
+
+    /**
+     * 檢查是否為受保護的活動記錄
+     *
+     * @return bool
+     */
+    public function isProtected(): bool
+    {
+        $protectedTypes = config('activity-security.protection.protected_types', []);
+        $protectionPeriod = config('activity-security.protection.protection_period', 30);
+
+        // 檢查類型是否受保護
+        if (in_array($this->type, $protectedTypes)) {
+            return true;
+        }
+
+        // 檢查是否在保護期限內
+        if ($this->created_at->diffInDays(now()) < $protectionPeriod) {
+            return true;
+        }
+
+        // 檢查是否為敏感活動記錄
+        if ($this->isSensitive()) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

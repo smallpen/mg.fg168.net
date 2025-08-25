@@ -3,7 +3,6 @@
 @section('title', $pageTitle ?? __('admin.users.view_user', ['name' => $user->name]))
 
 @section('content')
-<x-admin.layout.admin-layout :breadcrumbs="$breadcrumbs ?? []">
     <div class="space-y-6">
         <!-- 頁面標題 -->
         <div class="flex justify-between items-center">
@@ -116,5 +115,4 @@
             </div>
         </div>
     </div>
-</x-admin.layout.admin-layout>
 @endsection

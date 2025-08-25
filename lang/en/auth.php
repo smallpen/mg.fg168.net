@@ -37,4 +37,11 @@ return [
         'password_min' => 'Password must be at least :min characters',
     ],
 
+    // Theme related translations
+    'theme' => [
+        'light' => 'Light Mode',
+        'dark' => 'Dark Mode',
+        'toggle' => 'Toggle Theme',
+    ],
+
 ];

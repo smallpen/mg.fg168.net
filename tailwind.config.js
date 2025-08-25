@@ -5,6 +5,7 @@ export default {
     "./resources/**/*.js",
     "./resources/**/*.vue",
     "./app/Http/Livewire/**/*.php",
+    "./app/Livewire/**/*.php",
   ],
   darkMode: 'class',
   theme: {

@@ -3,7 +3,6 @@
 @section('title', $pageTitle ?? __('admin.users.title'))
 
 @section('content')
-<x-admin.layout.admin-layout :breadcrumbs="$breadcrumbs ?? []">
     <div class="space-y-6">
         <!-- 頁面標題 -->
         <div class="flex justify-between items-center">
@@ -32,5 +31,4 @@
             <livewire:admin.users.user-list />
         </div>
     </div>
-</x-admin.layout.admin-layout>
 @endsection

@@ -35,14 +35,14 @@
                                 {{ ucfirst($module) }}
                             </h3>
                             <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                                <span>{{ $permissions->count() }} {{ __('admin.permissions.permissions') }}</span>
+                                <span>{{ $permissions->count() }} {{ __('permissions.permissions') }}</span>
                                 <span class="flex items-center space-x-1">
                                     <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-                                    <span>{{ $permissions->where('roles_count', '>', 0)->count() }} {{ __('admin.permissions.active') }}</span>
+                                    <span>{{ $permissions->where('roles_count', '>', 0)->count() }} {{ __('permissions.active') }}</span>
                                 </span>
                                 <span class="flex items-center space-x-1">
                                     <div class="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
-                                    <span>{{ $permissions->where('roles_count', 0)->count() }} {{ __('admin.permissions.inactive') }}</span>
+                                    <span>{{ $permissions->where('roles_count', 0)->count() }} {{ __('permissions.inactive') }}</span>
                                 </span>
                             </div>
                         </div>
@@ -133,7 +133,7 @@
                                                         
                                                         {{-- 權限狀態指示器 --}}
                                                         @if($permission->is_system_permission)
-                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" title="{{ __('admin.permissions.system_permission') }}">
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" title="{{ __('permissions.system_permission') }}">
                                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                                                                 </svg>
@@ -141,7 +141,7 @@
                                                         @endif
 
                                                         @if($permission->dependencies_count > 0)
-                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" title="{{ __('admin.permissions.has_dependencies') }}">
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" title="{{ __('permissions.has_dependencies') }}">
                                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
                                                                 </svg>
@@ -199,7 +199,7 @@
                                                         @if($this->hasPermission('edit'))
                                                             <button wire:click="editPermission({{ $permission->id }})" 
                                                                     class="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
-                                                                    title="{{ __('admin.permissions.edit') }}">
+                                                                    title="{{ __('permissions.edit') }}">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                                 </svg>
@@ -209,7 +209,7 @@
                                                         @if($this->hasPermission('delete') && $permission->can_be_deleted)
                                                             <button wire:click="deletePermission({{ $permission->id }})" 
                                                                     class="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200"
-                                                                    title="{{ __('admin.permissions.delete') }}">
+                                                                    title="{{ __('permissions.delete') }}">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                                 </svg>
@@ -217,7 +217,7 @@
                                                         @endif
 
                                                         <button class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-                                                                title="{{ __('admin.permissions.view_details') }}">
+                                                                title="{{ __('permissions.view_details') }}">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                             </svg>
@@ -240,10 +240,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
             </svg>
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                {{ __('admin.permissions.no_permissions_found') }}
+                {{ __('permissions.no_permissions_found') }}
             </h3>
             <p class="text-gray-500 dark:text-gray-400 mb-4">
-                {{ __('admin.permissions.no_permissions_description') }}
+                {{ __('permissions.no_permissions_description') }}
             </p>
             @if($this->hasPermission('create'))
                 <button wire:click="createPermission" 
@@ -251,7 +251,7 @@
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                     </svg>
-                    {{ __('admin.permissions.create_first_permission') }}
+                    {{ __('permissions.create_first_permission') }}
                 </button>
             @endif
         </div>
@@ -268,31 +268,31 @@
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-                    {{ __('admin.permissions.expand_all') }}
+                    {{ __('permissions.expand_all') }}
                 </button>
                 <button wire:click="expandedGroups = []" 
                         class="inline-flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 bg-white dark:bg-gray-800 rounded-md border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-200">
                     <svg class="w-4 h-4 mr-1 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
-                    {{ __('admin.permissions.collapse_all') }}
+                    {{ __('permissions.collapse_all') }}
                 </button>
             </div>
             <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                 <div class="flex items-center space-x-2">
                     <div class="w-3 h-3 bg-blue-400 rounded-full"></div>
-                    <span>{{ __('admin.permissions.modules') }}</span>
+                    <span>{{ __('permissions.modules') }}</span>
                 </div>
                 <div class="flex items-center space-x-2">
                     <div class="w-3 h-3 bg-purple-400 rounded-full"></div>
-                    <span>{{ __('admin.permissions.types') }}</span>
+                    <span>{{ __('permissions.types') }}</span>
                 </div>
                 <div class="flex items-center space-x-2">
                     <div class="w-3 h-3 bg-gray-400 rounded-full"></div>
-                    <span>{{ __('admin.permissions.permissions') }}</span>
+                    <span>{{ __('permissions.permissions') }}</span>
                 </div>
                 <span class="text-gray-400">|</span>
-                <span>{{ $groupedPermissions->sum(function($permissions) { return $permissions->count(); }) }} {{ __('admin.permissions.total') }}</span>
+                <span>{{ $groupedPermissions->sum(function($permissions) { return $permissions->count(); }) }} {{ __('permissions.total') }}</span>
             </div>
         </div>
     </div>

@@ -1,627 +1,287 @@
-# 系統設定整合測試文檔
+# 活動記錄功能整合測試
 
-## 概述
+本目錄包含活動記錄功能的完整整合測試套件，涵蓋所有需求的測試場景。
 
-本目錄包含系統設定功能的完整整合測試套件，涵蓋功能測試、效能測試、瀏覽器自動化測試、MCP 工具整合測試等多個方面。
+## 測試概述
 
-## 測試覆蓋範圍
+整合測試分為四個主要類別：
 
-### 功能測試覆蓋
+### 1. 基本功能整合測試 (`ActivityLogIntegrationTest.php`)
+- **完整活動記錄流程測試**：測試從使用者登入到各種操作的完整記錄流程
+- **安全事件檢測和警報**：測試登入失敗、可疑 IP、批量操作等安全事件的檢測
+- **權限控制測試**：測試不同權限使用者的存取控制和資料過濾
+- **資料完整性測試**：測試數位簽章、敏感資料過濾、完整性驗證
+- **匯出和備份功能**：測試各種格式的資料匯出和備份功能
+- **保留政策測試**：測試活動記錄的自動清理和保留政策
 
-- ✅ **完整的設定管理流程**
-  - 設定列表顯示和分頁
-  - 設定搜尋和篩選
-  - 設定編輯和驗證
-  - 設定重設功能
-  - 設定變更歷史
+### 2. 瀏覽器自動化測試 (`ActivityLogBrowserTest.php`)
+- **活動記錄列表頁面流程**：使用 Playwright 測試完整的 UI 操作流程
+- **即時監控功能**：測試即時活動監控和警報顯示
+- **權限控制 UI**：測試不同權限使用者看到的 UI 元素差異
+- **統計圖表功能**：測試活動統計和圖表的互動功能
+- **響應式設計**：測試行動裝置和平板的顯示效果
+- **效能和載入時間**：測試頁面載入效能和使用者體驗
 
-- ✅ **設定備份和還原功能**
-  - 備份建立和命名
-  - 備份列表和管理
-  - 備份還原和驗證
-  - 備份比較功能
+### 3. 效能和負載測試 (`ActivityLogPerformanceTest.php`)
+- **大量資料寫入效能**：測試批量和非同步記錄的效能表現
+- **查詢效能測試**：測試各種查詢場景的響應時間
+- **搜尋功能效能**：測試全文搜尋和複雜篩選的效能
+- **統計查詢效能**：測試統計資料計算的效能
+- **安全分析效能**：測試風險分析和異常檢測的效能
+- **快取效能測試**：測試快取機制的效能提升效果
+- **記憶體使用測試**：測試大量資料處理時的記憶體使用情況
+- **並發存取測試**：測試多使用者同時存取的效能表現
 
-- ✅ **設定匯入匯出功能**
-  - 設定匯出（JSON 格式）
-  - 設定匯入和衝突處理
-  - 批量設定操作
-  - 匯入預覽和驗證
-
-- ✅ **不同權限使用者的存取控制**
-  - 管理員完整權限
-  - 編輯者部分權限
-  - 檢視者唯讀權限
-  - 一般使用者無權限
-
-- ✅ **瀏覽器自動化測試**
-  - 端到端使用者流程
-  - 響應式設計測試
-  - 鍵盤導航測試
-  - 無障礙功能測試
-
-## 測試架構
-
-### 測試類別結構
-
-```
-tests/Integration/
-├── SystemSettingsIntegrationTest.php      # 主要功能整合測試
-├── SystemSettingsBrowserTest.php          # Laravel Dusk 瀏覽器測試
-├── SystemSettingsPlaywrightTest.php       # Playwright 整合測試框架
-├── SystemSettingsMcpTest.php              # MCP 工具整合測試
-├── SystemSettingsTestConfig.php           # 測試配置和常數
-├── execute-mcp-tests.php                  # MCP 測試執行腳本
-├── run-system-settings-tests.php          # 主要測試執行腳本
-└── README.md                              # 本文檔
-```
-
-### 測試工具整合
-
-1. **Laravel 內建測試框架**
-   - PHPUnit 功能測試
-   - 資料庫事務和回滾
-   - 模型工廠和假資料
-
-2. **Laravel Dusk**
-   - 瀏覽器自動化測試
-   - JavaScript 互動測試
-   - 截圖和錄影功能
-
-3. **Playwright MCP**
-   - 跨瀏覽器測試
-   - 進階瀏覽器操作
-   - 效能監控
-
-4. **MySQL MCP**
-   - 資料庫狀態驗證
-   - 資料完整性檢查
-   - 查詢效能分析
+### 4. MCP 整合測試 (`ActivityLogMcpIntegrationTest.php`)
+- **Playwright + MySQL MCP 整合**：使用 MCP 工具進行端到端測試
+- **完整流程驗證**：結合瀏覽器操作和資料庫驗證
+- **安全事件流程**：測試安全事件的觸發、檢測和處理流程
+- **權限控制驗證**：使用 MCP 工具驗證權限控制的正確性
+- **效能要求驗證**：使用 MCP 工具測試效能要求
+- **資料完整性驗證**：結合 UI 操作和資料庫檢查驗證資料完整性
 
 ## 測試執行
 
-### 快速執行
-
-執行所有整合測試：
-
+### 快速執行所有測試
 ```bash
-# 使用 Docker 環境
-docker-compose exec app php tests/Integration/run-system-settings-tests.php
-
-# 或直接執行
-php tests/Integration/run-system-settings-tests.php
+php tests/Integration/run-activity-log-integration-tests.php
 ```
 
-### 分別執行測試
-
-#### 1. 功能整合測試
-
+### 執行特定測試類別
 ```bash
-# 執行所有功能測試
-docker-compose exec app php artisan test tests/Integration/SystemSettingsIntegrationTest.php
+# 基本功能測試
+docker-compose exec app php artisan test tests/Integration/ActivityLogIntegrationTest.php
 
-# 執行特定測試方法
-docker-compose exec app php artisan test tests/Integration/SystemSettingsIntegrationTest.php --filter=test_complete_settings_management_workflow
+# 瀏覽器自動化測試
+docker-compose exec app php artisan test tests/Integration/ActivityLogBrowserTest.php
+
+# 效能測試
+docker-compose exec app php artisan test tests/Integration/ActivityLogPerformanceTest.php
+
+# MCP 整合測試
+docker-compose exec app php artisan test tests/Integration/ActivityLogMcpIntegrationTest.php
 ```
 
-#### 2. 瀏覽器自動化測試
-
+### 執行特定測試方法
 ```bash
-# 執行 Laravel Dusk 測試
-docker-compose exec app php artisan dusk tests/Browser/SystemSettingsBrowserTest.php
-
-# 執行特定瀏覽器測試
-docker-compose exec app php artisan dusk tests/Browser/SystemSettingsBrowserTest.php --filter=test_settings_page_basic_display
+docker-compose exec app php artisan test tests/Integration/ActivityLogIntegrationTest.php::test_complete_activity_logging_flow
 ```
 
-#### 3. MCP 工具整合測試
+## 測試環境準備
 
+### 1. 資料庫準備
 ```bash
-# 執行 MCP 整合測試
-php tests/Integration/execute-mcp-tests.php
+# 重建測試資料庫
+docker-compose exec app php artisan migrate:fresh --seed --env=testing
 
-# 執行特定 MCP 測試
-docker-compose exec app php artisan test tests/Integration/SystemSettingsMcpTest.php
+# 確保測試資料完整
+docker-compose exec app php artisan db:seed --class=TestDataSeeder --env=testing
 ```
 
-### 測試環境設定
+### 2. MCP 服務準備
+確保以下 MCP 服務正在運行：
+- **Playwright MCP Server**：用於瀏覽器自動化測試
+- **MySQL MCP Server**：用於資料庫操作和驗證
 
-#### 1. 基本環境要求
+### 3. 測試配置
+測試配置定義在 `ActivityLogTestConfig.php` 中，包含：
+- 效能閾值設定
+- 測試資料大小配置
+- 安全測試參數
+- MCP 服務配置
+- 瀏覽器測試設定
 
-- PHP 8.1+
-- Laravel 10+
-- MySQL 8.0+
-- Node.js 18+ (用於前端資源)
-- Docker 和 Docker Compose
+## 效能要求
 
-#### 2. 測試資料庫設定
+測試會驗證以下效能要求：
 
-```bash
-# 複製測試環境配置
-cp .env.testing.example .env.testing
+### 寫入效能
+- 批量寫入 10,000 筆記錄應在 30 秒內完成
+- 非同步記錄 5,000 筆應在 5 秒內完成
+- 單筆記錄寫入應在 100 毫秒內完成
 
-# 設定測試資料庫連線
-# 編輯 .env.testing 檔案
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=laravel_admin_test
-DB_USERNAME=root
-DB_PASSWORD=
+### 查詢效能
+- 基本查詢應在 1 秒內完成
+- 複雜查詢應在 2 秒內完成
+- 搜尋查詢應在 2 秒內完成
+- 統計查詢應在 3 秒內完成
 
-# 執行測試遷移
-docker-compose exec app php artisan migrate --env=testing
-docker-compose exec app php artisan db:seed --env=testing
-```
+### 頁面載入效能
+- 頁面載入應在 3 秒內完成
+- 搜尋響應應在 1 秒內完成
+- 分頁載入應在 0.5 秒內完成
 
-#### 3. Laravel Dusk 設定
+### 記憶體使用
+- 最大記憶體使用量不超過 100 MB
+- 查詢記憶體使用不超過 50 MB
 
-```bash
-# 安裝 Laravel Dusk
-composer require --dev laravel/dusk
+## 安全測試
 
-# 安裝 Dusk
-docker-compose exec app php artisan dusk:install
+### 登入安全
+- 測試多次登入失敗的檢測和警報
+- 測試可疑 IP 位址的識別
+- 測試異常活動模式的檢測
 
-# 安裝 Chrome 驅動程式
-docker-compose exec app php artisan dusk:chrome-driver
-```
+### 資料安全
+- 測試敏感資料的過濾和遮蔽
+- 測試數位簽章的生成和驗證
+- 測試資料完整性檢查
 
-#### 4. MCP 工具設定
-
-建立 MCP 配置檔案 `.kiro/settings/mcp.json`：
-
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "command": "uvx",
-      "args": ["playwright-mcp-server@latest"],
-      "env": {
-        "PLAYWRIGHT_HEADLESS": "true"
-      },
-      "disabled": false,
-      "autoApprove": [
-        "mcp_playwright_playwright_navigate",
-        "mcp_playwright_playwright_screenshot",
-        "mcp_playwright_playwright_click",
-        "mcp_playwright_playwright_fill",
-        "mcp_playwright_playwright_get_visible_text",
-        "mcp_playwright_playwright_get_visible_html"
-      ]
-    },
-    "mysql": {
-      "command": "uvx",
-      "args": ["mysql-mcp-server@latest"],
-      "env": {
-        "MYSQL_HOST": "localhost",
-        "MYSQL_PORT": "3306",
-        "MYSQL_USER": "root",
-        "MYSQL_PASSWORD": "",
-        "MYSQL_DATABASE": "laravel_admin_test"
-      },
-      "disabled": false,
-      "autoApprove": [
-        "mcp_mysql_execute_query",
-        "mcp_mysql_list_tables",
-        "mcp_mysql_describe_table"
-      ]
-    }
-  }
-}
-```
-
-## 測試場景
-
-### 場景 1: 基本設定管理工作流程
-
-**目標**: 測試設定的完整 CRUD 操作
-
-**步驟**:
-1. 管理員登入系統
-2. 導航到設定頁面
-3. 檢視設定列表
-4. 搜尋特定設定
-5. 按分類篩選設定
-6. 編輯設定值
-7. 驗證設定變更
-8. 重設設定到預設值
-9. 檢查變更歷史
-10. 登出系統
-
-**預期結果**: 所有操作成功完成，資料庫狀態正確
-
-### 場景 2: 設定備份和還原
-
-**目標**: 測試設定備份和還原功能的完整性
-
-**步驟**:
-1. 管理員登入系統
-2. 建立設定備份
-3. 修改多個設定值
-4. 從備份還原設定
-5. 驗證設定已正確還原
-6. 檢查備份歷史記錄
-
-**預期結果**: 備份和還原功能正常，資料完整性保持
-
-### 場景 3: 設定匯入匯出
-
-**目標**: 測試設定的匯入匯出功能
-
-**步驟**:
-1. 匯出現有設定到 JSON 檔案
-2. 修改部分設定
-3. 匯入之前匯出的設定
-4. 處理匯入衝突
-5. 驗證匯入結果
-
-**預期結果**: 匯入匯出功能正常，衝突處理正確
-
-### 場景 4: 使用者權限控制
-
-**目標**: 驗證不同使用者角色的權限控制
-
-**步驟**:
-1. 測試管理員完整權限
-2. 測試編輯者部分權限
-3. 測試檢視者唯讀權限
-4. 測試一般使用者無權限存取
-5. 驗證存取日誌記錄
-
-**預期結果**: 權限控制正確，未授權存取被阻止
-
-### 場景 5: 響應式設計和無障礙
-
-**目標**: 測試不同裝置和無障礙功能
-
-**步驟**:
-1. 測試桌面版本顯示
-2. 測試平板版本顯示
-3. 測試手機版本顯示
-4. 測試鍵盤導航
-5. 測試螢幕閱讀器相容性
-
-**預期結果**: 所有裝置正常顯示，無障礙功能可用
-
-## 效能測試
-
-### 效能指標基準
-
-| 指標 | 基準值 | 描述 |
-|------|--------|------|
-| 頁面載入時間 | < 2 秒 | 設定頁面初始載入時間 |
-| 設定更新時間 | < 1 秒 | 單個設定更新響應時間 |
-| 搜尋響應時間 | < 500 毫秒 | 設定搜尋結果返回時間 |
-| 備份建立時間 | < 5 秒 | 完整設定備份建立時間 |
-| 匯入處理時間 | < 3 秒 | 設定檔案匯入處理時間 |
-| 記憶體使用量 | < 50 MB | 測試過程中的記憶體峰值 |
-
-### 效能測試執行
-
-```bash
-# 執行效能測試
-docker-compose exec app php artisan test tests/Integration/SystemSettingsIntegrationTest.php --filter=performance
-
-# 生成效能報告
-php tests/Integration/run-system-settings-tests.php --performance-only
-```
+### 存取控制
+- 測試不同權限使用者的存取限制
+- 測試 API 存取權限控制
+- 測試 UI 元素的權限控制
 
 ## 測試報告
 
-### 自動生成報告
-
-測試執行完成後會自動生成以下報告：
-
-1. **HTML 測試報告**
-   - 路徑: `storage/logs/system-settings-test-report-YYYY-MM-DD-HH-mm-ss.html`
-   - 包含: 測試摘要、詳細結果、截圖、效能指標
-
-2. **JSON 測試資料**
-   - 路徑: `storage/logs/mcp-test-report-YYYY-MM-DD-HH-mm-ss.json`
-   - 包含: 結構化測試資料，用於進一步分析
-
-3. **測試日誌**
-   - 路徑: `storage/logs/integration-tests/`
-   - 包含: 詳細執行日誌、錯誤訊息、除錯資訊
+### 報告格式
+測試執行後會生成以下格式的報告：
+- **JSON 格式**：詳細的測試結果和效能數據
+- **HTML 格式**：可視化的測試報告
+- **控制台輸出**：即時的測試進度和結果
 
 ### 報告內容
+- 測試摘要（通過/失敗數量、成功率）
+- 詳細的測試結果
+- 效能測試數據
+- 錯誤詳情和堆疊追蹤
+- 環境資訊
 
-- **測試摘要統計**
-  - 總測試數量
-  - 通過/失敗/跳過測試數
-  - 執行時間統計
-  - 成功率百分比
-
-- **詳細測試結果**
-  - 每個測試的執行狀態
-  - 失敗測試的錯誤訊息
-  - 測試執行時間
-  - 相關截圖和日誌
-
-- **效能分析**
-  - 各項效能指標
-  - 與基準值的比較
-  - 效能趨勢分析
-  - 優化建議
-
-- **資料庫驗證**
-  - 資料完整性檢查
-  - 約束驗證結果
-  - 索引效能分析
-  - 查詢執行計畫
+### 報告位置
+- 詳細報告：`storage/logs/activity-log-integration-test-report.json`
+- 效能報告：`storage/logs/performance-test-results.json`
+- 錯誤日誌：`storage/logs/laravel.log`
 
 ## 故障排除
 
 ### 常見問題
 
-#### 1. 測試資料庫連線失敗
-
-**症狀**: 測試執行時出現資料庫連線錯誤
-
-**解決方案**:
+#### 1. 測試資料不存在
 ```bash
-# 檢查測試資料庫配置
-docker-compose exec app php artisan config:show database.connections.testing
-
-# 確認資料庫服務運行
-docker-compose ps db
-
-# 重新建立測試資料庫
-docker-compose exec db mysql -u root -p -e "DROP DATABASE IF EXISTS laravel_admin_test; CREATE DATABASE laravel_admin_test;"
-
-# 重新執行遷移
-docker-compose exec app php artisan migrate:fresh --env=testing
+# 解決方案：重新建立測試資料
+docker-compose exec app php artisan migrate:fresh --seed --env=testing
 ```
 
-#### 2. Dusk 瀏覽器測試失敗
-
-**症狀**: Chrome 驅動程式錯誤或瀏覽器無法啟動
-
-**解決方案**:
+#### 2. MCP 服務無法連接
 ```bash
-# 更新 Chrome 驅動程式
-docker-compose exec app php artisan dusk:chrome-driver
+# 檢查 Playwright MCP 服務
+curl -s http://localhost:3000/health
 
-# 檢查 Chrome 版本相容性
-docker-compose exec app google-chrome --version
-
-# 清除 Dusk 快取
-docker-compose exec app php artisan dusk:purge
+# 檢查 MySQL MCP 服務
+mysql -h localhost -u root -e "SELECT 1"
 ```
 
-#### 3. MCP 工具不可用
+#### 3. 效能測試失敗
+- 檢查系統資源使用情況
+- 調整測試配置中的效能閾值
+- 確保測試環境沒有其他高負載程序
 
-**症狀**: MCP 測試被跳過或執行失敗
-
-**解決方案**:
+#### 4. 權限測試失敗
 ```bash
-# 檢查 MCP 配置
-cat .kiro/settings/mcp.json
-
-# 安裝 uv 和 uvx
-pip install uv
-
-# 測試 MCP 服務連線
-uvx playwright-mcp-server@latest --help
-uvx mysql-mcp-server@latest --help
+# 檢查權限資料是否正確
+docker-compose exec app php artisan tinker --execute="
+echo 'Users: ' . User::count();
+echo 'Roles: ' . Role::count();
+echo 'Permissions: ' . Permission::count();
+"
 ```
 
-#### 4. 權限錯誤
+### 測試環境要求
 
-**症狀**: 檔案寫入權限錯誤
+#### 硬體要求
+- **記憶體**：至少 4GB RAM
+- **儲存空間**：至少 2GB 可用空間
+- **CPU**：至少 2 核心
 
-**解決方案**:
-```bash
-# 修復檔案權限
-sudo chown -R www-data:www-data storage/
-sudo chown -R www-data:www-data bootstrap/cache/
-sudo chmod -R 755 storage/
-sudo chmod -R 755 bootstrap/cache/
+#### 軟體要求
+- **PHP**：8.1 或更高版本
+- **MySQL**：8.0 或更高版本
+- **Node.js**：16 或更高版本（用於 Playwright）
+- **Docker**：20.10 或更高版本
 
-# 清除快取
-docker-compose exec app php artisan cache:clear
-docker-compose exec app php artisan config:clear
-```
+## 測試最佳實踐
 
-#### 5. 記憶體不足
+### 1. 測試隔離
+- 每個測試都使用獨立的測試資料
+- 測試後自動清理資料
+- 避免測試間的相互影響
 
-**症狀**: 測試執行時記憶體溢出
+### 2. 資料驗證
+- 測試前後都要驗證資料狀態
+- 使用 MCP 工具進行跨系統驗證
+- 確保資料完整性和一致性
 
-**解決方案**:
-```bash
-# 增加 PHP 記憶體限制
-echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/memory.ini
+### 3. 錯誤處理
+- 適當處理測試失敗情況
+- 提供詳細的錯誤資訊
+- 支援測試重試機制
 
-# 或在執行時指定
-php -d memory_limit=512M tests/Integration/run-system-settings-tests.php
-```
-
-### 除錯技巧
-
-#### 1. 啟用詳細輸出
-
-```bash
-# Laravel 測試詳細輸出
-docker-compose exec app php artisan test --verbose
-
-# Dusk 除錯模式
-docker-compose exec app php artisan dusk --debug
-```
-
-#### 2. 檢視測試日誌
-
-```bash
-# 查看 Laravel 日誌
-tail -f storage/logs/laravel.log
-
-# 查看測試專用日誌
-tail -f storage/logs/integration-tests/mcp-integration-test.log
-
-# 查看 Dusk 日誌
-ls -la tests/Browser/screenshots/
-ls -la tests/Browser/console/
-```
-
-#### 3. 單獨執行失敗的測試
-
-```bash
-# 執行特定測試方法
-docker-compose exec app php artisan test --filter=test_complete_settings_workflow_with_playwright
-
-# 停止在第一個失敗
-docker-compose exec app php artisan test --stop-on-failure
-
-# 重新執行失敗的測試
-docker-compose exec app php artisan test --retry
-```
+### 4. 效能監控
+- 監控測試執行時間
+- 記錄資源使用情況
+- 設定合理的效能閾值
 
 ## 持續整合
 
-### GitHub Actions 配置
-
-建立 `.github/workflows/system-settings-tests.yml`：
+### CI/CD 整合
+測試可以整合到 CI/CD 流程中：
 
 ```yaml
-name: System Settings Integration Tests
+# .github/workflows/integration-tests.yml
+name: Activity Log Integration Tests
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
   integration-tests:
     runs-on: ubuntu-latest
-    
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: laravel_admin_test
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-        extensions: mbstring, dom, fileinfo, mysql, gd
-        
-    - name: Install dependencies
-      run: |
-        composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
-        npm install && npm run build
-        
-    - name: Prepare environment
-      run: |
-        cp .env.testing.example .env.testing
-        php artisan key:generate --env=testing
-        php artisan migrate --env=testing
-        
-    - name: Run integration tests
-      run: php tests/Integration/run-system-settings-tests.php
+      - uses: actions/checkout@v2
       
-    - name: Upload test artifacts
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: test-results
-        path: |
-          storage/logs/system-settings-test-report-*.html
-          storage/logs/integration-tests/
-          tests/Browser/screenshots/
+      - name: Setup Test Environment
+        run: |
+          docker-compose up -d
+          docker-compose exec app php artisan migrate:fresh --seed --env=testing
+      
+      - name: Run Integration Tests
+        run: |
+          php tests/Integration/run-activity-log-integration-tests.php
+      
+      - name: Upload Test Reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-reports
+          path: storage/logs/test-reports/
 ```
 
-### 本地開發 Git Hooks
-
-設定 pre-commit hook：
-
-```bash
-#!/bin/bash
-# .git/hooks/pre-commit
-
-echo "執行系統設定整合測試..."
-
-# 執行快速測試
-php artisan test tests/Integration/SystemSettingsIntegrationTest.php --filter=test_basic
-
-if [ $? -ne 0 ]; then
-    echo "❌ 基本測試失敗，提交被取消"
-    exit 1
-fi
-
-echo "✅ 測試通過，允許提交"
-exit 0
-```
-
-## 測試維護
-
-### 定期維護任務
-
-1. **每週**
-   - 執行完整測試套件
-   - 檢查測試覆蓋率
-   - 更新測試資料
-
-2. **每月**
-   - 檢查效能指標趨勢
-   - 更新瀏覽器驅動程式
-   - 檢視失敗測試統計
-
-3. **每季**
-   - 更新測試場景
-   - 檢視測試架構
-   - 優化測試執行時間
-
-4. **每半年**
-   - 全面檢視測試策略
-   - 更新測試工具版本
-   - 評估新測試技術
-
-### 測試資料管理
+### 測試排程
+可以設定定期執行整合測試：
 
 ```bash
-# 重置測試環境
-docker-compose exec app php artisan migrate:fresh --env=testing --seed
+# 每日執行完整測試套件
+0 2 * * * cd /path/to/project && php tests/Integration/run-activity-log-integration-tests.php
 
-# 清除測試快取
-docker-compose exec app php artisan cache:clear --env=testing
-
-# 清除測試檔案
-rm -rf storage/logs/integration-tests/*
-rm -rf tests/Browser/screenshots/*
-rm -rf storage/app/screenshots/integration-tests/*
+# 每小時執行快速測試
+0 * * * * cd /path/to/project && docker-compose exec app php artisan test tests/Integration/ActivityLogIntegrationTest.php::test_complete_activity_logging_flow
 ```
 
 ## 貢獻指南
 
 ### 新增測試
+1. 在適當的測試類別中新增測試方法
+2. 遵循現有的測試命名規範
+3. 確保測試具有適當的文檔說明
+4. 更新測試配置（如需要）
 
-1. **功能測試**: 在 `SystemSettingsIntegrationTest.php` 中新增測試方法
-2. **瀏覽器測試**: 在 `SystemSettingsBrowserTest.php` 中新增測試方法
-3. **MCP 測試**: 在 `SystemSettingsMcpTest.php` 中新增測試方法
+### 修改測試
+1. 確保修改不會影響其他測試
+2. 更新相關的測試文檔
+3. 驗證修改後的測試仍能正常執行
 
-### 測試命名慣例
+### 報告問題
+1. 提供詳細的錯誤資訊
+2. 包含測試環境資訊
+3. 提供重現步驟
+4. 附上相關的日誌檔案
 
-- 測試方法名稱: `test_功能描述_with_條件`
-- 測試資料: 使用 `test.` 前綴
-- 截圖檔案: `功能-狀態-時間戳.png`
-
-### 程式碼審查檢查清單
-
-- [ ] 測試覆蓋所有相關需求
-- [ ] 測試具有良好的隔離性
-- [ ] 測試名稱清楚描述測試目的
-- [ ] 包含適當的斷言和驗證
-- [ ] 遵循專案的程式碼風格
-- [ ] 包含必要的註解和文檔
-
----
-
-如有任何問題或建議，請聯繫開發團隊或在專案 issue 中提出。
+這個整合測試套件確保活動記錄功能的所有需求都得到充分測試，包括功能性、效能、安全性和使用者體驗等各個方面。

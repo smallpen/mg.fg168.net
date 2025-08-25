@@ -3,9 +3,7 @@
 @section('title', '權限模板管理')
 
 @section('content')
-<x-admin.layout.admin-layout>
     <livewire:admin.permissions.permission-template-manager />
-</x-admin.layout.admin-layout>
 @endsection
 
 @push('scripts')

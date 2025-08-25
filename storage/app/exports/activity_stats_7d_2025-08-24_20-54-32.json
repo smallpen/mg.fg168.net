@@ -1,0 +1,175 @@
+{
+    "export_info": {
+        "generated_at": "2025-08-24 20:54:32",
+        "time_range": "7d",
+        "chart_type": "timeline",
+        "selected_metrics": [
+            "total",
+            "users",
+            "security"
+        ]
+    },
+    "overall_stats": {
+        "total_activities": 0,
+        "unique_users": 0,
+        "security_events": [],
+        "high_risk_activities": 0,
+        "success_rate": 100,
+        "average_daily": 0,
+        "peak_hour": 0,
+        "most_active_day": null
+    },
+    "timeline_data": [],
+    "distribution_data": {
+        "type_distribution": [],
+        "module_distribution": [],
+        "hourly_distribution": [
+            {
+                "hour": 0,
+                "count": 0,
+                "formatted_hour": "00:00",
+                "intensity": 0
+            },
+            {
+                "hour": 1,
+                "count": 0,
+                "formatted_hour": "01:00",
+                "intensity": 0
+            },
+            {
+                "hour": 2,
+                "count": 0,
+                "formatted_hour": "02:00",
+                "intensity": 0
+            },
+            {
+                "hour": 3,
+                "count": 0,
+                "formatted_hour": "03:00",
+                "intensity": 0
+            },
+            {
+                "hour": 4,
+                "count": 0,
+                "formatted_hour": "04:00",
+                "intensity": 0
+            },
+            {
+                "hour": 5,
+                "count": 0,
+                "formatted_hour": "05:00",
+                "intensity": 0
+            },
+            {
+                "hour": 6,
+                "count": 0,
+                "formatted_hour": "06:00",
+                "intensity": 0
+            },
+            {
+                "hour": 7,
+                "count": 0,
+                "formatted_hour": "07:00",
+                "intensity": 0
+            },
+            {
+                "hour": 8,
+                "count": 0,
+                "formatted_hour": "08:00",
+                "intensity": 0
+            },
+            {
+                "hour": 9,
+                "count": 0,
+                "formatted_hour": "09:00",
+                "intensity": 0
+            },
+            {
+                "hour": 10,
+                "count": 0,
+                "formatted_hour": "10:00",
+                "intensity": 0
+            },
+            {
+                "hour": 11,
+                "count": 0,
+                "formatted_hour": "11:00",
+                "intensity": 0
+            },
+            {
+                "hour": 12,
+                "count": 0,
+                "formatted_hour": "12:00",
+                "intensity": 0
+            },
+            {
+                "hour": 13,
+                "count": 0,
+                "formatted_hour": "13:00",
+                "intensity": 0
+            },
+            {
+                "hour": 14,
+                "count": 0,
+                "formatted_hour": "14:00",
+                "intensity": 0
+            },
+            {
+                "hour": 15,
+                "count": 0,
+                "formatted_hour": "15:00",
+                "intensity": 0
+            },
+            {
+                "hour": 16,
+                "count": 0,
+                "formatted_hour": "16:00",
+                "intensity": 0
+            },
+            {
+                "hour": 17,
+                "count": 0,
+                "formatted_hour": "17:00",
+                "intensity": 0
+            },
+            {
+                "hour": 18,
+                "count": 0,
+                "formatted_hour": "18:00",
+                "intensity": 0
+            },
+            {
+                "hour": 19,
+                "count": 0,
+                "formatted_hour": "19:00",
+                "intensity": 0
+            },
+            {
+                "hour": 20,
+                "count": 0,
+                "formatted_hour": "20:00",
+                "intensity": 0
+            },
+            {
+                "hour": 21,
+                "count": 0,
+                "formatted_hour": "21:00",
+                "intensity": 0
+            },
+            {
+                "hour": 22,
+                "count": 0,
+                "formatted_hour": "22:00",
+                "intensity": 0
+            },
+            {
+                "hour": 23,
+                "count": 0,
+                "formatted_hour": "23:00",
+                "intensity": 0
+            }
+        ]
+    },
+    "top_users": [],
+    "security_events": []
+}

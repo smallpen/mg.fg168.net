@@ -101,8 +101,8 @@
             <svg class="w-4 h-4 mr-2 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
             </svg>
-            <span class="hidden dark:inline">淺色模式</span>
-            <span class="inline dark:hidden">深色模式</span>
+            <span class="hidden dark:inline">{{ __('auth.theme.light') }}</span>
+            <span class="inline dark:hidden">{{ __('auth.theme.dark') }}</span>
         </button>
     </div>
     

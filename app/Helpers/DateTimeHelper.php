@@ -120,6 +120,50 @@ class DateTimeHelper
     }
 
     /**
+     * 格式化用於使用者列表顯示的日期時間
+     * 根據時間距離現在的長短，使用不同的格式
+     */
+    public static function formatForUserList($datetime): string
+    {
+        if (!$datetime) {
+            return '';
+        }
+
+        $carbon = $datetime instanceof Carbon ? $datetime : Carbon::parse($datetime);
+        $now = Carbon::now();
+        
+        // 如果是今天，顯示相對時間
+        if ($carbon->isToday()) {
+            return $carbon->diffForHumans();
+        }
+        
+        // 如果是本週，顯示星期幾和時間
+        if ($carbon->isCurrentWeek()) {
+            $locale = app()->getLocale();
+            if ($locale === 'zh_TW') {
+                $weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+                $weekday = '星期' . $weekdays[$carbon->dayOfWeek];
+                return $weekday . ' ' . $carbon->format('H:i');
+            } else {
+                return $carbon->format('l H:i');
+            }
+        }
+        
+        // 如果是今年，顯示月日和時間
+        if ($carbon->isCurrentYear()) {
+            $locale = app()->getLocale();
+            if ($locale === 'zh_TW') {
+                return $carbon->format('n月j日 H:i');
+            } else {
+                return $carbon->format('M j, H:i');
+            }
+        }
+        
+        // 其他情況顯示完整日期時間
+        return static::formatDateTime($carbon);
+    }
+
+    /**
      * 格式化為人類可讀的日期時間
      */
     public static function formatHuman($datetime, bool $includeTime = true): string

@@ -5,7 +5,7 @@ namespace App\Livewire\Admin\Activities;
 use App\Livewire\Admin\AdminComponent;
 use App\Models\Activity;
 use App\Models\User;
-use App\Repositories\Contracts\ActivityRepositoryInterface;
+use App\Repositories\ActivityRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\On;
@@ -55,16 +55,18 @@ class ActivityList extends AdminComponent
     public bool $showFilters = false;
     public bool $showExportModal = false;
     public string $exportFormat = 'csv';
+    public bool $infiniteScroll = false;
+    public int $loadedPages = 1;
 
     /**
      * 活動記錄資料存取層
      */
-    protected ActivityRepositoryInterface $activityRepository;
+    protected ActivityRepository $activityRepository;
 
     /**
      * 初始化元件
      */
-    public function boot(ActivityRepositoryInterface $activityRepository): void
+    public function boot(ActivityRepository $activityRepository): void
     {
         $this->activityRepository = $activityRepository;
     }
@@ -93,6 +95,13 @@ class ActivityList extends AdminComponent
     public function getActivitiesProperty(): LengthAwarePaginator
     {
         $filters = $this->getFilters();
+        
+        if ($this->infiniteScroll) {
+            // 無限滾動模式：載入多頁資料
+            $perPage = $this->perPage * $this->loadedPages;
+            return $this->activityRepository->getPaginatedActivities($filters, $perPage);
+        }
+        
         return $this->activityRepository->getPaginatedActivities($filters, $this->perPage);
     }
 
@@ -168,6 +177,7 @@ class ActivityList extends AdminComponent
     public function updatedSearch(): void
     {
         $this->resetPage();
+        $this->loadedPages = 1;
     }
 
     /**
@@ -176,41 +186,49 @@ class ActivityList extends AdminComponent
     public function updatedDateFrom(): void
     {
         $this->resetPage();
+        $this->loadedPages = 1;
     }
 
     public function updatedDateTo(): void
     {
         $this->resetPage();
+        $this->loadedPages = 1;
     }
 
     public function updatedUserFilter(): void
     {
         $this->resetPage();
+        $this->loadedPages = 1;
     }
 
     public function updatedTypeFilter(): void
     {
         $this->resetPage();
+        $this->loadedPages = 1;
     }
 
     public function updatedModuleFilter(): void
     {
         $this->resetPage();
+        $this->loadedPages = 1;
     }
 
     public function updatedResultFilter(): void
     {
         $this->resetPage();
+        $this->loadedPages = 1;
     }
 
     public function updatedIpFilter(): void
     {
         $this->resetPage();
+        $this->loadedPages = 1;
     }
 
     public function updatedRiskLevelFilter(): void
     {
         $this->resetPage();
+        $this->loadedPages = 1; // 重置載入頁數
     }
 
     /**
@@ -219,6 +237,7 @@ class ActivityList extends AdminComponent
     public function updatedPerPage(): void
     {
         $this->resetPage();
+        $this->loadedPages = 1; // 重置載入頁數
     }
 
     /**
@@ -283,6 +302,9 @@ class ActivityList extends AdminComponent
     {
         $this->realTimeMode = !$this->realTimeMode;
         
+        // 通知前端即時監控狀態變化
+        $this->dispatch('real-time-mode-changed', enabled: $this->realTimeMode);
+        
         if ($this->realTimeMode) {
             $this->dispatch('notify', [
                 'type' => 'info',
@@ -312,6 +334,7 @@ class ActivityList extends AdminComponent
         $this->riskLevelFilter = '';
         $this->selectedActivities = [];
         $this->selectAll = false;
+        $this->loadedPages = 1;
         $this->resetPage();
     }
 
@@ -321,6 +344,39 @@ class ActivityList extends AdminComponent
     public function toggleFilters(): void
     {
         $this->showFilters = !$this->showFilters;
+    }
+
+    /**
+     * 切換載入模式（分頁 vs 無限滾動）
+     */
+    public function toggleLoadMode(): void
+    {
+        $this->infiniteScroll = !$this->infiniteScroll;
+        $this->loadedPages = 1;
+        $this->resetPage();
+        
+        $mode = $this->infiniteScroll ? '無限滾動' : '分頁模式';
+        $this->dispatch('notify', [
+            'type' => 'info',
+            'message' => "已切換至{$mode}"
+        ]);
+    }
+
+    /**
+     * 載入更多記錄（無限滾動）
+     */
+    public function loadMore(): void
+    {
+        if (!$this->infiniteScroll) {
+            return;
+        }
+
+        $this->loadedPages++;
+        
+        $this->dispatch('notify', [
+            'type' => 'info',
+            'message' => '載入更多記錄中...'
+        ]);
     }
 
     /**
@@ -335,6 +391,7 @@ class ActivityList extends AdminComponent
             $this->sortDirection = 'asc';
         }
         
+        $this->loadedPages = 1;
         $this->resetPage();
     }
 
@@ -436,6 +493,43 @@ class ActivityList extends AdminComponent
         if ($this->realTimeMode) {
             $this->resetPage();
         }
+    }
+
+    /**
+     * 手動重新整理活動記錄
+     */
+    #[On('refresh-activities')]
+    public function refreshActivitiesManually(): void
+    {
+        $this->resetPage();
+        $this->dispatch('notify', [
+            'type' => 'info',
+            'message' => '活動記錄已更新'
+        ]);
+    }
+
+    /**
+     * 無限滾動載入更多
+     */
+    #[On('load-more-activities')]
+    public function loadMoreActivities(): void
+    {
+        if ($this->infiniteScroll) {
+            $this->loadMore();
+        }
+    }
+
+    /**
+     * 清除所有篩選（快捷鍵）
+     */
+    #[On('clear-all-filters')]
+    public function clearAllFilters(): void
+    {
+        $this->clearFilters();
+        $this->dispatch('notify', [
+            'type' => 'info',
+            'message' => '已清除所有篩選條件'
+        ]);
     }
 
     /**

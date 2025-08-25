@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\App;
+use App\Services\LanguageFallbackHandler;
 
 /**
  * 本地化輔助類別
@@ -345,5 +346,44 @@ class LocalizationHelper
         $bytes /= (1 << (10 * $pow));
         
         return static::formatNumber($bytes, $pow > 0 ? 1 : 0, $locale) . ' ' . $units[$pow];
+    }
+    
+    /**
+     * 使用回退機制翻譯文字
+     * 
+     * @param string $key 翻譯鍵
+     * @param array $replace 替換參數
+     * @param string|null $locale 指定語言
+     * @return string 翻譯結果
+     */
+    public static function translateWithFallback(string $key, array $replace = [], ?string $locale = null): string
+    {
+        $handler = app(LanguageFallbackHandler::class);
+        return $handler->translate($key, $replace, $locale);
+    }
+    
+    /**
+     * 檢查翻譯是否存在（支援回退機制）
+     * 
+     * @param string $key 翻譯鍵
+     * @param string|null $locale 指定語言
+     * @return bool 是否存在
+     */
+    public static function hasTranslationWithFallback(string $key, ?string $locale = null): bool
+    {
+        $handler = app(LanguageFallbackHandler::class);
+        return $handler->hasTranslation($key, $locale);
+    }
+    
+    /**
+     * 取得翻譯在各語言中的狀態
+     * 
+     * @param string $key 翻譯鍵
+     * @return array 各語言的存在狀態
+     */
+    public static function getTranslationStatus(string $key): array
+    {
+        $handler = app(LanguageFallbackHandler::class);
+        return $handler->getTranslationStatus($key);
     }
 }

@@ -155,17 +155,17 @@ class PermissionTest extends AdminComponent
             'selectedUserId' => 'required|exists:users,id',
             'permissionToTest' => 'required|string|exists:permissions,name',
         ], [
-            'selectedUserId.required' => __('admin.permissions.test.user_required'),
-            'selectedUserId.exists' => __('admin.permissions.test.user_not_found'),
-            'permissionToTest.required' => __('admin.permissions.test.permission_required'),
-            'permissionToTest.exists' => __('admin.permissions.test.permission_not_found'),
+            'selectedUserId.required' => __('permissions.test.user_required'),
+            'selectedUserId.exists' => __('permissions.test.user_not_found'),
+            'permissionToTest.required' => __('permissions.test.permission_required'),
+            'permissionToTest.exists' => __('permissions.test.permission_not_found'),
         ]);
 
         $user = User::find($this->selectedUserId);
         $permission = Permission::where('name', $this->permissionToTest)->first();
 
         if (!$user || !$permission) {
-            $this->addError('test', __('admin.permissions.test.invalid_selection'));
+            $this->addError('test', __('permissions.test.invalid_selection'));
             return;
         }
 
@@ -226,17 +226,17 @@ class PermissionTest extends AdminComponent
             'selectedRoleId' => 'required|exists:roles,id',
             'permissionToTest' => 'required|string|exists:permissions,name',
         ], [
-            'selectedRoleId.required' => __('admin.permissions.test.role_required'),
-            'selectedRoleId.exists' => __('admin.permissions.test.role_not_found'),
-            'permissionToTest.required' => __('admin.permissions.test.permission_required'),
-            'permissionToTest.exists' => __('admin.permissions.test.permission_not_found'),
+            'selectedRoleId.required' => __('permissions.test.role_required'),
+            'selectedRoleId.exists' => __('permissions.test.role_not_found'),
+            'permissionToTest.required' => __('permissions.test.permission_required'),
+            'permissionToTest.exists' => __('permissions.test.permission_not_found'),
         ]);
 
         $role = Role::find($this->selectedRoleId);
         $permission = Permission::where('name', $this->permissionToTest)->first();
 
         if (!$role || !$permission) {
-            $this->addError('test', __('admin.permissions.test.invalid_selection'));
+            $this->addError('test', __('permissions.test.invalid_selection'));
             return;
         }
 
@@ -308,8 +308,8 @@ class PermissionTest extends AdminComponent
             return [
                 [
                     'type' => 'super_admin',
-                    'name' => __('admin.permissions.test.super_admin_access'),
-                    'description' => __('admin.permissions.test.super_admin_description'),
+                    'name' => __('permissions.test.super_admin_access'),
+                    'description' => __('permissions.test.super_admin_description'),
                 ]
             ];
         }
@@ -421,11 +421,11 @@ class PermissionTest extends AdminComponent
     {
         $summary = [
             'result_text' => $hasPermission 
-                ? __('admin.permissions.test.user_has_permission', [
+                ? __('permissions.test.user_has_permission', [
                     'user' => $user->display_name,
                     'permission' => $permission->localized_display_name
                 ])
-                : __('admin.permissions.test.user_lacks_permission', [
+                : __('permissions.test.user_lacks_permission', [
                     'user' => $user->display_name,
                     'permission' => $permission->localized_display_name
                 ]),
@@ -435,11 +435,11 @@ class PermissionTest extends AdminComponent
 
         if ($hasPermission) {
             $roleCount = count($this->permissionPath);
-            $summary['details'] = __('admin.permissions.test.permission_granted_through_roles', [
+            $summary['details'] = __('permissions.test.permission_granted_through_roles', [
                 'count' => $roleCount
             ]);
         } else {
-            $summary['details'] = __('admin.permissions.test.permission_not_found_in_roles');
+            $summary['details'] = __('permissions.test.permission_not_found_in_roles');
         }
 
         return $summary;
@@ -457,11 +457,11 @@ class PermissionTest extends AdminComponent
     {
         $summary = [
             'result_text' => $hasPermission 
-                ? __('admin.permissions.test.role_has_permission', [
+                ? __('permissions.test.role_has_permission', [
                     'role' => $role->localized_display_name,
                     'permission' => $permission->localized_display_name
                 ])
-                : __('admin.permissions.test.role_lacks_permission', [
+                : __('permissions.test.role_lacks_permission', [
                     'role' => $role->localized_display_name,
                     'permission' => $permission->localized_display_name
                 ]),
@@ -477,16 +477,16 @@ class PermissionTest extends AdminComponent
                 $dependencyAssignment = collect($this->permissionPath)->contains('type', 'dependency');
 
                 $sources = [];
-                if ($directAssignment) $sources[] = __('admin.permissions.test.direct_assignment');
-                if ($inheritedAssignment) $sources[] = __('admin.permissions.test.inheritance');
-                if ($dependencyAssignment) $sources[] = __('admin.permissions.test.dependency');
+                if ($directAssignment) $sources[] = __('permissions.test.direct_assignment');
+                if ($inheritedAssignment) $sources[] = __('permissions.test.inheritance');
+                if ($dependencyAssignment) $sources[] = __('permissions.test.dependency');
 
-                $summary['details'] = __('admin.permissions.test.permission_granted_through', [
+                $summary['details'] = __('permissions.test.permission_granted_through', [
                     'sources' => implode(', ', $sources)
                 ]);
             }
         } else {
-            $summary['details'] = __('admin.permissions.test.permission_not_assigned_to_role');
+            $summary['details'] = __('permissions.test.permission_not_assigned_to_role');
         }
 
         return $summary;
@@ -538,7 +538,7 @@ class PermissionTest extends AdminComponent
     public function exportReport()
     {
         if (empty($this->testResults)) {
-            $this->addError('export', __('admin.permissions.test.no_results_to_export'));
+            $this->addError('export', __('permissions.test.no_results_to_export'));
             return;
         }
 

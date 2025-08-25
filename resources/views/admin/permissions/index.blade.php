@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', __('admin.permissions.permission_management'))
-@section('page-title', __('admin.permissions.permission_management'))
+@section('title', __('permissions.titles.permission_management'))
+@section('page-title', __('permissions.titles.permission_management'))
 
 @section('content')
 <div class="space-y-6">
@@ -10,10 +10,10 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {{ __('admin.permissions.permission_management') }}
+                {{ __('permissions.titles.permission_management') }}
             </h1>
             <p class="text-gray-600 dark:text-gray-400 mt-1">
-                {{ __('admin.permissions.management_description', ['default' => '管理系統權限的細粒度控制，包含權限定義、分組、依賴關係管理和使用情況監控']) }}
+                {{ __('permissions.titles.permission_management', ['default' => '管理系統權限的細粒度控制，包含權限定義、分組、依賴關係管理和使用情況監控']) }}
             </p>
         </div>
         

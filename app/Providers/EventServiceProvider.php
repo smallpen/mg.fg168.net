@@ -13,9 +13,11 @@ use Illuminate\Support\Facades\Event;
 use App\Listeners\SecurityEventListener;
 use App\Listeners\SystemEventListener;
 use App\Listeners\RoleStatisticsCacheListener;
+use App\Listeners\ActivityNotificationListener;
 use App\Services\RoleStatisticsCacheManager;
 use App\Models\Role;
 use App\Models\Permission;
+use App\Events\ActivityLogged;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -55,6 +57,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         JobProcessed::class => [
             SystemEventListener::class . '@handleJobProcessed',
+        ],
+        ActivityLogged::class => [
+            ActivityNotificationListener::class,
         ],
     ];
 

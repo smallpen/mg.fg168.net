@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Activity;
+use App\Models\User;
 use App\Services\ActivityIntegrityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
@@ -19,6 +20,9 @@ class ActivityIntegrityServiceTest extends TestCase
     {
         parent::setUp();
         $this->integrityService = new ActivityIntegrityService();
+        
+        // 暫時停用活動記錄保護以便測試
+        config(['activity-log.security.prevent_tampering' => false]);
     }
 
     /** @test */
@@ -27,7 +31,7 @@ class ActivityIntegrityServiceTest extends TestCase
         $data = [
             'type' => 'user.login',
             'description' => '使用者登入',
-            'causer_id' => 1,
+            'user_id' => 1,
             'created_at' => '2024-01-15 10:30:25'
         ];
 
@@ -44,7 +48,7 @@ class ActivityIntegrityServiceTest extends TestCase
         $data = [
             'type' => 'user.login',
             'description' => '使用者登入',
-            'causer_id' => 1,
+            'user_id' => 1,
             'created_at' => '2024-01-15 10:30:25'
         ];
 
@@ -60,14 +64,14 @@ class ActivityIntegrityServiceTest extends TestCase
         $data1 = [
             'type' => 'user.login',
             'description' => '使用者登入',
-            'causer_id' => 1,
+            'user_id' => 1,
             'created_at' => '2024-01-15 10:30:25'
         ];
 
         $data2 = [
             'type' => 'user.logout',
             'description' => '使用者登出',
-            'causer_id' => 1,
+            'user_id' => 1,
             'created_at' => '2024-01-15 10:30:25'
         ];
 
@@ -80,20 +84,22 @@ class ActivityIntegrityServiceTest extends TestCase
     /** @test */
     public function it_can_verify_valid_activity_integrity()
     {
+        $user = User::factory()->create();
         $activity = Activity::factory()->create([
             'type' => 'login',
             'description' => '使用者登入',
-            'user_id' => 1,
+            'user_id' => $user->id,
         ]);
 
         // 手動生成簽章
         $data = [
             'type' => $activity->type,
+            'event' => $activity->event,
             'description' => $activity->description,
+            'module' => $activity->module,
+            'user_id' => $activity->user_id,
             'subject_type' => $activity->subject_type,
             'subject_id' => $activity->subject_id,
-            'causer_type' => 'App\\Models\\User',
-            'causer_id' => $activity->user_id,
             'properties' => $activity->properties,
             'ip_address' => $activity->ip_address,
             'user_agent' => $activity->user_agent,
@@ -113,20 +119,22 @@ class ActivityIntegrityServiceTest extends TestCase
     /** @test */
     public function it_can_detect_tampered_activity()
     {
+        $user = User::factory()->create();
         $activity = Activity::factory()->create([
             'type' => 'login',
             'description' => '使用者登入',
-            'user_id' => 1,
+            'user_id' => $user->id,
         ]);
 
         // 生成原始簽章
         $data = [
             'type' => $activity->type,
+            'event' => $activity->event,
             'description' => $activity->description,
+            'module' => $activity->module,
+            'user_id' => $activity->user_id,
             'subject_type' => $activity->subject_type,
             'subject_id' => $activity->subject_id,
-            'causer_type' => 'App\\Models\\User',
-            'causer_id' => $activity->user_id,
             'properties' => $activity->properties,
             'ip_address' => $activity->ip_address,
             'user_agent' => $activity->user_agent,
@@ -149,17 +157,19 @@ class ActivityIntegrityServiceTest extends TestCase
     /** @test */
     public function it_can_verify_batch_activities()
     {
-        $activities = Activity::factory()->count(3)->create();
+        $user = User::factory()->create();
+        $activities = Activity::factory()->count(3)->create(['user_id' => $user->id]);
 
         // 為每個活動生成簽章
         foreach ($activities as $activity) {
             $data = [
                 'type' => $activity->type,
+                'event' => $activity->event,
                 'description' => $activity->description,
+                'module' => $activity->module,
+                'user_id' => $activity->user_id,
                 'subject_type' => $activity->subject_type,
                 'subject_id' => $activity->subject_id,
-                'causer_type' => 'App\\Models\\User',
-                'causer_id' => $activity->user_id,
                 'properties' => $activity->properties,
                 'ip_address' => $activity->ip_address,
                 'user_agent' => $activity->user_agent,
@@ -183,20 +193,29 @@ class ActivityIntegrityServiceTest extends TestCase
     /** @test */
     public function it_can_perform_integrity_check_and_generate_report()
     {
+        $user = User::factory()->create();
+        
         // 建立一些測試活動
-        $validActivities = Activity::factory()->count(2)->create();
-        $invalidActivity = Activity::factory()->create(['signature' => 'invalid_signature']);
-        $noSignatureActivity = Activity::factory()->create(['signature' => null]);
+        $validActivities = Activity::factory()->count(2)->create(['user_id' => $user->id]);
+        $invalidActivity = Activity::factory()->create([
+            'signature' => 'invalid_signature',
+            'user_id' => $user->id
+        ]);
+        $noSignatureActivity = Activity::factory()->create([
+            'signature' => null,
+            'user_id' => $user->id
+        ]);
 
         // 為有效活動生成正確的簽章
         foreach ($validActivities as $activity) {
             $data = [
                 'type' => $activity->type,
+                'event' => $activity->event,
                 'description' => $activity->description,
+                'module' => $activity->module,
+                'user_id' => $activity->user_id,
                 'subject_type' => $activity->subject_type,
                 'subject_id' => $activity->subject_id,
-                'causer_type' => 'App\\Models\\User',
-                'causer_id' => $activity->user_id,
                 'properties' => $activity->properties,
                 'ip_address' => $activity->ip_address,
                 'user_agent' => $activity->user_agent,
@@ -225,9 +244,11 @@ class ActivityIntegrityServiceTest extends TestCase
     /** @test */
     public function it_can_detect_tampering_attempts()
     {
+        $user = User::factory()->create();
         $activity = Activity::factory()->create([
             'type' => 'login',
             'description' => '使用者登入',
+            'user_id' => $user->id,
         ]);
 
         $originalData = [
@@ -248,8 +269,10 @@ class ActivityIntegrityServiceTest extends TestCase
     /** @test */
     public function it_can_regenerate_signature_for_activity()
     {
+        $user = User::factory()->create();
         $activity = Activity::factory()->create([
-            'signature' => 'old_signature'
+            'signature' => 'old_signature',
+            'user_id' => $user->id
         ]);
 
         $newSignature = $this->integrityService->regenerateSignature($activity);
@@ -277,9 +300,11 @@ class ActivityIntegrityServiceTest extends TestCase
     /** @test */
     public function it_handles_verification_errors_gracefully()
     {
+        $user = User::factory()->create();
         $activity = Activity::factory()->create([
             'signature' => 'invalid_signature',
-            'properties' => null // 這可能會導致 JSON 編碼問題
+            'properties' => null, // 這可能會導致 JSON 編碼問題
+            'user_id' => $user->id
         ]);
 
         $isValid = $this->integrityService->verifyActivity($activity);

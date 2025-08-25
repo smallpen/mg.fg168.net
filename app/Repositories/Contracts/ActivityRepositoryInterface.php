@@ -3,9 +3,9 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\Activity;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
  * 活動記錄資料存取層介面

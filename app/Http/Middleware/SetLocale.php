@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
+use App\Services\MultilingualLogger;
 
 /**
  * 設定語言中介軟體
@@ -15,6 +16,19 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SetLocale
 {
+    /**
+     * 多語系日誌記錄器
+     */
+    private MultilingualLogger $logger;
+
+    /**
+     * 建構函數
+     */
+    public function __construct(MultilingualLogger $logger)
+    {
+        $this->logger = $logger;
+    }
+
     /**
      * 處理傳入的請求
      *
@@ -28,24 +42,57 @@ class SetLocale
         // 預設語言
         $defaultLocale = config('app.locale', 'zh_TW');
         
-        // 優先順序：URL 參數 > Session > 使用者偏好 > 預設語言
-        $locale = $this->determineLocale($request, $supportedLocales, $defaultLocale);
+        // 記錄當前語言以便比較
+        $previousLocale = App::getLocale();
         
-        // 設定應用程式語言
-        App::setLocale($locale);
-        
-        // 設定 Carbon 本地化
-        $this->setCarbonLocale($locale);
-        
-        // 儲存語言偏好到 session
-        Session::put('locale', $locale);
-        
-        // 如果使用者已登入，更新使用者的語言偏好
-        if (auth()->check()) {
-            $user = auth()->user();
-            if ($user->locale !== $locale) {
-                $user->update(['locale' => $locale]);
+        try {
+            // 優先順序：URL 參數 > Session > 使用者偏好 > 預設語言
+            $locale = $this->determineLocale($request, $supportedLocales, $defaultLocale);
+            
+            // 驗證語言是否支援
+            if (!in_array($locale, $supportedLocales)) {
+                $this->logger->logLanguageSwitchFailure(
+                    $locale, 
+                    'Unsupported locale requested',
+                    ['supported_locales' => $supportedLocales]
+                );
+                $locale = $defaultLocale;
             }
+            
+            // 設定應用程式語言
+            App::setLocale($locale);
+            
+            // 設定 Carbon 本地化
+            $this->setCarbonLocale($locale);
+            
+            // 儲存語言偏好到 session
+            Session::put('locale', $locale);
+            
+            // 如果使用者已登入，更新使用者的語言偏好
+            if (auth()->check()) {
+                $user = auth()->user();
+                if ($user->locale !== $locale) {
+                    $user->update(['locale' => $locale]);
+                    $this->logger->logLanguagePreferenceUpdate($locale, 'middleware');
+                }
+            }
+            
+            // 記錄語言切換成功事件（如果語言有變更）
+            if ($previousLocale !== $locale) {
+                $source = $this->determineLanguageSource($request);
+                $this->logger->logLanguageSwitchSuccess($previousLocale, $locale, $source);
+            }
+            
+        } catch (\Exception $e) {
+            // 語言設定失敗，記錄錯誤並使用預設語言
+            $this->logger->logLanguageSwitchFailure(
+                $locale ?? 'unknown',
+                'Exception during locale setting: ' . $e->getMessage(),
+                ['exception' => $e->getTraceAsString()]
+            );
+            
+            App::setLocale($defaultLocale);
+            Session::put('locale', $defaultLocale);
         }
         
         return $next($request);
@@ -154,5 +201,32 @@ class SetLocale
         };
         
         \Carbon\Carbon::setLocale($carbonLocale);
+    }
+
+    /**
+     * 決定語言切換的來源
+     *
+     * @param Request $request
+     * @return string
+     */
+    private function determineLanguageSource(Request $request): string
+    {
+        if ($request->has('locale')) {
+            return 'url_parameter';
+        }
+        
+        if (Session::has('locale')) {
+            return 'session';
+        }
+        
+        if (auth()->check() && auth()->user()->locale) {
+            return 'user_preference';
+        }
+        
+        if ($request->header('Accept-Language')) {
+            return 'browser';
+        }
+        
+        return 'default';
     }
 }

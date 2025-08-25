@@ -197,6 +197,8 @@ return [
         App\Providers\ActivityLogServiceProvider::class,
         App\Providers\ActivityIntegrityServiceProvider::class,
         App\Providers\SecurityServiceProvider::class,
+        App\Providers\MultilingualServiceProvider::class,
+        App\Providers\LanguagePerformanceServiceProvider::class,
     ])->toArray(),
 
     /*

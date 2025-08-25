@@ -179,9 +179,52 @@ class ActivityLogger
      */
     public function logAsync(string $type, string $description, array $data = []): void
     {
-        $activityData = $this->prepareActivityData($type, $description, $data);
-        
-        dispatch(new LogActivityJob($activityData))->onQueue('activities');
+        // 檢查是否啟用非同步記錄
+        if (!config('activity-log.async.enabled', true)) {
+            $this->log($type, $description, $data);
+            return;
+        }
+
+        try {
+            $asyncLogger = app(AsyncActivityLogger::class);
+            $asyncLogger->logAsync($type, $description, $data);
+        } catch (\Exception $e) {
+            Log::warning('非同步記錄失敗，改用同步記錄', [
+                'error' => $e->getMessage(),
+                'type' => $type,
+            ]);
+            
+            // 降級到同步記錄
+            $this->log($type, $description, $data);
+        }
+    }
+
+    /**
+     * 新增活動到批量佇列
+     * 
+     * @param string $type 活動類型
+     * @param string $description 活動描述
+     * @param array $data 活動資料
+     * @return void
+     */
+    public function addToBatch(string $type, string $description, array $data = []): void
+    {
+        if (!config('activity-log.async.enabled', true)) {
+            $this->log($type, $description, $data);
+            return;
+        }
+
+        try {
+            $asyncLogger = app(AsyncActivityLogger::class);
+            $asyncLogger->addToBatch($type, $description, $data);
+        } catch (\Exception $e) {
+            Log::warning('批量記錄失敗，改用同步記錄', [
+                'error' => $e->getMessage(),
+                'type' => $type,
+            ]);
+            
+            $this->log($type, $description, $data);
+        }
     }
 
     /**

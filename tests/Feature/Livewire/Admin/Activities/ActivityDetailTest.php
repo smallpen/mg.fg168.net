@@ -5,29 +5,83 @@ namespace Tests\Feature\Livewire\Admin\Activities;
 use App\Livewire\Admin\Activities\ActivityDetail;
 use App\Models\Activity;
 use App\Models\User;
+use App\Models\Role;
+use App\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
+use Tests\Traits\DisablesPermissionSecurity;
+use Carbon\Carbon;
 
 /**
- * 活動詳情元件測試
+ * ActivityDetail 元件功能測試
+ * 
+ * 測試活動詳情元件的所有功能，包括：
+ * - 活動詳情顯示
+ * - 原始資料切換
+ * - 活動標記功能
+ * - 註記添加功能
+ * - 匯出功能
+ * - 導航功能
+ * - 安全性檢查
+ * - 資料格式化
  */
 class ActivityDetailTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, DisablesPermissionSecurity;
+
+    protected User $adminUser;
+    protected User $regularUser;
+    protected Role $adminRole;
 
     protected function setUp(): void
     {
         parent::setUp();
         
+        // 建立角色和權限
+        $this->adminRole = Role::create([
+            'name' => 'admin',
+            'display_name' => '管理員',
+            'description' => '系統管理員',
+            'is_system' => true,
+        ]);
+
+        $permissions = [
+            'activity_logs.view' => ['檢視活動日誌', 'activity_logs'],
+            'activity_logs.export' => ['匯出活動日誌', 'activity_logs'],
+        ];
+
+        foreach ($permissions as $name => [$displayName, $module]) {
+            $permission = Permission::create([
+                'name' => $name,
+                'display_name' => $displayName,
+                'description' => $displayName,
+                'module' => $module,
+            ]);
+
+            $this->adminRole->permissions()->attach($permission);
+        }
+        
         // 建立測試使用者
-        $this->user = User::factory()->create([
+        $this->adminUser = User::create([
             'username' => 'admin',
             'name' => '系統管理員',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
             'is_active' => true,
         ]);
+
+        $this->regularUser = User::create([
+            'username' => 'user',
+            'name' => '一般使用者',
+            'email' => 'user@example.com',
+            'password' => bcrypt('password'),
+            'is_active' => true,
+        ]);
+
+        $this->adminUser->roles()->attach($this->adminRole);
         
-        $this->actingAs($this->user);
+        $this->actingAs($this->adminUser);
     }
 
     /** @test */
@@ -301,5 +355,276 @@ class ActivityDetailTest extends TestCase
         // 檢查導航 ID 是否正確設定
         $component->assertSet('previousActivityId', $activity1->id);
         $component->assertSet('nextActivityId', $activity3->id);
+    }
+
+    /** @test */
+    public function it_can_navigate_to_previous_activity()
+    {
+        // 建立多個活動記錄
+        $activity1 = Activity::create([
+            'type' => 'user_login',
+            'description' => '第一個活動',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 2,
+            'created_at' => now()->subMinutes(10),
+        ]);
+
+        $activity2 = Activity::create([
+            'type' => 'user_logout',
+            'description' => '第二個活動',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 1,
+            'created_at' => now()->subMinutes(5),
+        ]);
+
+        $component = Livewire::test(ActivityDetail::class);
+        $component->call('loadActivity', $activity2->id);
+        
+        // 導航到上一個活動
+        $component->call('navigateToPrevious');
+        $component->assertSet('activity.id', $activity1->id);
+    }
+
+    /** @test */
+    public function it_can_navigate_to_next_activity()
+    {
+        // 建立多個活動記錄
+        $activity1 = Activity::create([
+            'type' => 'user_login',
+            'description' => '第一個活動',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 2,
+            'created_at' => now()->subMinutes(10),
+        ]);
+
+        $activity2 = Activity::create([
+            'type' => 'user_logout',
+            'description' => '第二個活動',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 1,
+            'created_at' => now()->subMinutes(5),
+        ]);
+
+        $component = Livewire::test(ActivityDetail::class);
+        $component->call('loadActivity', $activity1->id);
+        
+        // 導航到下一個活動
+        $component->call('navigateToNext');
+        $component->assertSet('activity.id', $activity2->id);
+    }
+
+    /** @test */
+    public function it_shows_related_activities()
+    {
+        $mainActivity = Activity::create([
+            'type' => 'user_login',
+            'description' => '主要活動',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 2,
+            'ip_address' => '192.168.1.100',
+        ]);
+
+        // 建立相關活動（同一使用者、同一 IP）
+        Activity::create([
+            'type' => 'view_dashboard',
+            'description' => '相關活動',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 1,
+            'ip_address' => '192.168.1.100',
+            'created_at' => now()->addMinutes(1),
+        ]);
+
+        $component = Livewire::test(ActivityDetail::class);
+        $component->call('loadActivity', $mainActivity->id);
+        
+        $relatedActivities = $component->get('relatedActivities');
+        $this->assertNotEmpty($relatedActivities);
+    }
+
+    /** @test */
+    public function it_handles_sensitive_data_filtering()
+    {
+        $activity = Activity::create([
+            'type' => 'user_login',
+            'description' => '使用者登入系統',
+            'user_id' => $this->adminUser->id,
+            'properties' => [
+                'username' => 'testuser',
+                'password' => 'secret123', // 敏感資料
+                'token' => 'abc123def456', // 敏感資料
+                'login_method' => 'password',
+            ],
+            'result' => 'success',
+            'risk_level' => 2,
+        ]);
+
+        $component = Livewire::test(ActivityDetail::class);
+        $component->call('loadActivity', $activity->id);
+        
+        $formattedData = $component->get('formattedData');
+        
+        // 檢查敏感資料是否被過濾
+        $passwordField = collect($formattedData)->firstWhere('raw_key', 'password');
+        $tokenField = collect($formattedData)->firstWhere('raw_key', 'token');
+        
+        $this->assertEquals('[FILTERED]', $passwordField['value']);
+        $this->assertEquals('[FILTERED]', $tokenField['value']);
+    }
+
+    /** @test */
+    public function it_can_copy_activity_id()
+    {
+        $activity = Activity::create([
+            'type' => 'user_login',
+            'description' => '使用者登入系統',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 2,
+        ]);
+
+        $component = Livewire::test(ActivityDetail::class);
+        $component->call('loadActivity', $activity->id);
+        
+        $component->call('copyActivityId');
+        
+        // 檢查是否觸發了複製事件
+        $component->assertDispatched('copy-to-clipboard', ['text' => $activity->id]);
+    }
+
+    /** @test */
+    public function it_shows_activity_timeline()
+    {
+        $activity = Activity::create([
+            'type' => 'user_login',
+            'description' => '使用者登入系統',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 2,
+        ]);
+
+        $component = Livewire::test(ActivityDetail::class);
+        $component->call('loadActivity', $activity->id);
+        
+        $component->call('showTimeline');
+        $component->assertSet('showTimeline', true);
+    }
+
+    /** @test */
+    public function it_can_refresh_activity_data()
+    {
+        $activity = Activity::create([
+            'type' => 'user_login',
+            'description' => '使用者登入系統',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 2,
+        ]);
+
+        $component = Livewire::test(ActivityDetail::class);
+        $component->call('loadActivity', $activity->id);
+        
+        $component->call('refreshActivity');
+        
+        // 檢查活動資料是否重新載入
+        $component->assertSet('activity.id', $activity->id);
+    }
+
+    /** @test */
+    public function it_validates_note_input()
+    {
+        $activity = Activity::create([
+            'type' => 'user_login',
+            'description' => '使用者登入系統',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 2,
+        ]);
+
+        $component = Livewire::test(ActivityDetail::class);
+        $component->call('loadActivity', $activity->id);
+        
+        // 測試空白註記
+        $component->call('addNote', '');
+        $component->assertHasErrors(['note']);
+        
+        // 測試過長註記
+        $longNote = str_repeat('a', 1001);
+        $component->call('addNote', $longNote);
+        $component->assertHasErrors(['note']);
+    }
+
+    /** @test */
+    public function it_handles_activity_permissions()
+    {
+        // 測試沒有權限的使用者
+        $this->actingAs($this->regularUser);
+
+        $activity = Activity::create([
+            'type' => 'user_login',
+            'description' => '使用者登入系統',
+            'user_id' => $this->regularUser->id,
+            'result' => 'success',
+            'risk_level' => 2,
+        ]);
+
+        $this->expectException(\Illuminate\Auth\Access\AuthorizationException::class);
+
+        $component = Livewire::test(ActivityDetail::class);
+        $component->call('loadActivity', $activity->id);
+    }
+
+    /** @test */
+    public function it_shows_correct_risk_level_indicators()
+    {
+        $activities = [
+            ['risk_level' => 1, 'expected' => 'low'],
+            ['risk_level' => 4, 'expected' => 'medium'],
+            ['risk_level' => 7, 'expected' => 'high'],
+            ['risk_level' => 10, 'expected' => 'critical'],
+        ];
+
+        foreach ($activities as $activityData) {
+            $activity = Activity::create([
+                'type' => 'user_login',
+                'description' => '測試活動',
+                'user_id' => $this->adminUser->id,
+                'result' => 'success',
+                'risk_level' => $activityData['risk_level'],
+            ]);
+
+            $component = Livewire::test(ActivityDetail::class);
+            $component->call('loadActivity', $activity->id);
+            
+            $component->assertSet('securityRiskLevel', $activityData['expected']);
+        }
+    }
+
+    /** @test */
+    public function it_can_toggle_note_form()
+    {
+        $activity = Activity::create([
+            'type' => 'user_login',
+            'description' => '使用者登入系統',
+            'user_id' => $this->adminUser->id,
+            'result' => 'success',
+            'risk_level' => 2,
+        ]);
+
+        $component = Livewire::test(ActivityDetail::class);
+        $component->call('loadActivity', $activity->id);
+        
+        $component->assertSet('showNoteForm', false);
+        
+        $component->call('toggleNoteForm');
+        $component->assertSet('showNoteForm', true);
+        
+        $component->call('toggleNoteForm');
+        $component->assertSet('showNoteForm', false);
     }
 }

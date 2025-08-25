@@ -162,10 +162,10 @@ class ThemeToggle extends Component
     public function getThemeNameProperty(): string
     {
         return match($this->currentTheme) {
-            'light' => '亮色主題',
-            'dark' => '暗色主題',
-            'auto' => '自動模式',
-            default => '亮色主題'
+            'light' => __('theme.light'),
+            'dark' => __('theme.dark'),
+            'auto' => __('theme.auto'),
+            default => __('theme.light')
         };
     }
 

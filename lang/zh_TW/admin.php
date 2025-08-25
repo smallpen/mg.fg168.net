@@ -57,7 +57,50 @@ return [
         'users' => '使用者管理',
         'roles' => '角色管理',
         'permissions' => '權限管理',
+        'activities' => '活動記錄',
         'settings' => '系統設定',
+    ],
+
+    // 活動記錄選單
+    'activities' => [
+        'title' => '活動記錄',
+        'description' => '監控系統使用情況和安全狀態',
+        'list' => '活動列表',
+        'security' => '安全監控',
+        'stats' => '統計分析',
+        'monitor' => '即時監控',
+        'export' => '匯出記錄',
+        'loading' => '載入活動記錄中...',
+        'monitoring' => '監控中',
+        'real_time_monitor' => '即時監控',
+        'processing' => '處理中...',
+        'export_advanced' => '進階匯出',
+        'export_quick' => '快速匯出',
+        'export_multi_format' => '多格式、批量',
+        'export_current_filter' => '當前篩選',
+        'statistics_analysis' => '統計分析',
+    ],
+
+    // 使用者管理
+    'users' => [
+        'title' => '使用者管理',
+        'description' => '管理系統使用者、角色和權限',
+        'user' => '使用者',
+        'role' => '角色',
+        'roles' => '角色',
+        'status' => '狀態',
+        'actions' => '操作',
+        'create_user' => '建立使用者',
+        'edit_user' => '編輯使用者',
+        'delete_user' => '刪除使用者',
+        'view_user' => '檢視使用者',
+        'search_placeholder' => '搜尋使用者...',
+        'no_users_found' => '找不到使用者',
+        'total_users' => '使用者總數',
+        'active_users' => '啟用使用者',
+        'inactive_users' => '停用使用者',
+        'recent_users' => '最近使用者',
+        'role_assignment' => '角色指派',
     ],
 
     // 設定選單
@@ -225,6 +268,7 @@ return [
         'edit' => '編輯使用者',
         'delete' => '刪除使用者',
         'search' => '搜尋使用者',
+        'search_placeholder' => '搜尋使用者名稱、姓名或電子郵件...',
         'filter' => '篩選',
         'username' => '使用者名稱',
         'name' => '姓名',
@@ -235,6 +279,7 @@ return [
         'active' => '啟用',
         'inactive' => '停用',
         'role' => '角色',
+        'roles' => '角色',
         'created_at' => '建立時間',
         'actions' => '操作',
         'view' => '檢視',
@@ -242,6 +287,37 @@ return [
         'delete_warning' => '您確定要刪除此使用者嗎？此操作無法復原。',
         'cancel' => '取消',
         'confirm' => '確認',
+        'loading' => '載入中...',
+        
+        // 篩選選項
+        'filter_by_role' => '角色篩選',
+        'filter_by_status' => '狀態篩選',
+        'all_roles' => '全部角色',
+        'all_status' => '全部狀態',
+        'clear_filters' => '清除篩選',
+        
+        // 批量操作
+        'selected_users' => '已選擇 :count 個使用者',
+        'bulk_activate' => '批量啟用',
+        'bulk_deactivate' => '批量停用',
+        'cancel_selection' => '取消選擇',
+        'bulk_activate_success' => '已成功啟用 :count 個使用者',
+        'bulk_deactivate_success' => '已成功停用 :count 個使用者',
+        'bulk_operation_failed' => '批量操作失敗',
+        'cannot_disable_self' => '您不能停用自己的帳號',
+        'cannot_bulk_deactivate_super_admin' => '無法批量停用超級管理員',
+        'user_activated' => '使用者已啟用',
+        'user_deactivated' => '使用者已停用',
+        'user_not_found' => '找不到指定的使用者',
+        'delete_failed' => '刪除失敗',
+        'user_deleted_permanently' => '使用者 :username 已永久刪除',
+        
+        // 頁面和操作
+        'list' => '使用者列表',
+        'create' => '建立使用者',
+        'statistics' => '統計資訊',
+        'show_details' => '顯示詳細',
+        'refresh' => '重新整理',
         
         // 表單相關翻譯
         'create_description' => '建立新的系統使用者帳號',
@@ -797,6 +873,13 @@ return [
         ],
     ],
 
+    // 使用者選單
+    'user_menu' => [
+        'profile' => '個人資料',
+        'settings' => '設定',
+        'logout' => '登出',
+    ],
+
     // 主題和語言
     'theme' => [
         'title' => '主題設定',
@@ -813,6 +896,16 @@ return [
         'en' => 'English',
         'unsupported' => '不支援的語言',
         'switched' => '語言已切換為 :language',
+        'switching' => '正在切換語言...',
+        'please_wait' => '請稍候，頁面即將重新載入',
+        'confirm_switch_title' => '確認語言切換',
+        'confirm_switch_message' => '您確定要切換語言嗎？頁面將會重新載入以套用新的語言設定。',
+        'from' => '從',
+        'to' => '到',
+        'switch_success' => '語言切換成功',
+        'switch_cancelled' => '已取消語言切換',
+        'switch_error' => '語言切換失敗',
+        'keyboard_shortcut' => '快捷鍵：Alt + L',
     ],
 
 ];

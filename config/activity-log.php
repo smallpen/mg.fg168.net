@@ -175,4 +175,71 @@ return [
         // 是否記錄敏感資料過濾操作
         'log_sensitive_filtering' => env('ACTIVITY_LOG_SENSITIVE_FILTERING', false),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 非同步記錄設定
+    |--------------------------------------------------------------------------
+    */
+    'async' => [
+        // 是否啟用非同步記錄
+        'enabled' => env('ACTIVITY_ASYNC_ENABLED', true),
+        
+        // 預設佇列名稱
+        'default_queue' => env('ACTIVITY_DEFAULT_QUEUE', 'activities'),
+        
+        // 高優先級佇列名稱
+        'high_priority_queue' => env('ACTIVITY_HIGH_PRIORITY_QUEUE', 'activities-high'),
+        
+        // 批量處理佇列名稱
+        'batch_queue' => env('ACTIVITY_BATCH_QUEUE', 'activities-batch'),
+        
+        // 批量處理大小
+        'batch_size' => env('ACTIVITY_BATCH_SIZE', 100),
+        
+        // 批量等待時間（秒）
+        'batch_wait_time' => env('ACTIVITY_BATCH_WAIT_TIME', 30),
+        
+        // 重試設定
+        'retry' => [
+            // 最大重試次數
+            'max_attempts' => env('ACTIVITY_MAX_RETRY_ATTEMPTS', 5),
+            
+            // 重試策略 (exponential, linear, fixed, custom)
+            'strategy' => env('ACTIVITY_RETRY_STRATEGY', 'exponential'),
+            
+            // 自訂重試延遲時間（秒）
+            'backoff' => [1, 5, 15, 30, 60],
+        ],
+        
+        // 效能監控設定
+        'performance' => [
+            // 是否啟用效能監控
+            'enabled' => env('ACTIVITY_PERFORMANCE_MONITORING_ENABLED', true),
+            
+            // 監控間隔（分鐘）
+            'monitor_interval' => env('ACTIVITY_MONITOR_INTERVAL', 5),
+            
+            // 效能閾值（毫秒）
+            'performance_threshold' => env('ACTIVITY_PERFORMANCE_THRESHOLD', 1000),
+            
+            // 是否自動優化
+            'auto_optimization' => env('ACTIVITY_AUTO_OPTIMIZATION', false),
+        ],
+        
+        // 失敗處理設定
+        'failure_handling' => [
+            // 是否儲存失敗記錄到備用檔案
+            'backup_failed_jobs' => env('ACTIVITY_BACKUP_FAILED_JOBS', true),
+            
+            // 備用檔案路徑
+            'backup_path' => env('ACTIVITY_BACKUP_PATH', storage_path('logs/failed_activities')),
+            
+            // 是否發送失敗通知
+            'send_failure_notifications' => env('ACTIVITY_SEND_FAILURE_NOTIFICATIONS', true),
+            
+            // 高風險活動失敗通知閾值
+            'high_risk_threshold' => env('ACTIVITY_HIGH_RISK_THRESHOLD', 7),
+        ],
+    ],
 ];

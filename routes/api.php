@@ -77,3 +77,30 @@ Route::get('/role-translations/{type}', [RoleTranslationController::class, 'show
 
 // 清除翻譯快取（需要認證）
 Route::middleware('auth:sanctum')->delete('/role-translations/cache', [RoleTranslationController::class, 'clearCache'])->name('api.role-translations.clear-cache');
+
+/*
+|--------------------------------------------------------------------------
+| 活動記錄 API 路由
+|--------------------------------------------------------------------------
+|
+| 活動記錄 API 提供系統審計追蹤功能
+| 需要適當的認證和權限檢查
+|
+*/
+
+// API v1 路由群組 - 活動記錄
+Route::prefix('v1')->name('api.v1.')->middleware(['api_auth', 'api_rate_limit:60,1'])->group(function () {
+    require __DIR__ . '/api_v1.php';
+});
+
+// API v2 路由群組（預留未來擴展）
+Route::prefix('v2')->name('api.v2.')->middleware(['api_auth', 'api_rate_limit:100,1'])->group(function () {
+    // 未來的 v2 API 路由
+    Route::get('/info', function () {
+        return response()->json([
+            'version' => 'v2.0.0',
+            'status' => 'development',
+            'message' => 'API v2 正在開發中'
+        ]);
+    })->name('info');
+});

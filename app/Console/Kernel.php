@@ -102,6 +102,62 @@ class Kernel extends ConsoleKernel
                 \Illuminate\Support\Facades\Log::info('自動清除權限快取');
             }
         })->everyFiveMinutes()->description('檢查並清理權限快取');
+
+        // 每日凌晨 3 點執行活動記錄備份
+        $schedule->command('activity:backup --days-back=30 --cleanup --cleanup-days=90')
+                 ->dailyAt('03:00')
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('每日活動記錄備份');
+
+        // 每週日凌晨 5 點執行完整活動記錄備份（包含所有資料）
+        $schedule->command('activity:backup --cleanup --cleanup-days=180')
+                 ->weekly()
+                 ->sundays()
+                 ->at('05:00')
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('每週完整活動記錄備份');
+
+        // 語言效能監控排程任務
+        
+        // 每 30 分鐘預熱語言檔案快取
+        $schedule->command('language:performance warmup')
+                 ->everyThirtyMinutes()
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('預熱語言檔案快取');
+
+        // 每小時檢查語言效能警報
+        $schedule->command('language:performance alerts --format=json')
+                 ->hourly()
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('檢查語言效能警報');
+
+        // 每日凌晨 1:30 清理語言效能資料（保留 48 小時）
+        $schedule->command('language:performance clear-data --hours=48')
+                 ->dailyAt('01:30')
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('清理舊的語言效能資料');
+
+        // 每週一凌晨 2:30 清理語言檔案快取並重新預熱
+        $schedule->command('language:performance clear-cache')
+                 ->weekly()
+                 ->mondays()
+                 ->at('02:30')
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('每週清理語言快取');
+
+        $schedule->command('language:performance warmup')
+                 ->weekly()
+                 ->mondays()
+                 ->at('02:35')
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('每週重新預熱語言快取');
     }
 
     /**

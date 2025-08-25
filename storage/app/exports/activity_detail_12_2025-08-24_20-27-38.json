@@ -1,0 +1,33 @@
+{
+    "activity": {
+        "id": 12,
+        "type": "user_login",
+        "event": null,
+        "description": "使用者登入系統",
+        "module": null,
+        "user_id": 6,
+        "subject_id": null,
+        "subject_type": null,
+        "properties": {
+            "test": "data"
+        },
+        "ip_address": null,
+        "user_agent": null,
+        "result": "success",
+        "risk_level": 2,
+        "signature": "v1:0d82a3818e41b33b078fe92a0a3ba3d08dd8287f420cc2e73dee179e92d01fd0",
+        "created_at": "2025-08-24T12:27:38.000000Z",
+        "updated_at": "2025-08-24T12:27:38.000000Z"
+    },
+    "related_activities": [],
+    "formatted_properties": [
+        {
+            "key": "Test",
+            "value": "data",
+            "raw_key": "test",
+            "raw_value": "data",
+            "type": "string"
+        }
+    ],
+    "exported_at": "2025-08-24 20:27:38"
+}

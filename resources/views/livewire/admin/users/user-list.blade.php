@@ -406,7 +406,7 @@
                                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center" style="display: none;">
                                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                {{ strtoupper(substr($user->display_name, 0, 1)) }}
+                                                {{ mb_strtoupper(mb_substr($user->display_name, 0, 1, 'UTF-8'), 'UTF-8') }}
                                             </span>
                                         </div>
                                     </div>
@@ -631,7 +631,7 @@
                                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center" style="display: none;">
                                             <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                                {{ strtoupper(substr($user->display_name, 0, 1)) }}
+                                                {{ mb_strtoupper(mb_substr($user->display_name, 0, 1, 'UTF-8'), 'UTF-8') }}
                                             </span>
                                         </div>
                                     </div>
@@ -781,7 +781,7 @@
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div class="h-12 w-12 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center" style="display: none;">
                                     <span class="text-lg font-medium text-gray-700 dark:text-gray-300">
-                                        {{ strtoupper(substr($user->display_name, 0, 1)) }}
+                                        {{ mb_strtoupper(mb_substr($user->display_name, 0, 1, 'UTF-8'), 'UTF-8') }}
                                     </span>
                                 </div>
                             </div>
@@ -908,7 +908,7 @@
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div class="h-12 w-12 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center" style="display: none;">
                                     <span class="text-lg font-medium text-gray-700 dark:text-gray-300">
-                                        {{ strtoupper(substr($user->display_name, 0, 1)) }}
+                                        {{ mb_strtoupper(mb_substr($user->display_name, 0, 1, 'UTF-8'), 'UTF-8') }}
                                     </span>
                                 </div>
                             </div>

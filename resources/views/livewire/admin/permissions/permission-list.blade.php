@@ -11,7 +11,7 @@
                     </div>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('admin.permissions.total_permissions') }}</p>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('permissions.usage.total_permissions') }}</p>
                     <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $stats['total_permissions'] }}</p>
                 </div>
             </div>
@@ -27,7 +27,7 @@
                     </div>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('admin.permissions.used_permissions') }}</p>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('permissions.usage.used_permissions') }}</p>
                     <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $stats['used_permissions'] }}</p>
                 </div>
             </div>
@@ -43,7 +43,7 @@
                     </div>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('admin.permissions.unused_permissions') }}</p>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('permissions.usage.unused_permissions') }}</p>
                     <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $stats['unused_permissions'] }}</p>
                 </div>
             </div>
@@ -59,7 +59,7 @@
                     </div>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('admin.permissions.usage_percentage') }}</p>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('permissions.usage.usage_frequency') }}</p>
                     <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ $stats['usage_percentage'] }}%</p>
                 </div>
             </div>
@@ -73,13 +73,13 @@
             {{-- 搜尋框 --}}
             <div>
                 <label for="search-mobile" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {{ __('admin.permissions.search') }}
+                    {{ __('permissions.search_label') }}
                 </label>
                 <div class="relative">
                     <input type="text" 
                            id="search-mobile"
                            wire:model.live.debounce.500ms="search" 
-                           placeholder="{{ __('admin.permissions.search_placeholder') }}"
+                           placeholder="{{ __('permissions.search.search_placeholder') }}"
                            class="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,12 +100,12 @@
                 {{-- 模組篩選 --}}
                 <div>
                     <label for="moduleFilter-mobile" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {{ __('admin.permissions.module') }}
+                        {{ __('permissions.module') }}
                     </label>
                     <select id="moduleFilter-mobile" 
                             wire:model.live="moduleFilter"
                             class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base">
-                        <option value="all">{{ __('admin.permissions.all_modules') }}</option>
+                        <option value="all">{{ __('permissions.all_modules') }}</option>
                         @foreach($modules as $module)
                             <option value="{{ $module }}">{{ ucfirst($module) }}</option>
                         @endforeach
@@ -115,12 +115,12 @@
                 {{-- 類型篩選 --}}
                 <div>
                     <label for="typeFilter-mobile" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {{ __('admin.permissions.type') }}
+                        {{ __('permissions.type') }}
                     </label>
                     <select id="typeFilter-mobile" 
                             wire:model.live="typeFilter"
                             class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base">
-                        <option value="all">{{ __('admin.permissions.all_types') }}</option>
+                        <option value="all">{{ __('permissions.all_types') }}</option>
                         @foreach($types as $type)
                             <option value="{{ $type }}">{{ $this->getLocalizedType($type) }}</option>
                         @endforeach
@@ -133,7 +133,7 @@
                 {{-- 使用狀態篩選 --}}
                 <div>
                     <label for="usageFilter-mobile" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {{ __('admin.permissions.usage_status') }}
+                        {{ __('permissions.usage_status') }}
                     </label>
                     <select id="usageFilter-mobile" 
                             wire:model.live="usageFilter"
@@ -147,7 +147,7 @@
                 {{-- 檢視模式 --}}
                 <div>
                     <label for="viewMode-mobile" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {{ __('admin.permissions.view_mode') }}
+                        {{ __('permissions.view_mode') }}
                     </label>
                     <select id="viewMode-mobile" 
                             wire:model.live="viewMode"
@@ -167,7 +167,7 @@
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                         </svg>
-                        {{ __('admin.permissions.create_permission') }}
+                        {{ __('permissions.create_permission') }}
                     </button>
                 @endif
                 
@@ -178,7 +178,7 @@
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
-                            {{ __('admin.permissions.export') }}
+                            {{ __('permissions.export') }}
                         </button>
                     @endif
                     
@@ -188,7 +188,7 @@
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
                             </svg>
-                            {{ __('admin.permissions.import') }}
+                            {{ __('permissions.import') }}
                         </button>
                     @endif
                 </div>
@@ -202,7 +202,7 @@
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    {{ __('admin.permissions.clear_filters') }}
+                    {{ __('permissions.clear_filters') }}
                 </button>
             </div>
             @endif
@@ -214,13 +214,13 @@
                 {{-- 搜尋框 --}}
                 <div class="lg:col-span-2">
                     <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {{ __('admin.permissions.search') }}
+                        {{ __('permissions.search_label') }}
                     </label>
                     <div class="relative">
                         <input type="text" 
                                id="search"
                                wire:model.live.debounce.500ms="search" 
-                               placeholder="{{ __('admin.permissions.search_placeholder') }}"
+                               placeholder="{{ __('permissions.search.search_placeholder') }}"
                                class="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,12 +239,12 @@
                 {{-- 模組篩選 --}}
                 <div>
                     <label for="moduleFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {{ __('admin.permissions.filter_by_module') }}
+                        {{ __('permissions.filter_by_module') }}
                     </label>
                     <select id="moduleFilter" 
                             wire:model.live="moduleFilter"
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                        <option value="all">{{ __('admin.permissions.all_modules') }}</option>
+                        <option value="all">{{ __('permissions.all_modules') }}</option>
                         @foreach($modules as $module)
                             <option value="{{ $module }}">{{ ucfirst($module) }}</option>
                         @endforeach
@@ -254,12 +254,12 @@
                 {{-- 類型篩選 --}}
                 <div>
                     <label for="typeFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {{ __('admin.permissions.filter_by_type') }}
+                        {{ __('permissions.filter_by_type') }}
                     </label>
                     <select id="typeFilter" 
                             wire:model.live="typeFilter"
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                        <option value="all">{{ __('admin.permissions.all_types') }}</option>
+                        <option value="all">{{ __('permissions.all_types') }}</option>
                         @foreach($types as $type)
                             <option value="{{ $type }}">{{ $this->getLocalizedType($type) }}</option>
                         @endforeach
@@ -269,7 +269,7 @@
                 {{-- 使用狀態篩選 --}}
                 <div>
                     <label for="usageFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {{ __('admin.permissions.filter_by_usage') }}
+                        {{ __('permissions.filter_by_usage') }}
                     </label>
                     <select id="usageFilter" 
                             wire:model.live="usageFilter"
@@ -283,7 +283,7 @@
                 {{-- 檢視模式 --}}
                 <div>
                     <label for="viewMode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {{ __('admin.permissions.view_mode') }}
+                        {{ __('permissions.view_mode') }}
                     </label>
                     <select id="viewMode" 
                             wire:model.live="viewMode"
@@ -304,7 +304,7 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                             </svg>
-                            {{ __('admin.permissions.create_permission') }}
+                            {{ __('permissions.create_permission') }}
                         </button>
                     @endif
                     
@@ -314,7 +314,7 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
-                            {{ __('admin.permissions.export') }}
+                            {{ __('permissions.export') }}
                         </button>
                     @endif
                     
@@ -324,7 +324,7 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
                             </svg>
-                            {{ __('admin.permissions.import') }}
+                            {{ __('permissions.import') }}
                         </button>
                     @endif
                 </div>
@@ -336,7 +336,7 @@
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    {{ __('admin.permissions.clear_filters') }}
+                    {{ __('permissions.clear_filters') }}
                 </button>
                 @endif
             </div>
@@ -349,13 +349,13 @@
         <div class="flex items-center justify-between">
             <div class="flex items-center">
                 <span class="text-sm text-blue-700 dark:text-blue-300">
-                    {{ __('admin.permissions.selected_permissions', ['count' => count($selectedPermissions)]) }}
+                    {{ __('permissions.selected_permissions', ['count' => count($selectedPermissions)]) }}
                 </span>
             </div>
             <div class="flex items-center space-x-2">
                 <button wire:click="resetFilters" 
                         class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                    {{ __('admin.permissions.cancel_selection') }}
+                    {{ __('permissions.cancel_selection') }}
                 </button>
             </div>
         </div>
@@ -369,9 +369,9 @@
             <div class="flex items-center space-x-2">
                 <svg class="animate-spin h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span class="text-sm text-gray-600 dark:text-gray-400">{{ __('admin.permissions.loading') }}</span>
+                <span class="text-sm text-gray-600 dark:text-gray-400">{{ __('permissions.loading') }}</span>
             </div>
         </div>
 

@@ -212,6 +212,44 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // 自定義頻道：活動記錄日誌
+        'activity' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/activity.log'),
+            'level' => 'info',
+            'days' => 90,
+            'replace_placeholders' => true,
+        ],
+
+        // 自定義頻道：多語系日誌
+        'multilingual' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/multilingual.log'),
+            'level' => env('MULTILINGUAL_LOG_LEVEL', 'info'),
+            'days' => env('MULTILINGUAL_LOG_RETENTION_DAYS', 30),
+            'replace_placeholders' => true,
+            'tap' => [App\Logging\MultilingualLogFormatter::class],
+        ],
+
+        // 多語系錯誤專用頻道
+        'multilingual_errors' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/multilingual_errors.log'),
+            'level' => 'warning',
+            'days' => env('MULTILINGUAL_ERROR_LOG_RETENTION_DAYS', 60),
+            'replace_placeholders' => true,
+            'tap' => [App\Logging\MultilingualLogFormatter::class],
+        ],
+
+        // 多語系效能監控頻道
+        'multilingual_performance' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/multilingual_performance.log'),
+            'level' => 'info',
+            'days' => env('MULTILINGUAL_PERFORMANCE_LOG_RETENTION_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

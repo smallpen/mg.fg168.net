@@ -209,9 +209,9 @@ class PermissionList extends Component
     public function getUsageOptionsProperty(): array
     {
         return [
-            'all' => __('admin.permissions.all_usage'),
-            'used' => __('admin.permissions.used'),
-            'unused' => __('admin.permissions.unused'),
+            'all' => __('permissions.search.all_usage'),
+            'used' => __('permissions.search.used'),
+            'unused' => __('permissions.search.unused'),
             'marked_unused' => '已標記未使用',
             'low_usage' => '低使用率',
         ];
@@ -223,9 +223,9 @@ class PermissionList extends Component
     public function getViewModeOptionsProperty(): array
     {
         return [
-            'list' => __('admin.permissions.view_list'),
-            'grouped' => __('admin.permissions.view_grouped'),
-            'tree' => __('admin.permissions.view_tree'),
+            'list' => __('permissions.view_modes.list'),
+            'grouped' => __('permissions.view_modes.grouped'),
+            'tree' => __('permissions.view_modes.tree'),
         ];
     }
 
@@ -370,7 +370,7 @@ class PermissionList extends Component
         if (!auth()->user()->hasPermission('permissions.create')) {
             $this->dispatch('show-toast', [
                 'type' => 'error',
-                'message' => __('admin.permissions.no_permission_create')
+                'message' => __('permissions.messages.no_permission_create', ['default' => '您沒有建立權限的權限'])
             ]);
             return;
         }
@@ -394,7 +394,7 @@ class PermissionList extends Component
             if (!$permission) {
                 $this->dispatch('show-toast', [
                     'type' => 'error',
-                    'message' => __('admin.permissions.permission_not_found')
+                    'message' => __('permissions.messages.permission_not_found', ['default' => '找不到指定的權限'])
                 ]);
                 return;
             }
@@ -403,7 +403,7 @@ class PermissionList extends Component
             if (!auth()->user()->hasPermission('permissions.edit')) {
                 $this->dispatch('show-toast', [
                     'type' => 'error',
-                    'message' => __('admin.permissions.no_permission_edit')
+                    'message' => __('permissions.messages.no_permission_edit', ['default' => '您沒有編輯權限的權限'])
                 ]);
                 return;
             }
@@ -436,7 +436,7 @@ class PermissionList extends Component
             if (!$permission) {
                 $this->dispatch('show-toast', [
                     'type' => 'error',
-                    'message' => __('admin.permissions.permission_not_found')
+                    'message' => __('permissions.messages.permission_not_found', ['default' => '找不到指定的權限'])
                 ]);
                 return;
             }
@@ -469,7 +469,7 @@ class PermissionList extends Component
             if (!$permission) {
                 $this->dispatch('show-toast', [
                     'type' => 'error',
-                    'message' => __('admin.permissions.permission_not_found')
+                    'message' => __('permissions.messages.permission_not_found', ['default' => '找不到指定的權限'])
                 ]);
                 return;
             }
@@ -478,7 +478,7 @@ class PermissionList extends Component
             if (!auth()->user()->hasPermission('permissions.delete')) {
                 $this->dispatch('show-toast', [
                     'type' => 'error',
-                    'message' => __('admin.permissions.no_permission_delete')
+                    'message' => __('permissions.messages.no_permission_delete', ['default' => '您沒有刪除權限的權限'])
                 ]);
                 return;
             }
@@ -487,7 +487,7 @@ class PermissionList extends Component
             if (!$permission->can_be_deleted) {
                 $this->dispatch('show-toast', [
                     'type' => 'error',
-                    'message' => __('admin.permissions.cannot_delete_permission')
+                    'message' => __('permissions.messages.cannot_delete_permission', ['default' => '無法刪除此權限'])
                 ]);
                 return;
             }
@@ -710,10 +710,10 @@ class PermissionList extends Component
         $isUsed = $permission->isUsed();
         
         return $isUsed ? [
-            'text' => __('admin.permissions.used'),
+            'text' => __('permissions.status.used'),
             'class' => 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
         ] : [
-            'text' => __('admin.permissions.unused'),
+            'text' => __('permissions.status.unused'),
             'class' => 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
         ];
     }
@@ -724,11 +724,11 @@ class PermissionList extends Component
     public function getLocalizedType(string $type): string
     {
         $types = [
-            'view' => __('admin.permissions.type_view'),
-            'create' => __('admin.permissions.type_create'),
-            'edit' => __('admin.permissions.type_edit'),
-            'delete' => __('admin.permissions.type_delete'),
-            'manage' => __('admin.permissions.type_manage'),
+            'view' => __('permissions.types.view'),
+            'create' => __('permissions.types.create'),
+            'edit' => __('permissions.types.edit'),
+            'delete' => __('permissions.types.delete'),
+            'manage' => __('permissions.types.manage'),
         ];
 
         return $types[$type] ?? $type;

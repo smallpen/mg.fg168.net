@@ -233,9 +233,10 @@ interface PermissionRepositoryInterface
     public function validatePermissionCombination(array $permissionIds): array;
 
     /**
-     * 取得權限依賴關係圖
+     * 取得權限依賴關係
      *
-     * @return array
+     * @param int $permissionId 權限 ID
+     * @return Collection
      */
-    public function getPermissionDependencies(): array;
+    public function getPermissionDependencies(int $permissionId): Collection;
 }

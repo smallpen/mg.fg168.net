@@ -252,18 +252,52 @@ Route::middleware('admin')
     });
     
     // 活動記錄路由群組
-    Route::prefix('activities')->name('activities.')->group(function () {
-        Route::get('/', function () {
-            return view('admin.activities.index');
-        })->name('index');
+    Route::prefix('activities')->name('activities.')->middleware(['activity.access'])->group(function () {
+        // 主要頁面路由
+        Route::get('/', [App\Http\Controllers\Admin\ActivityController::class, 'index'])
+             ->name('index')
+             ->middleware('can:activity_logs.view');
         
-        Route::get('/security', function () {
-            return view('admin.activities.security');
-        })->name('security')->middleware('can:system.logs');
+        Route::get('/{id}', [App\Http\Controllers\Admin\ActivityController::class, 'show'])
+             ->name('show')
+             ->where('id', '[0-9]+')
+             ->middleware('can:activity_logs.view');
         
-        Route::get('/stats', function () {
-            return view('admin.activities.stats');
-        })->name('stats')->middleware('can:system.logs');
+        // 功能頁面路由
+        Route::get('/security', [App\Http\Controllers\Admin\ActivityController::class, 'security'])
+             ->name('security')
+             ->middleware('can:system.logs');
+        
+        Route::get('/stats', [App\Http\Controllers\Admin\ActivityController::class, 'stats'])
+             ->name('stats')
+             ->middleware('can:system.logs');
+        
+        Route::get('/monitor', [App\Http\Controllers\Admin\ActivityController::class, 'monitor'])
+             ->name('monitor')
+             ->middleware('can:system.logs');
+        
+        Route::get('/export', [App\Http\Controllers\Admin\ActivityController::class, 'export'])
+             ->name('export')
+             ->middleware('can:activity_logs.export');
+        
+        Route::get('/custom-report', [App\Http\Controllers\Admin\ActivityController::class, 'customReport'])
+             ->name('custom-report')
+             ->middleware('can:activity_logs.export');
+        
+        // 檔案下載路由
+        Route::get('/download-export/{filename}', [App\Http\Controllers\Admin\ActivityController::class, 'downloadExport'])
+             ->name('download-export')
+             ->where('filename', '[a-zA-Z0-9_\-\.]+')
+             ->middleware('can:activity_logs.export');
+        
+        // AJAX API 路由
+        Route::post('/search', [App\Http\Controllers\Admin\ActivityController::class, 'search'])
+             ->name('search')
+             ->middleware('can:activity_logs.view');
+        
+        Route::post('/bulk-action', [App\Http\Controllers\Admin\ActivityController::class, 'bulkAction'])
+             ->name('bulk-action')
+             ->middleware('can:activity_logs.delete');
     });
     
     // 個人資料和帳號管理路由

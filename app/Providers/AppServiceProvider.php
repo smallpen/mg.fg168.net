@@ -35,6 +35,18 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\ActivityRepositoryInterface::class,
             \App\Repositories\ActivityRepository::class
         );
+        
+        $this->app->bind(
+            \App\Repositories\ActivityRepositoryInterface::class,
+            \App\Repositories\ActivityRepository::class
+        );
+
+        // 註冊活動記錄相關服務
+        $this->app->singleton(\App\Services\ActivityBackupService::class);
+        $this->app->singleton(\App\Services\ActivityIntegrityService::class);
+        $this->app->singleton(\App\Services\ActivityLogger::class);
+        $this->app->singleton(\App\Services\SensitiveDataFilter::class);
+        $this->app->singleton(\App\Services\ActivitySecurityService::class);
     }
 
     /**
@@ -60,6 +72,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Permission::observe(\App\Observers\PermissionObserver::class);
         \App\Models\Permission::observe(\App\Observers\PermissionSecurityObserver::class);
         \App\Models\Setting::observe(\App\Observers\SettingObserver::class);
+        \App\Models\Activity::observe(\App\Observers\ActivitySecurityObserver::class);
     }
 
     /**

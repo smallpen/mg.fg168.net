@@ -21,7 +21,28 @@ return [
         'users' => 'User Management',
         'roles' => 'Role Management',
         'permissions' => 'Permission Management',
+        'activities' => 'Activity Logs',
         'settings' => 'System Settings',
+    ],
+
+    // Activity logs menu
+    'activities' => [
+        'title' => 'Activity Logs',
+        'description' => 'Monitor system usage and security status',
+        'list' => 'Activity List',
+        'security' => 'Security Monitor',
+        'stats' => 'Statistics',
+        'monitor' => 'Live Monitor',
+        'export' => 'Export Logs',
+        'loading' => 'Loading activity logs...',
+        'monitoring' => 'Monitoring',
+        'real_time_monitor' => 'Real-time Monitor',
+        'processing' => 'Processing...',
+        'export_advanced' => 'Advanced Export',
+        'export_quick' => 'Quick Export',
+        'export_multi_format' => 'Multi-format, Batch',
+        'export_current_filter' => 'Current Filter',
+        'statistics_analysis' => 'Statistics Analysis',
     ],
 
     // Dashboard
@@ -39,6 +60,69 @@ return [
 
     // User management
     'users' => [
+        'title' => 'User Management',
+        'description' => 'Manage system users, roles, and permissions',
+        'user' => 'User',
+        'role' => 'Role',
+        'roles' => 'Roles',
+        'status' => 'Status',
+        'actions' => 'Actions',
+        'create_user' => 'Create User',
+        'edit_user' => 'Edit User',
+        'delete_user' => 'Delete User',
+        'view_user' => 'View User',
+        'search' => 'Search Users',
+        'search_placeholder' => 'Search username, name or email...',
+        'no_users_found' => 'No users found',
+        'total_users' => 'Total Users',
+        'active_users' => 'Active Users',
+        'inactive_users' => 'Inactive Users',
+        'recent_users' => 'Recent Users',
+        'role_assignment' => 'Role Assignment',
+        'username' => 'Username',
+        'name' => 'Name',
+        'email' => 'Email',
+        'created_at' => 'Created At',
+        'active' => 'Active',
+        'inactive' => 'Inactive',
+        'view' => 'View',
+        'edit' => 'Edit',
+        'delete' => 'Delete',
+        'loading' => 'Loading...',
+        
+        // Filter options
+        'filter_by_role' => 'Filter by Role',
+        'filter_by_status' => 'Filter by Status',
+        'all_roles' => 'All Roles',
+        'all_status' => 'All Status',
+        'clear_filters' => 'Clear Filters',
+        
+        // Bulk operations
+        'selected_users' => ':count users selected',
+        'bulk_activate' => 'Bulk Activate',
+        'bulk_deactivate' => 'Bulk Deactivate',
+        'cancel_selection' => 'Cancel Selection',
+        'bulk_activate_success' => 'Successfully activated :count users',
+        'bulk_deactivate_success' => 'Successfully deactivated :count users',
+        'bulk_operation_failed' => 'Bulk operation failed',
+        'cannot_disable_self' => 'You cannot disable your own account',
+        'cannot_bulk_deactivate_super_admin' => 'Cannot bulk deactivate super admin',
+        'user_activated' => 'User activated',
+        'user_deactivated' => 'User deactivated',
+        'user_not_found' => 'User not found',
+        'delete_failed' => 'Delete failed',
+        'user_deleted_permanently' => 'User :username has been permanently deleted',
+        
+        // Pages and operations
+        'list' => 'User List',
+        'create' => 'Create User',
+        'statistics' => 'Statistics',
+        'show_details' => 'Show Details',
+        'refresh' => 'Refresh',
+    ],
+
+    // Legacy users section (keeping for compatibility)
+    'users_legacy' => [
         'title' => 'User Management',
         'list' => 'User List',
         'create' => 'Create User',
@@ -311,6 +395,13 @@ return [
         'backups' => 'Backup Management',
     ],
 
+    // User menu
+    'user_menu' => [
+        'profile' => 'Profile',
+        'settings' => 'Settings',
+        'logout' => 'Logout',
+    ],
+
     // Theme and language
     'theme' => [
         'title' => 'Theme Settings',
@@ -327,6 +418,16 @@ return [
         'en' => 'English',
         'unsupported' => 'Unsupported language',
         'switched' => 'Language switched to :language',
+        'switching' => 'Switching language...',
+        'please_wait' => 'Please wait, the page will reload shortly',
+        'confirm_switch_title' => 'Confirm Language Switch',
+        'confirm_switch_message' => 'Are you sure you want to switch the language? The page will reload to apply the new language settings.',
+        'from' => 'From',
+        'to' => 'To',
+        'switch_success' => 'Language switched successfully',
+        'switch_cancelled' => 'Language switch cancelled',
+        'switch_error' => 'Language switch failed',
+        'keyboard_shortcut' => 'Shortcut: Alt + L',
     ],
 
     'settings_page' => [

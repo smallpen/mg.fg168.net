@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use App\Helpers\LocalizationHelper;
 use App\Services\LanguageService;
+use App\Services\LanguageFallbackHandler;
 use Carbon\Carbon;
 
 /**
@@ -24,6 +25,14 @@ class LocalizationServiceProvider extends ServiceProvider
         $this->app->singleton(LanguageService::class, function ($app) {
             return new LanguageService();
         });
+        
+        // 註冊語言回退處理器為單例
+        $this->app->singleton(LanguageFallbackHandler::class, function ($app) {
+            return new LanguageFallbackHandler();
+        });
+        
+        // 註冊語言回退處理器的別名
+        $this->app->alias(LanguageFallbackHandler::class, 'language.fallback');
     }
 
     /**

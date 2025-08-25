@@ -3,10 +3,10 @@
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                {{ __('admin.permissions.test.title') }}
+                {{ __('permissions.test.title') }}
             </h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                {{ __('admin.permissions.test.description') }}
+                {{ __('permissions.test.description') }}
             </p>
         </div>
         
@@ -19,7 +19,7 @@
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    {{ __('admin.permissions.test.export_report') }}
+                    {{ __('permissions.test.export_report') }}
                 </button>
                 
                 <button 
@@ -29,7 +29,7 @@
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{ __('admin.permissions.test.clear_results') }}
+                    {{ __('permissions.test.clear_results') }}
                 </button>
             </div>
         @endif
@@ -39,7 +39,7 @@
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                {{ __('admin.permissions.test.test_configuration') }}
+                {{ __('permissions.test.test_configuration') }}
             </h3>
         </div>
         
@@ -47,13 +47,13 @@
             {{-- 測試模式選擇 --}}
             <div>
                 <label class="text-base font-medium text-gray-900 dark:text-white">
-                    {{ __('admin.permissions.test.test_mode') }}
+                    {{ __('permissions.test.test_mode') }}
                 </label>
                 <p class="text-sm leading-5 text-gray-500 dark:text-gray-400">
-                    {{ __('admin.permissions.test.test_mode_description') }}
+                    {{ __('permissions.test.test_mode_description') }}
                 </p>
                 <fieldset class="mt-4">
-                    <legend class="sr-only">{{ __('admin.permissions.test.test_mode') }}</legend>
+                    <legend class="sr-only">{{ __('permissions.test.test_mode') }}</legend>
                     <div class="space-y-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-10">
                         <div class="flex items-center">
                             <input 
@@ -65,7 +65,7 @@
                                 class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600"
                             >
                             <label for="test-mode-user" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {{ __('admin.permissions.test.user_permission') }}
+                                {{ __('permissions.test.user_permission') }}
                             </label>
                         </div>
                         <div class="flex items-center">
@@ -78,7 +78,7 @@
                                 class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600"
                             >
                             <label for="test-mode-role" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {{ __('admin.permissions.test.role_permission') }}
+                                {{ __('permissions.test.role_permission') }}
                             </label>
                         </div>
                     </div>
@@ -90,14 +90,14 @@
                 <div>
                     @if($testMode === 'user')
                         <label for="selectedUserId" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {{ __('admin.permissions.test.select_user') }}
+                            {{ __('permissions.test.select_user') }}
                         </label>
                         <select 
                             id="selectedUserId"
                             wire:model="selectedUserId"
                             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
-                            <option value="0">{{ __('admin.permissions.test.choose_user') }}</option>
+                            <option value="0">{{ __('permissions.test.choose_user') }}</option>
                             @foreach($this->users as $user)
                                 <option value="{{ $user['id'] }}">{{ $user['display_name'] }}</option>
                             @endforeach
@@ -107,17 +107,17 @@
                         @enderror
                     @else
                         <label for="selectedRoleId" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {{ __('admin.permissions.test.select_role') }}
+                            {{ __('permissions.test.select_role') }}
                         </label>
                         <select 
                             id="selectedRoleId"
                             wire:model="selectedRoleId"
                             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
-                            <option value="0">{{ __('admin.permissions.test.choose_role') }}</option>
+                            <option value="0">{{ __('permissions.test.choose_role') }}</option>
                             @foreach($this->roles as $role)
                                 <option value="{{ $role['id'] }}">
-                                    {{ $role['display_name'] }} ({{ $role['user_count'] }} {{ __('admin.permissions.test.users') }})
+                                    {{ $role['display_name'] }} ({{ $role['user_count'] }} {{ __('permissions.test.users') }})
                                 </option>
                             @endforeach
                         </select>
@@ -130,14 +130,14 @@
                 {{-- 權限選擇 --}}
                 <div>
                     <label for="permissionToTest" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {{ __('admin.permissions.test.select_permission') }}
+                        {{ __('permissions.test.select_permission') }}
                     </label>
                     <select 
                         id="permissionToTest"
                         wire:model="permissionToTest"
                         class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     >
-                        <option value="">{{ __('admin.permissions.test.choose_permission') }}</option>
+                        <option value="">{{ __('permissions.test.choose_permission') }}</option>
                         @foreach($this->permissions as $moduleData)
                             <optgroup label="{{ $moduleData['module'] }}">
                                 @foreach($moduleData['permissions'] as $permission)
@@ -168,7 +168,7 @@
                     <svg wire:loading.remove wire:target="{{ $testMode === 'user' ? 'testUserPermission' : 'testRolePermission' }}" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    {{ __('admin.permissions.test.run_test') }}
+                    {{ __('permissions.test.run_test') }}
                 </button>
             </div>
 
@@ -195,10 +195,10 @@
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                        {{ __('admin.permissions.test.test_results') }}
+                        {{ __('permissions.test.test_results') }}
                     </h3>
                     <span class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ __('admin.permissions.test.tested_at') }}: {{ $testResults['tested_at'] }}
+                        {{ __('permissions.test.tested_at') }}: {{ $testResults['tested_at'] }}
                     </span>
                 </div>
             </div>
@@ -233,7 +233,7 @@
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div>
                         <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                            {{ $testResults['type'] === 'user' ? __('admin.permissions.test.tested_user') : __('admin.permissions.test.tested_role') }}
+                            {{ $testResults['type'] === 'user' ? __('permissions.test.tested_user') : __('permissions.test.tested_role') }}
                         </h5>
                         <div class="bg-gray-50 dark:bg-gray-700 rounded-md p-3">
                             <p class="text-sm font-medium text-gray-900 dark:text-white">
@@ -241,14 +241,14 @@
                             </p>
                             @if($testResults['type'] === 'user')
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ __('admin.permissions.test.username') }}: {{ $testResults['subject']['username'] }}
+                                    {{ __('permissions.test.username') }}: {{ $testResults['subject']['username'] }}
                                 </p>
                             @else
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ __('admin.permissions.test.system_name') }}: {{ $testResults['subject']['system_name'] }}
+                                    {{ __('permissions.test.system_name') }}: {{ $testResults['subject']['system_name'] }}
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ __('admin.permissions.test.user_count') }}: {{ $testResults['subject']['user_count'] }}
+                                    {{ __('permissions.test.user_count') }}: {{ $testResults['subject']['user_count'] }}
                                 </p>
                             @endif
                         </div>
@@ -256,18 +256,18 @@
 
                     <div>
                         <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                            {{ __('admin.permissions.test.tested_permission') }}
+                            {{ __('permissions.test.tested_permission') }}
                         </h5>
                         <div class="bg-gray-50 dark:bg-gray-700 rounded-md p-3">
                             <p class="text-sm font-medium text-gray-900 dark:text-white">
                                 {{ $testResults['permission']['display_name'] }}
                             </p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">
-                                {{ __('admin.permissions.test.system_name') }}: {{ $testResults['permission']['name'] }}
+                                {{ __('permissions.test.system_name') }}: {{ $testResults['permission']['name'] }}
                             </p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">
-                                {{ __('admin.permissions.test.module') }}: {{ $testResults['permission']['module'] }} | 
-                                {{ __('admin.permissions.test.type') }}: {{ $testResults['permission']['type'] }}
+                                {{ __('permissions.test.module') }}: {{ $testResults['permission']['module'] }} | 
+                                {{ __('permissions.test.type') }}: {{ $testResults['permission']['type'] }}
                             </p>
                         </div>
                     </div>
@@ -278,13 +278,13 @@
                     <div class="mt-6">
                         <div class="flex items-center justify-between mb-4">
                             <h5 class="text-sm font-medium text-gray-900 dark:text-white">
-                                {{ __('admin.permissions.test.permission_path') }}
+                                {{ __('permissions.test.permission_path') }}
                             </h5>
                             <button 
                                 wire:click="toggleDetailedPath"
                                 class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
                             >
-                                {{ $showDetailedPath ? __('admin.permissions.test.hide_details') : __('admin.permissions.test.show_details') }}
+                                {{ $showDetailedPath ? __('permissions.test.hide_details') : __('permissions.test.show_details') }}
                             </button>
                         </div>
 
@@ -312,7 +312,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                                 </svg>
                                                 <span class="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {{ __('admin.permissions.test.through_role') }}: {{ $userPath['role_name'] }}
+                                                    {{ __('permissions.test.through_role') }}: {{ $userPath['role_name'] }}
                                                 </span>
                                             </div>
                                             
@@ -323,9 +323,9 @@
                                                             <span class="font-medium">{{ ucfirst($rolePath['type']) }}:</span>
                                                             {{ $rolePath['permission_display_name'] }}
                                                             @if($rolePath['type'] === 'inherited')
-                                                                ({{ __('admin.permissions.test.from_parent') }}: {{ $rolePath['parent_role_name'] }})
+                                                                ({{ __('permissions.test.from_parent') }}: {{ $rolePath['parent_role_name'] }})
                                                             @elseif($rolePath['type'] === 'dependency')
-                                                                ({{ __('admin.permissions.test.via_dependency') }}: {{ $rolePath['dependency_display_name'] }})
+                                                                ({{ __('permissions.test.via_dependency') }}: {{ $rolePath['dependency_display_name'] }})
                                                             @endif
                                                         </div>
                                                     @endforeach
@@ -343,21 +343,21 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                 </svg>
                                                 <span class="text-sm text-green-700 dark:text-green-300">
-                                                    {{ __('admin.permissions.test.direct_assignment') }}
+                                                    {{ __('permissions.test.direct_assignment') }}
                                                 </span>
                                             @elseif($rolePath['type'] === 'inherited')
                                                 <svg class="h-4 w-4 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                                                 </svg>
                                                 <span class="text-sm text-blue-700 dark:text-blue-300">
-                                                    {{ __('admin.permissions.test.inherited_from') }}: {{ $rolePath['parent_role_name'] }}
+                                                    {{ __('permissions.test.inherited_from') }}: {{ $rolePath['parent_role_name'] }}
                                                 </span>
                                             @elseif($rolePath['type'] === 'dependency')
                                                 <svg class="h-4 w-4 text-purple-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                 </svg>
                                                 <span class="text-sm text-purple-700 dark:text-purple-300">
-                                                    {{ __('admin.permissions.test.via_dependency') }}: {{ $rolePath['dependency_display_name'] }}
+                                                    {{ __('permissions.test.via_dependency') }}: {{ $rolePath['dependency_display_name'] }}
                                                 </span>
                                             @endif
                                         </div>

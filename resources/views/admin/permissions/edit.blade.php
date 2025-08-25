@@ -1,20 +1,18 @@
 @extends('layouts.admin')
 
-@section('title', __('admin.permissions.edit', ['default' => '編輯權限']) . ': ' . $permission->display_name)
-@section('page-title', __('admin.permissions.edit', ['default' => '編輯權限']) . ': ' . $permission->display_name)
+@section('title', __('permissions.titles.edit_permission', ['default' => '編輯權限']) . ': ' . $permission->display_name)
 
 @section('content')
-<x-admin.layout.admin-layout :breadcrumbs="$breadcrumbs ?? []">
     <div class="space-y-6">
         
         <!-- 頁面標題 -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ __('admin.permissions.edit', ['default' => '編輯權限']) }}
+                    {{ __('permissions.titles.edit_permission', ['default' => '編輯權限']) }}
                 </h1>
                 <p class="text-gray-600 dark:text-gray-400 mt-1">
-                    {{ __('admin.permissions.edit_description', ['default' => '修改權限資訊和配置']) }}
+                    {{ __('permissions.form.edit_title', ['default' => '修改權限資訊和配置']) }}
                 </p>
                 
                 <!-- 權限基本資訊 -->
@@ -132,7 +130,7 @@
         @endif
         
     </div>
-</x-admin.layout.admin-layout>
+@endsection
 
 @push('scripts')
 <script>
@@ -282,4 +280,4 @@
     }
 </style>
 @endpush
-@endsection
+</x-admin.layout.admin-layout>

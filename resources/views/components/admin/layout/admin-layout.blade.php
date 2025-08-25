@@ -119,11 +119,56 @@
                         @can('permissions.view')
                             <a href="{{ route('admin.permissions.index') }}" 
                                class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.permissions.*') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
-                                {{ __('admin.permissions.title', ['default' => '權限管理']) }}
+                                {{ __('permissions.titles.permission_management', ['default' => '權限管理']) }}
                             </a>
                         @endcan
                     </div>
                 </div>
+                
+                <!-- 活動記錄 -->
+                @can('activity_logs.view')
+                <div x-data="{ open: {{ request()->routeIs('admin.activities.*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open" 
+                            class="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-150">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            {{ __('admin.navigation.activities') }}
+                        </div>
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    
+                    <div x-show="open" x-transition class="ml-8 mt-2 space-y-1">
+                        <a href="{{ route('admin.activities.index') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.activities.index') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            {{ __('admin.activities.list') }}
+                        </a>
+                        @can('system.logs')
+                            <a href="{{ route('admin.activities.security') }}" 
+                               class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.activities.security') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                                {{ __('admin.activities.security') }}
+                            </a>
+                            <a href="{{ route('admin.activities.stats') }}" 
+                               class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.activities.stats') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                                {{ __('admin.activities.stats') }}
+                            </a>
+                            <a href="{{ route('admin.activities.monitor') }}" 
+                               class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.activities.monitor') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                                {{ __('admin.activities.monitor') }}
+                            </a>
+                        @endcan
+                        @can('activity_logs.export')
+                            <a href="{{ route('admin.activities.export') }}" 
+                               class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.activities.export') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                                {{ __('admin.activities.export') }}
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+                @endcan
                 
                 <!-- 系統設定 -->
                 <div x-data="{ open: {{ request()->routeIs('admin.settings.*') ? 'true' : 'false' }} }">
@@ -280,13 +325,13 @@
                              x-transition:leave-end="transform opacity-0 scale-95"
                              class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                             <div class="py-1">
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">個人資料</a>
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">設定</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('admin.user_menu.profile') }}</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{{ __('admin.user_menu.settings') }}</a>
                                 <div class="border-t border-gray-100 dark:border-gray-700"></div>
                                 <form method="POST" action="{{ route('admin.logout') }}">
                                     @csrf
                                     <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        登出
+                                        {{ __('admin.user_menu.logout') }}
                                     </button>
                                 </form>
                             </div>

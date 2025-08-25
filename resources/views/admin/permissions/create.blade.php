@@ -1,20 +1,18 @@
 @extends('layouts.admin')
 
-@section('title', __('admin.permissions.create', ['default' => '建立權限']))
-@section('page-title', __('admin.permissions.create', ['default' => '建立權限']))
+@section('title', __('permissions.titles.create_permission', ['default' => '建立權限']))
 
 @section('content')
-<x-admin.layout.admin-layout :breadcrumbs="$breadcrumbs ?? []">
     <div class="space-y-6">
         
         <!-- 頁面標題 -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ __('admin.permissions.create', ['default' => '建立權限']) }}
+                    {{ __('permissions.titles.create_permission', ['default' => '建立權限']) }}
                 </h1>
                 <p class="text-gray-600 dark:text-gray-400 mt-1">
-                    {{ __('admin.permissions.create_description', ['default' => '建立新的系統權限，定義功能模組的存取控制']) }}
+                    {{ __('permissions.form.create_title', ['default' => '建立新的系統權限，定義功能模組的存取控制']) }}
                 </p>
             </div>
             
@@ -36,7 +34,7 @@
         </div>
         
     </div>
-</x-admin.layout.admin-layout>
+@endsection
 
 @push('scripts')
 <script>
@@ -163,4 +161,4 @@
     }
 </style>
 @endpush
-@endsection
+</x-admin.layout.admin-layout>

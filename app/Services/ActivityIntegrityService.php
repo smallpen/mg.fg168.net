@@ -266,11 +266,12 @@ class ActivityIntegrityService
     {
         return $this->prepareDataForSignature([
             'type' => $activity->type,
+            'event' => $activity->event,
             'description' => $activity->description,
+            'module' => $activity->module,
+            'user_id' => $activity->user_id,
             'subject_type' => $activity->subject_type,
             'subject_id' => $activity->subject_id,
-            'causer_type' => $activity->user_id ? 'App\\Models\\User' : null,
-            'causer_id' => $activity->user_id,
             'properties' => $activity->properties,
             'ip_address' => $activity->ip_address,
             'user_agent' => $activity->user_agent,

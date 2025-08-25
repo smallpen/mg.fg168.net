@@ -33,7 +33,7 @@
                 <!-- 表單標題 -->
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                        {{ $mode === 'create' ? __('admin.permissions.form.create_title') : __('admin.permissions.form.edit_title') }}
+                        {{ $mode === 'create' ? __('permissions.form.create_title') : __('permissions.form.edit_title') }}
                     </h3>
                     <button type="button" 
                             wire:click="cancel"
@@ -50,37 +50,37 @@
                     <!-- 權限名稱 -->
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {{ __('admin.permissions.form.name_label') }} <span class="text-red-500">*</span>
+                            {{ __('permissions.form.name_label') }} <span class="text-red-500">*</span>
                         </label>
                         <input type="text" 
                                id="name"
                                wire:model.live="name"
                                @if($isSystemPermission && $mode === 'edit') readonly @endif
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm @if($isSystemPermission && $mode === 'edit') bg-gray-100 dark:bg-gray-600 @endif"
-                               placeholder="{{ __('admin.permissions.form.name_placeholder') }}">
+                               placeholder="{{ __('permissions.form.name_placeholder') }}">
                         @error('name')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                         @if($isSystemPermission && $mode === 'edit')
                             <p class="mt-1 text-sm text-yellow-600 dark:text-yellow-400">
-                                {{ __('admin.permissions.form.system_permission_name_readonly') }}
+                                {{ __('permissions.form.system_permission_name_readonly') }}
                             </p>
                         @endif
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            {{ __('admin.permissions.form.name_help') }}
+                            {{ __('permissions.form.name_help') }}
                         </p>
                     </div>
 
                     <!-- 顯示名稱 -->
                     <div>
                         <label for="display_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {{ __('admin.permissions.form.display_name_label') }} <span class="text-red-500">*</span>
+                            {{ __('permissions.form.display_name_label') }} <span class="text-red-500">*</span>
                         </label>
                         <input type="text" 
                                id="display_name"
                                wire:model.live="display_name"
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
-                               placeholder="{{ __('admin.permissions.form.display_name_placeholder') }}">
+                               placeholder="{{ __('permissions.form.display_name_placeholder') }}">
                         @error('display_name')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
@@ -89,13 +89,13 @@
                     <!-- 描述 -->
                     <div>
                         <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {{ __('admin.permissions.form.description_label') }}
+                            {{ __('permissions.form.description_label') }}
                         </label>
                         <textarea id="description"
                                   wire:model.live="description"
                                   rows="3"
                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
-                                  placeholder="{{ __('admin.permissions.form.description_placeholder') }}"></textarea>
+                                  placeholder="{{ __('permissions.form.description_placeholder') }}"></textarea>
                         @error('description')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
@@ -106,13 +106,13 @@
                         <!-- 模組 -->
                         <div>
                             <label for="module" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {{ __('admin.permissions.form.module_label') }} <span class="text-red-500">*</span>
+                                {{ __('permissions.form.module_label') }} <span class="text-red-500">*</span>
                             </label>
                             <select id="module"
                                     wire:model.live="module"
                                     @if($isSystemPermission && $mode === 'edit') disabled @endif
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm @if($isSystemPermission && $mode === 'edit') bg-gray-100 dark:bg-gray-600 @endif">
-                                <option value="">{{ __('admin.permissions.form.module_placeholder') }}</option>
+                                <option value="">{{ __('permissions.form.module_placeholder') }}</option>
                                 @foreach($availableModules as $key => $label)
                                     <option value="{{ $key }}">{{ $label }}</option>
                                 @endforeach
@@ -122,7 +122,7 @@
                             @enderror
                             @if($isSystemPermission && $mode === 'edit')
                                 <p class="mt-1 text-sm text-yellow-600 dark:text-yellow-400">
-                                    {{ __('admin.permissions.form.system_permission_module_readonly') }}
+                                    {{ __('permissions.form.system_permission_module_readonly') }}
                                 </p>
                             @endif
                         </div>
@@ -130,12 +130,12 @@
                         <!-- 類型 -->
                         <div>
                             <label for="type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {{ __('admin.permissions.form.type_label') }} <span class="text-red-500">*</span>
+                                {{ __('permissions.form.type_label') }} <span class="text-red-500">*</span>
                             </label>
                             <select id="type"
                                     wire:model.live="type"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
-                                <option value="">{{ __('admin.permissions.form.type_placeholder') }}</option>
+                                <option value="">{{ __('permissions.form.type_placeholder') }}</option>
                                 @foreach($availableTypes as $key => $label)
                                     <option value="{{ $key }}">{{ $label }}</option>
                                 @endforeach
@@ -149,16 +149,16 @@
                     <!-- 依賴權限 -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                            {{ __('admin.permissions.form.dependencies_label') }}
+                            {{ __('permissions.form.dependencies_label') }}
                         </label>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                            {{ __('admin.permissions.form.dependencies_help') }}
+                            {{ __('permissions.form.dependencies_help') }}
                         </p>
                         
                         <!-- 已選擇的依賴權限 -->
                         @if(!empty($dependencies))
                             <div class="mb-4">
-                                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('admin.permissions.dependencies.depends_on') }}：</h4>
+                                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('permissions.dependencies.depends_on') }}：</h4>
                                 <div class="space-y-2">
                                     @foreach($dependencies as $dependencyId)
                                         @php $depInfo = $this->getDependencyInfo($dependencyId); @endphp
@@ -221,7 +221,7 @@
                                 @endforeach
                             @else
                                 <div class="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                    {{ __('admin.permissions.dependencies.no_dependencies') }}
+                                    {{ __('permissions.dependencies.no_dependencies') }}
                                 </div>
                             @endif
                         </div>
@@ -236,19 +236,19 @@
                         <button type="button"
                                 wire:click="cancel"
                                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
-                            {{ __('admin.permissions.form.cancel') }}
+                            {{ __('permissions.form.cancel') }}
                         </button>
                         <button type="submit"
                                 wire:loading.attr="disabled"
                                 wire:target="save"
                                 class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span wire:loading.remove wire:target="save">{{ __('admin.permissions.form.save') }}</span>
+                            <span wire:loading.remove wire:target="save">{{ __('permissions.form.save') }}</span>
                             <span wire:loading wire:target="save" class="flex items-center">
                                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                {{ __('admin.permissions.form.saving') }}
+                                {{ __('permissions.form.saving') }}
                             </span>
                         </button>
                     </div>

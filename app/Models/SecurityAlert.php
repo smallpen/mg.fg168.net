@@ -2,60 +2,42 @@
 
 namespace App\Models;
 
+use App\Models\Activity;
+use App\Models\MonitorRule;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
 
-/**
- * 安全警報模型
- * 記錄系統檢測到的安全事件和警報
- */
 class SecurityAlert extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'activity_id',
+        'rule_id',
         'type',
         'severity',
         'title',
         'description',
-        'rule_id',
         'acknowledged_at',
-        'acknowledged_by'
+        'acknowledged_by',
+        'escalated_at',
+        'escalated_by',
+        'resolved_at',
+        'resolved_by',
+        'metadata'
     ];
 
     protected $casts = [
         'acknowledged_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'escalated_at' => 'datetime',
+        'resolved_at' => 'datetime',
+        'metadata' => 'json'
     ];
 
     /**
-     * 嚴重性等級定義
-     */
-    const SEVERITY_LEVELS = [
-        'low' => '低',
-        'medium' => '中',
-        'high' => '高',
-        'critical' => '嚴重'
-    ];
-
-    /**
-     * 嚴重性顏色對應
-     */
-    const SEVERITY_COLORS = [
-        'low' => 'green',
-        'medium' => 'yellow',
-        'high' => 'orange',
-        'critical' => 'red'
-    ];
-
-    // ==================== 關聯關係 ====================
-
-    /**
-     * 關聯的活動記錄
+     * 關聯：相關的活動記錄
      */
     public function activity(): BelongsTo
     {
@@ -63,7 +45,15 @@ class SecurityAlert extends Model
     }
 
     /**
-     * 確認警報的使用者
+     * 關聯：觸發的監控規則
+     */
+    public function rule(): BelongsTo
+    {
+        return $this->belongsTo(MonitorRule::class);
+    }
+
+    /**
+     * 關聯：確認警報的使用者
      */
     public function acknowledgedBy(): BelongsTo
     {
@@ -71,17 +61,23 @@ class SecurityAlert extends Model
     }
 
     /**
-     * 觸發警報的監控規則
+     * 關聯：升級警報的使用者
      */
-    public function rule(): BelongsTo
+    public function escalatedBy(): BelongsTo
     {
-        return $this->belongsTo(MonitorRule::class, 'rule_id');
+        return $this->belongsTo(User::class, 'escalated_by');
     }
 
-    // ==================== 計算屬性 ====================
+    /**
+     * 關聯：解決警報的使用者
+     */
+    public function resolvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'resolved_by');
+    }
 
     /**
-     * 檢查警報是否已確認
+     * 計算屬性：是否已確認
      */
     public function getIsAcknowledgedAttribute(): bool
     {
@@ -89,147 +85,181 @@ class SecurityAlert extends Model
     }
 
     /**
-     * 獲取嚴重性顏色
+     * 計算屬性：是否已升級
+     */
+    public function getIsEscalatedAttribute(): bool
+    {
+        return !is_null($this->escalated_at);
+    }
+
+    /**
+     * 計算屬性：是否已解決
+     */
+    public function getIsResolvedAttribute(): bool
+    {
+        return !is_null($this->resolved_at);
+    }
+
+    /**
+     * 計算屬性：嚴重程度顏色
      */
     public function getSeverityColorAttribute(): string
     {
-        return self::SEVERITY_COLORS[$this->severity] ?? 'gray';
+        return match ($this->severity) {
+            'low' => 'green',
+            'medium' => 'yellow',
+            'high' => 'red',
+            'critical' => 'purple',
+            default => 'gray',
+        };
     }
 
     /**
-     * 獲取嚴重性文字
+     * 計算屬性：嚴重程度文字
      */
     public function getSeverityTextAttribute(): string
     {
-        return self::SEVERITY_LEVELS[$this->severity] ?? '未知';
+        return match ($this->severity) {
+            'low' => '低',
+            'medium' => '中',
+            'high' => '高',
+            'critical' => '嚴重',
+            default => '未知',
+        };
     }
 
     /**
-     * 獲取警報年齡（多久前建立）
+     * 計算屬性：狀態文字
      */
-    public function getAgeAttribute(): string
+    public function getStatusTextAttribute(): string
     {
-        return $this->created_at->diffForHumans();
+        if ($this->is_resolved) {
+            return '已解決';
+        }
+        
+        if ($this->is_escalated) {
+            return '已升級';
+        }
+        
+        if ($this->is_acknowledged) {
+            return '已確認';
+        }
+        
+        return '待處理';
     }
 
     /**
-     * 檢查是否為新警報（24小時內）
+     * 計算屬性：狀態顏色
      */
-    public function getIsNewAttribute(): bool
+    public function getStatusColorAttribute(): string
     {
-        return $this->created_at->isAfter(now()->subDay());
+        if ($this->is_resolved) {
+            return 'green';
+        }
+        
+        if ($this->is_escalated) {
+            return 'purple';
+        }
+        
+        if ($this->is_acknowledged) {
+            return 'blue';
+        }
+        
+        return 'red';
     }
-
-    /**
-     * 檢查是否為過期警報（超過7天未處理）
-     */
-    public function getIsOverdueAttribute(): bool
-    {
-        return !$this->is_acknowledged && $this->created_at->isBefore(now()->subWeek());
-    }
-
-    // ==================== 操作方法 ====================
 
     /**
      * 確認警報
-     *
-     * @param User $user
-     * @param string|null $note
-     * @return void
      */
-    public function acknowledge(User $user, ?string $note = null): void
+    public function acknowledge(User $user): void
     {
         $this->update([
             'acknowledged_at' => now(),
             'acknowledged_by' => $user->id,
         ]);
 
-        // 如果有備註，可以記錄到活動日誌中
-        if ($note) {
-            activity()
-                ->performedOn($this)
-                ->causedBy($user)
-                ->withProperties(['note' => $note])
-                ->log('security_alert_acknowledged');
-        }
-
-        // 觸發警報確認事件
-        event('security-alert-acknowledged', [
-            'alert' => $this,
-            'user' => $user,
-            'note' => $note
-        ]);
-    }
-
-    /**
-     * 升級警報嚴重性
-     *
-     * @param string $newSeverity
-     * @param User $user
-     * @param string|null $reason
-     * @return void
-     */
-    public function escalate(string $newSeverity, User $user, ?string $reason = null): void
-    {
-        $oldSeverity = $this->severity;
-        
-        $this->update([
-            'severity' => $newSeverity
-        ]);
-
-        // 記錄升級操作
+        // 記錄確認動作
         activity()
-            ->performedOn($this)
             ->causedBy($user)
+            ->performedOn($this)
             ->withProperties([
-                'old_severity' => $oldSeverity,
-                'new_severity' => $newSeverity,
-                'reason' => $reason
+                'alert_id' => $this->id,
+                'alert_title' => $this->title,
+                'alert_severity' => $this->severity,
             ])
-            ->log('security_alert_escalated');
-
-        // 觸發警報升級事件
-        event('security-alert-escalated', [
-            'alert' => $this,
-            'user' => $user,
-            'old_severity' => $oldSeverity,
-            'new_severity' => $newSeverity,
-            'reason' => $reason
-        ]);
+            ->log("確認安全警報：{$this->title}");
     }
 
     /**
-     * 關閉警報（標記為已解決）
-     *
-     * @param User $user
-     * @param string|null $resolution
-     * @return void
+     * 升級警報
      */
-    public function resolve(User $user, ?string $resolution = null): void
+    public function escalate(User $user, string $reason = ''): void
     {
-        if (!$this->is_acknowledged) {
-            $this->acknowledge($user);
-        }
-
-        // 記錄解決操作
-        activity()
-            ->performedOn($this)
-            ->causedBy($user)
-            ->withProperties(['resolution' => $resolution])
-            ->log('security_alert_resolved');
-
-        // 觸發警報解決事件
-        event('security-alert-resolved', [
-            'alert' => $this,
-            'user' => $user,
-            'resolution' => $resolution
+        $this->update([
+            'escalated_at' => now(),
+            'escalated_by' => $user->id,
+            'metadata' => array_merge($this->metadata ?? [], [
+                'escalation_reason' => $reason,
+                'escalated_from_severity' => $this->severity,
+            ]),
+            'severity' => $this->getNextSeverityLevel(),
         ]);
+
+        // 記錄升級動作
+        activity()
+            ->causedBy($user)
+            ->performedOn($this)
+            ->withProperties([
+                'alert_id' => $this->id,
+                'alert_title' => $this->title,
+                'old_severity' => $this->metadata['escalated_from_severity'] ?? $this->severity,
+                'new_severity' => $this->severity,
+                'reason' => $reason,
+            ])
+            ->log("升級安全警報：{$this->title}");
     }
 
-    // ==================== 查詢範圍 ====================
+    /**
+     * 解決警報
+     */
+    public function resolve(User $user, string $resolution = ''): void
+    {
+        $this->update([
+            'resolved_at' => now(),
+            'resolved_by' => $user->id,
+            'metadata' => array_merge($this->metadata ?? [], [
+                'resolution' => $resolution,
+            ]),
+        ]);
+
+        // 記錄解決動作
+        activity()
+            ->causedBy($user)
+            ->performedOn($this)
+            ->withProperties([
+                'alert_id' => $this->id,
+                'alert_title' => $this->title,
+                'resolution' => $resolution,
+            ])
+            ->log("解決安全警報：{$this->title}");
+    }
 
     /**
-     * 未確認的警報
+     * 取得下一個嚴重程度等級
+     */
+    protected function getNextSeverityLevel(): string
+    {
+        return match ($this->severity) {
+            'low' => 'medium',
+            'medium' => 'high',
+            'high' => 'critical',
+            'critical' => 'critical', // 已經是最高等級
+            default => 'medium',
+        };
+    }
+
+    /**
+     * 範圍查詢：未確認的警報
      */
     public function scopeUnacknowledged($query)
     {
@@ -237,7 +267,7 @@ class SecurityAlert extends Model
     }
 
     /**
-     * 已確認的警報
+     * 範圍查詢：已確認的警報
      */
     public function scopeAcknowledged($query)
     {
@@ -245,7 +275,23 @@ class SecurityAlert extends Model
     }
 
     /**
-     * 按嚴重性篩選
+     * 範圍查詢：未解決的警報
+     */
+    public function scopeUnresolved($query)
+    {
+        return $query->whereNull('resolved_at');
+    }
+
+    /**
+     * 範圍查詢：已解決的警報
+     */
+    public function scopeResolved($query)
+    {
+        return $query->whereNotNull('resolved_at');
+    }
+
+    /**
+     * 範圍查詢：依嚴重程度篩選
      */
     public function scopeBySeverity($query, string $severity)
     {
@@ -253,7 +299,7 @@ class SecurityAlert extends Model
     }
 
     /**
-     * 高嚴重性警報（高和嚴重）
+     * 範圍查詢：高嚴重程度警報
      */
     public function scopeHighSeverity($query)
     {
@@ -261,7 +307,7 @@ class SecurityAlert extends Model
     }
 
     /**
-     * 最近的警報
+     * 範圍查詢：最近的警報
      */
     public function scopeRecent($query, int $hours = 24)
     {
@@ -269,16 +315,7 @@ class SecurityAlert extends Model
     }
 
     /**
-     * 過期的警報
-     */
-    public function scopeOverdue($query, int $days = 7)
-    {
-        return $query->whereNull('acknowledged_at')
-            ->where('created_at', '<=', now()->subDays($days));
-    }
-
-    /**
-     * 按類型篩選
+     * 範圍查詢：依類型篩選
      */
     public function scopeByType($query, string $type)
     {
@@ -286,73 +323,61 @@ class SecurityAlert extends Model
     }
 
     /**
-     * 按時間範圍篩選
+     * 取得警報統計資料
      */
-    public function scopeInTimeRange($query, Carbon $from, Carbon $to)
+    public static function getStatistics(int $days = 7): array
     {
-        return $query->whereBetween('created_at', [$from, $to]);
-    }
+        $startDate = now()->subDays($days);
 
-    // ==================== 靜態方法 ====================
-
-    /**
-     * 獲取警報統計
-     */
-    public static function getStatistics(int $days = 30): array
-    {
-        $from = now()->subDays($days);
-        
         return [
-            'total' => static::where('created_at', '>=', $from)->count(),
-            'unacknowledged' => static::unacknowledged()->where('created_at', '>=', $from)->count(),
-            'high_severity' => static::highSeverity()->where('created_at', '>=', $from)->count(),
-            'by_severity' => static::where('created_at', '>=', $from)
+            'total' => static::where('created_at', '>=', $startDate)->count(),
+            'unacknowledged' => static::unacknowledged()
+                ->where('created_at', '>=', $startDate)
+                ->count(),
+            'high_severity' => static::highSeverity()
+                ->where('created_at', '>=', $startDate)
+                ->count(),
+            'resolved' => static::resolved()
+                ->where('created_at', '>=', $startDate)
+                ->count(),
+            'by_severity' => static::where('created_at', '>=', $startDate)
                 ->selectRaw('severity, COUNT(*) as count')
                 ->groupBy('severity')
                 ->pluck('count', 'severity')
                 ->toArray(),
-            'by_type' => static::where('created_at', '>=', $from)
+            'by_type' => static::where('created_at', '>=', $startDate)
                 ->selectRaw('type, COUNT(*) as count')
                 ->groupBy('type')
-                ->orderByDesc('count')
                 ->pluck('count', 'type')
                 ->toArray(),
-            'daily_trend' => static::where('created_at', '>=', $from)
-                ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
-                ->groupBy('date')
-                ->orderBy('date')
-                ->pluck('count', 'date')
-                ->toArray()
         ];
     }
 
     /**
-     * 清理舊警報
+     * 取得警報趨勢資料
      */
-    public static function cleanup(int $daysToKeep = 90): int
+    public static function getTrendData(int $days = 7): array
     {
-        $cutoffDate = now()->subDays($daysToKeep);
-        
-        return static::where('created_at', '<', $cutoffDate)
-            ->where('acknowledged_at', '<', $cutoffDate)
-            ->delete();
-    }
+        $data = [];
+        $startDate = now()->subDays($days);
 
-    /**
-     * 獲取需要關注的警報
-     */
-    public static function getAlertsNeedingAttention(): Collection
-    {
-        return static::query()
-            ->with(['activity', 'acknowledgedBy'])
-            ->where(function ($query) {
-                $query->whereIn('severity', ['high', 'critical'])
-                    ->orWhere(function ($subQuery) {
-                        $subQuery->whereNull('acknowledged_at')
-                            ->where('created_at', '<=', now()->subHours(4));
-                    });
-            })
-            ->orderByDesc('created_at')
-            ->get();
+        for ($i = 0; $i < $days; $i++) {
+            $date = $startDate->copy()->addDays($i);
+            $dayStart = $date->startOfDay();
+            $dayEnd = $date->endOfDay();
+
+            $data[] = [
+                'date' => $date->format('Y-m-d'),
+                'total' => static::whereBetween('created_at', [$dayStart, $dayEnd])->count(),
+                'high_severity' => static::highSeverity()
+                    ->whereBetween('created_at', [$dayStart, $dayEnd])
+                    ->count(),
+                'resolved' => static::resolved()
+                    ->whereBetween('created_at', [$dayStart, $dayEnd])
+                    ->count(),
+            ];
+        }
+
+        return $data;
     }
 }

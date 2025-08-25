@@ -37,6 +37,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\LanguagePerformanceMiddleware::class,
             \App\Http\Middleware\ApplyBasicSettings::class,
             \App\Http\Middleware\ActivityLoggingMiddleware::class,
         ],
@@ -56,6 +57,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\LanguagePerformanceMiddleware::class,
             \App\Http\Middleware\ApplyBasicSettings::class,
             \App\Http\Middleware\ApplySecuritySettings::class,
             \App\Http\Middleware\Authenticate::class,
@@ -95,6 +97,10 @@ class Kernel extends HttpKernel
         'settings.access' => \App\Http\Middleware\SettingsAccessControl::class,
         'settings.performance' => \App\Http\Middleware\SettingsPerformanceMonitor::class,
         'activity.logging' => \App\Http\Middleware\ActivityLoggingMiddleware::class,
+        'activity.access' => \App\Http\Middleware\ActivityLogAccessControl::class,
         'api.activity.logging' => \App\Http\Middleware\ApiActivityLoggingMiddleware::class,
+        'api_auth' => \App\Http\Middleware\ApiAuthentication::class,
+        'api_rate_limit' => \App\Http\Middleware\ApiRateLimit::class,
+        'language.performance' => \App\Http\Middleware\LanguagePerformanceMiddleware::class,
     ];
 }

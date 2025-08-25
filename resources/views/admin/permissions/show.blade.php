@@ -1,10 +1,8 @@
 @extends('layouts.admin')
 
-@section('title', $permission->display_name . ' - ' . __('admin.permissions.title', ['default' => '權限管理']))
-@section('page-title', $permission->display_name)
+@section('title', $permission->display_name . ' - ' . __('permissions.titles.permission_management', ['default' => '權限管理']))
 
 @section('content')
-<x-admin.layout.admin-layout :breadcrumbs="$breadcrumbs ?? []">
     <div class="space-y-6">
         
         <!-- 頁面標題和操作 -->
@@ -14,7 +12,7 @@
                     {{ $permission->display_name }}
                 </h1>
                 <p class="text-gray-600 dark:text-gray-400 mt-1">
-                    {{ $permission->description ?: __('admin.permissions.no_description', ['default' => '無描述']) }}
+                    {{ $permission->description ?: __('permissions.empty.no_description', ['default' => '無描述']) }}
                 </p>
                 
                 <!-- 權限基本資訊標籤 -->
@@ -266,7 +264,7 @@
         </div>
         
     </div>
-</x-admin.layout.admin-layout>
+@endsection
 
 @push('scripts')
 <script>
@@ -435,4 +433,4 @@
     }
 </style>
 @endpush
-@endsection
+</x-admin.layout.admin-layout>

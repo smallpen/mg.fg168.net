@@ -47,10 +47,10 @@ use Illuminate\Support\Facades\Route;
                  x-transition:leave-start="opacity-100 transform translate-x-0"
                  x-transition:leave-end="opacity-0 transform translate-x-2">
                 <h1 class="text-lg font-bold text-white truncate tracking-wide">
-                    {{ config('app.name', '管理系統') }}
+                    {{ config('app.name', __('admin.title')) }}
                 </h1>
                 <div class="text-xs text-primary-200 opacity-75">
-                    管理控制台
+                    {{ __('layout.sidebar.dashboard') }}
                 </div>
             </div>
         </div>
@@ -81,7 +81,7 @@ use Illuminate\Support\Facades\Route;
         <div class="relative group">
             <input type="text" 
                    wire:model.live.debounce.300ms="menuSearch"
-                   placeholder="搜尋選單..."
+                   placeholder="{{ __('layout.sidebar.search_menu') }}"
                    class="search-input w-full pl-10 pr-10 py-2.5 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 hover:shadow-md"
                    x-data="{ focused: false }"
                    @focus="focused = true"
@@ -128,7 +128,7 @@ use Illuminate\Support\Facades\Route;
                 <svg class="w-3 h-3 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
                 </svg>
-                搜尋中...
+                {{ __('layout.loading.searching') }}
             </div>
         @endif
         </div>
@@ -155,7 +155,7 @@ use Illuminate\Support\Facades\Route;
                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
                         </svg>
-                        搜尋結果
+                        {{ __('layout.search.results_count', ['count' => count($searchResults)]) }}
                     </span>
                     <span class="px-2 py-1 text-xs bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 rounded-full">
                         {{ count($searchResults) }}
@@ -211,8 +211,8 @@ use Illuminate\Support\Facades\Route;
                         <svg class="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        <p class="text-sm font-medium">找不到相關選單</p>
-                        <p class="text-xs mt-1">請嘗試其他關鍵字</p>
+                        <p class="text-sm font-medium">{{ __('layout.search.no_results') }}</p>
+                        <p class="text-xs mt-1">{{ __('layout.search.no_results_description') }}</p>
                     </div>
                 @endif
             </div>

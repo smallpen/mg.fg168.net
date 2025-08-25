@@ -49,7 +49,7 @@ class PermissionController extends Controller
         // 準備麵包屑導航
         $breadcrumbs = [
             ['name' => __('admin.navigation.dashboard'), 'url' => route('admin.dashboard')],
-            ['name' => __('admin.permissions.title', ['default' => '權限管理']), 'url' => null],
+            ['name' => __('permissions.titles.permission_management', ['default' => '權限管理']), 'url' => null],
         ];
         
         return view('admin.permissions.index', compact('breadcrumbs'));
@@ -75,8 +75,8 @@ class PermissionController extends Controller
         // 準備麵包屑導航
         $breadcrumbs = [
             ['name' => __('admin.navigation.dashboard'), 'url' => route('admin.dashboard')],
-            ['name' => __('admin.permissions.title', ['default' => '權限管理']), 'url' => route('admin.permissions.index')],
-            ['name' => __('admin.permissions.create', ['default' => '建立權限']), 'url' => null],
+            ['name' => __('permissions.titles.permission_management', ['default' => '權限管理']), 'url' => route('admin.permissions.index')],
+            ['name' => __('permissions.titles.create_permission', ['default' => '建立權限']), 'url' => null],
         ];
         
         return view('admin.permissions.create', compact('breadcrumbs'));
@@ -114,8 +114,8 @@ class PermissionController extends Controller
         // 準備麵包屑導航
         $breadcrumbs = [
             ['name' => __('admin.navigation.dashboard'), 'url' => route('admin.dashboard')],
-            ['name' => __('admin.permissions.title', ['default' => '權限管理']), 'url' => route('admin.permissions.index')],
-            ['name' => __('admin.permissions.edit', ['default' => '編輯權限']) . ': ' . $permission->display_name, 'url' => null],
+            ['name' => __('permissions.titles.permission_management', ['default' => '權限管理']), 'url' => route('admin.permissions.index')],
+            ['name' => __('permissions.titles.edit_permission', ['default' => '編輯權限']) . ': ' . $permission->display_name, 'url' => null],
         ];
         
         return view('admin.permissions.edit', compact('permission', 'breadcrumbs'));
@@ -141,8 +141,8 @@ class PermissionController extends Controller
         // 準備麵包屑導航
         $breadcrumbs = [
             ['name' => __('admin.navigation.dashboard'), 'url' => route('admin.dashboard')],
-            ['name' => __('admin.permissions.title', ['default' => '權限管理']), 'url' => route('admin.permissions.index')],
-            ['name' => __('admin.permissions.matrix', ['default' => '權限矩陣']), 'url' => null],
+            ['name' => __('permissions.titles.permission_management', ['default' => '權限管理']), 'url' => route('admin.permissions.index')],
+            ['name' => __('permissions.titles.permission_matrix', ['default' => '權限矩陣']), 'url' => null],
         ];
         
         return view('admin.permissions.matrix', compact('breadcrumbs'));
@@ -183,8 +183,8 @@ class PermissionController extends Controller
         // 準備麵包屑導航
         $breadcrumbs = [
             ['name' => __('admin.navigation.dashboard'), 'url' => route('admin.dashboard')],
-            ['name' => __('admin.permissions.title', ['default' => '權限管理']), 'url' => route('admin.permissions.index')],
-            ['name' => '權限依賴關係圖表', 'url' => null],
+            ['name' => __('permissions.titles.permission_management', ['default' => '權限管理']), 'url' => route('admin.permissions.index')],
+            ['name' => __('permissions.titles.dependency_graph', ['default' => '權限依賴關係圖表']), 'url' => null],
         ];
         
         return view('admin.permissions.dependencies', compact('selectedPermissionId', 'selectedPermission', 'breadcrumbs'));
@@ -213,7 +213,7 @@ class PermissionController extends Controller
         // 準備麵包屑導航
         $breadcrumbs = [
             ['name' => __('admin.navigation.dashboard'), 'url' => route('admin.dashboard')],
-            ['name' => __('admin.permissions.title', ['default' => '權限管理']), 'url' => route('admin.permissions.index')],
+            ['name' => __('permissions.titles.permission_management', ['default' => '權限管理']), 'url' => route('admin.permissions.index')],
             ['name' => $permission->display_name, 'url' => null],
         ];
         

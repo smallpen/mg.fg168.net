@@ -8,6 +8,9 @@
 
 @push('scripts')
 <script>
+    // 即時更新和自動重新整理
+    let autoRefreshInterval = null;
+    
     // 處理檔案下載
     document.addEventListener('livewire:init', () => {
         Livewire.on('download-file', (event) => {
@@ -98,6 +101,120 @@
                 }, 300);
             }, timeout);
         });
+
+        // 監聽即時監控狀態變化
+        Livewire.on('real-time-mode-changed', (event) => {
+            const isEnabled = event.enabled;
+            
+            if (isEnabled) {
+                // 開啟自動重新整理（每30秒）
+                autoRefreshInterval = setInterval(() => {
+                    Livewire.dispatch('refresh-activities');
+                }, 30000);
+                
+                // 顯示即時監控指示器
+                showRealTimeIndicator();
+            } else {
+                // 關閉自動重新整理
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                
+                // 隱藏即時監控指示器
+                hideRealTimeIndicator();
+            }
+        });
+
+        // 無限滾動支援
+        let isLoadingMore = false;
+        
+        function handleInfiniteScroll() {
+            if (isLoadingMore) return;
+            
+            const scrollPosition = window.innerHeight + window.scrollY;
+            const documentHeight = document.documentElement.offsetHeight;
+            
+            // 當滾動到距離底部200px時觸發載入
+            if (scrollPosition >= documentHeight - 200) {
+                isLoadingMore = true;
+                Livewire.dispatch('load-more-activities');
+                
+                setTimeout(() => {
+                    isLoadingMore = false;
+                }, 1000);
+            }
+        }
+        
+        // 監聽滾動事件（節流處理）
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            scrollTimeout = setTimeout(handleInfiniteScroll, 100);
+        });
+
+        // 鍵盤快捷鍵支援
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + R: 重新整理
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                Livewire.dispatch('refresh-activities');
+            }
+            
+            // Ctrl/Cmd + F: 聚焦搜尋框
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                const searchInput = document.querySelector('input[wire\\:model\\.live\\.debounce\\.300ms="search"]');
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }
+            
+            // Escape: 清除篩選
+            if (e.key === 'Escape') {
+                Livewire.dispatch('clear-all-filters');
+            }
+        });
+    });
+
+    // 顯示即時監控指示器
+    function showRealTimeIndicator() {
+        const indicator = document.createElement('div');
+        indicator.id = 'real-time-indicator';
+        indicator.className = 'fixed top-4 left-4 z-50 flex items-center px-3 py-2 bg-green-500 text-white text-sm rounded-lg shadow-lg';
+        indicator.innerHTML = `
+            <div class="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
+            <span>即時監控中</span>
+        `;
+        document.body.appendChild(indicator);
+    }
+
+    // 隱藏即時監控指示器
+    function hideRealTimeIndicator() {
+        const indicator = document.getElementById('real-time-indicator');
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+
+    // 頁面可見性變化處理
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            // 頁面隱藏時暫停自動重新整理
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+        } else {
+            // 頁面顯示時恢復自動重新整理（如果即時監控開啟）
+            const realTimeButton = document.querySelector('[wire\\:click="toggleRealTime"]');
+            if (realTimeButton && realTimeButton.textContent.includes('監控中')) {
+                autoRefreshInterval = setInterval(() => {
+                    Livewire.dispatch('refresh-activities');
+                }, 30000);
+            }
+        }
     });
 </script>
 @endpush

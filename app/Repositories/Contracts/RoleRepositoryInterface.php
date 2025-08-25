@@ -4,7 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Models\Role;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
  * 角色資料存取層介面

@@ -209,25 +209,25 @@ class PermissionForm extends Component
     {
         // 預定義模組選項
         $this->availableModules = [
-            'users' => __('admin.permissions.modules.users'),
-            'roles' => __('admin.permissions.modules.roles'),
-            'permissions' => __('admin.permissions.modules.permissions'),
-            'dashboard' => __('admin.permissions.modules.dashboard'),
-            'system' => __('admin.permissions.modules.system'),
-            'reports' => __('admin.permissions.modules.reports'),
-            'settings' => __('admin.permissions.modules.settings'),
-            'audit' => __('admin.permissions.modules.audit'),
-            'monitoring' => __('admin.permissions.modules.monitoring'),
-            'security' => __('admin.permissions.modules.security'),
+            'users' => __('permissions.modules.users'),
+            'roles' => __('permissions.modules.roles'),
+            'permissions' => __('permissions.modules.permissions'),
+            'dashboard' => __('permissions.modules.dashboard'),
+            'system' => __('permissions.modules.system'),
+            'reports' => __('permissions.modules.reports'),
+            'settings' => __('permissions.modules.settings'),
+            'audit' => __('permissions.modules.audit'),
+            'monitoring' => __('permissions.modules.monitoring'),
+            'security' => __('permissions.modules.security'),
         ];
 
         // 預定義類型選項
         $this->availableTypes = [
-            'view' => __('admin.permissions.type_view'),
-            'create' => __('admin.permissions.type_create'),
-            'edit' => __('admin.permissions.type_edit'),
-            'delete' => __('admin.permissions.type_delete'),
-            'manage' => __('admin.permissions.type_manage'),
+            'view' => __('permissions.types.view'),
+            'create' => __('permissions.types.create'),
+            'edit' => __('permissions.types.edit'),
+            'delete' => __('permissions.types.delete'),
+            'manage' => __('permissions.types.manage'),
         ];
     }
 

@@ -21,7 +21,7 @@
                     <ol class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
                         <li>
                             <a href="{{ route('admin.dashboard') }}" class="hover:text-gray-700 dark:hover:text-gray-300">
-                                管理後台
+                                {{ __('admin.title') }}
                             </a>
                         </li>
                         @if(!request()->routeIs('admin.dashboard'))
@@ -77,11 +77,11 @@
                         <!-- 通知標題 -->
                         <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">通知</h3>
+                                <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ __('layout.topnav.notifications') }}</h3>
                                 @if($unreadNotificationCount > 0)
                                     <button wire:click="markAllNotificationsAsRead" 
                                             class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300">
-                                        全部標記為已讀
+                                        {{ __('layout.topnav.mark_all_read') }}
                                     </button>
                                 @endif
                             </div>
