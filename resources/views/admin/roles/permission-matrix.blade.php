@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', __('admin.roles.permission_matrix.title'))
-@section('page-title', $role ? __('admin.roles.permission_matrix.role_title', ['role' => $role->display_name]) : __('admin.roles.permission_matrix.title'))
 
 @push('styles')
 <style>

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ActivityIndexRequest;
 use App\Http\Resources\ActivityResource;
 use App\Http\Resources\ActivityCollection;
-use App\Repositories\ActivityRepositoryInterface;
+use App\Repositories\Contracts\ActivityRepositoryInterface;
 use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

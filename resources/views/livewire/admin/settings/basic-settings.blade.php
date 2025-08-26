@@ -1,12 +1,8 @@
-<div class="space-y-6">
+<div class="px-4 py-5 sm:p-6 space-y-6">
     {{-- 頁面標頭 --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ __('settings.categories.basic.name') }}</h1>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                {{ __('settings.categories.basic.description') }}
-            </p>
-        </div>
+    {{-- 移除頁面級標題，遵循 UI 設計標準 --}}
+    <div class="flex justify-end">
+        <div class="flex items-center space-x-3">
         
         <div class="flex flex-wrap items-center gap-2">
             {{-- 變更狀態指示 --}}

@@ -9,18 +9,9 @@
         </div>
     </div>
 
-    {{-- 頁面標題和操作按鈕 --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ __('活動記錄') }}
-            </h1>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ __('監控系統使用情況和安全狀態') }}
-            </p>
-        </div>
-        
-        <div class="mt-4 sm:mt-0 flex space-x-3">
+    {{-- 操作按鈕 --}}
+    <div class="flex justify-end">
+        <div class="flex items-center space-x-3">
             {{-- 即時監控切換 --}}
             <button 
                 wire:click="toggleRealTime"

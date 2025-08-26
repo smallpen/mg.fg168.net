@@ -36,22 +36,22 @@ class BladeServiceProvider extends ServiceProvider
     {
         // 日期時間格式化指令
         Blade::directive('datetime', function ($expression) {
-            return "<?php echo \App\Helpers\DateTimeHelper::format($expression); ?>";
+            return "<?php echo \App\Helpers\DateTimeHelper::formatDateTime($expression); ?>";
         });
 
         // 相對時間指令
         Blade::directive('timeago', function ($expression) {
-            return "<?php echo \App\Helpers\DateTimeHelper::format($expression, 'relative'); ?>";
+            return "<?php echo \App\Helpers\DateTimeHelper::formatRelative($expression); ?>";
         });
 
         // 僅日期指令
         Blade::directive('dateonly', function ($expression) {
-            return "<?php echo \App\Helpers\DateTimeHelper::format($expression, 'date_only'); ?>";
+            return "<?php echo \App\Helpers\DateTimeHelper::formatDate($expression); ?>";
         });
 
         // 僅時間指令
         Blade::directive('timeonly', function ($expression) {
-            return "<?php echo \App\Helpers\DateTimeHelper::format($expression, 'time_only'); ?>";
+            return "<?php echo \App\Helpers\DateTimeHelper::formatTime($expression); ?>";
         });
 
         // 本地化狀態指令

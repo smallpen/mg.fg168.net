@@ -82,9 +82,9 @@ class SettingsAccessControl
         }
 
         // 檢查基本設定權限
-        if (!$user->hasPermission('settings.manage')) {
+        if (!$user->hasPermission('settings.view')) {
             $this->logSecurityEvent('insufficient_permission', $request, $user->id, [
-                'required_permission' => 'settings.manage',
+                'required_permission' => 'settings.view',
                 'user_permissions' => $user->getAllPermissions()->pluck('name')->toArray()
             ]);
             
@@ -105,7 +105,7 @@ class SettingsAccessControl
 
         // 檢查敏感設定的額外權限
         if ($this->isSensitiveSettingsRequest($request)) {
-            if (!$user->hasPermission('settings.manage_sensitive')) {
+            if (!$user->hasPermission('settings.edit')) {
                 $this->logSecurityEvent('sensitive_settings_denied', $request, $user->id, [
                     'requested_action' => $this->getRequestedAction($request)
                 ]);
@@ -424,8 +424,13 @@ class SettingsAccessControl
             abort(403, $message);
         }
 
-        return redirect()->route('admin.dashboard')
-                       ->with('error', $message);
+        // 顯示權限不足頁面而不是重定向到儀表板
+        return response()->view('admin.errors.403', [
+            'message' => $message,
+            'title' => '權限不足',
+            'description' => '您沒有足夠的權限存取此功能。如需協助，請聯繫系統管理員。',
+            'back_url' => route('admin.dashboard')
+        ], 403);
     }
 
     /**
@@ -483,16 +488,16 @@ class SettingsAccessControl
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         
-        // 對於設定頁面，添加更嚴格的 CSP
-        $response->headers->set('Content-Security-Policy', 
-            "default-src 'self'; " .
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " .
-            "style-src 'self' 'unsafe-inline'; " .
-            "img-src 'self' data: https:; " .
-            "font-src 'self'; " .
-            "connect-src 'self'; " .
-            "frame-ancestors 'none';"
-        );
+        // 對於設定頁面，添加適當的 CSP（開發環境友好）
+        $csp = "default-src 'self'; " .
+               "script-src 'self' 'unsafe-inline' 'unsafe-eval' " . (app()->environment('local') ? 'http://localhost:5173 ws://localhost:5173' : '') . "; " .
+               "style-src 'self' 'unsafe-inline' " . (app()->environment('local') ? 'http://localhost:5173' : '') . " https://fonts.bunny.net; " .
+               "img-src 'self' data: https:; " .
+               "font-src 'self' data: https://fonts.bunny.net; " .
+               "connect-src 'self' " . (app()->environment('local') ? 'http://localhost:5173 ws://localhost:5173' : '') . "; " .
+               "frame-ancestors 'none';";
+        
+        $response->headers->set('Content-Security-Policy', $csp);
 
         return $response;
     }

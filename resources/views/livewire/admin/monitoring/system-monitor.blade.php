@@ -1,14 +1,14 @@
 <div class="space-y-6">
     {{-- 頁面標題和控制項 --}}
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ __('系統監控') }}</h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400">
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">即時監控</h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {{ __('最後更新') }}: {{ $lastUpdated }}
             </p>
         </div>
         
-        <div class="flex items-center space-x-4">
+        <div class="mt-4 sm:mt-0 flex items-center space-x-4">
             {{-- 自動刷新切換 --}}
             <label class="flex items-center">
                 <input type="checkbox" 

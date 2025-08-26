@@ -3,7 +3,22 @@
 @section('title', '活動記錄')
 
 @section('content')
-    <livewire:admin.activities.activity-list />
+    <div class="space-y-6">
+        <!-- 頁面標題 -->
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    活動記錄
+                </h1>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    監控系統使用情況和安全狀態
+                </p>
+            </div>
+        </div>
+
+        <!-- 活動記錄列表 -->
+        <livewire:admin.activities.activity-list />
+    </div>
 @endsection
 
 @push('scripts')

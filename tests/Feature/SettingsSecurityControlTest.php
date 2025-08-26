@@ -36,15 +36,15 @@ class SettingsSecurityControlTest extends TestCase
         
         // 建立權限
         $settingsPermission = \App\Models\Permission::create([
-            'name' => 'settings.manage',
-            'display_name' => 'Manage Settings',
-            'description' => 'Can manage system settings',
+            'name' => 'settings.view',
+            'display_name' => 'View Settings',
+            'description' => 'Can view system settings',
         ]);
         
         $sensitivePermission = \App\Models\Permission::create([
-            'name' => 'settings.manage_sensitive',
-            'display_name' => 'Manage Sensitive Settings',
-            'description' => 'Can manage sensitive system settings',
+            'name' => 'settings.edit',
+            'display_name' => 'Edit Settings',
+            'description' => 'Can edit system settings',
         ]);
         
         $backupPermission = \App\Models\Permission::create([

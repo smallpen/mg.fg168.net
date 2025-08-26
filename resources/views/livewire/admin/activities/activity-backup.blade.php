@@ -1,13 +1,5 @@
 <div class="space-y-6">
-    <!-- 頁面標題 -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">活動記錄備份管理</h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                管理活動記錄的備份、還原和清理操作
-            </p>
-        </div>
-    </div>
+    {{-- 移除頁面級標題，遵循 UI 設計標準 --}}
 
     <!-- 分頁導航 -->
     <div class="border-b border-gray-200 dark:border-gray-700">

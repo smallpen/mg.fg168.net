@@ -1,10 +1,8 @@
 <div class="space-y-6">
     {{-- 頁面標題和操作按鈕 --}}
-    <div class="flex justify-between items-center">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">權限審計日誌</h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">檢視和管理權限相關的操作記錄</p>
-        </div>
+    {{-- 移除頁面級標題，遵循 UI 設計標準 --}}
+    <div class="flex justify-end">
+        <div class="flex items-center space-x-3">
         
         <div class="flex space-x-3">
             <button wire:click="exportLogs" 

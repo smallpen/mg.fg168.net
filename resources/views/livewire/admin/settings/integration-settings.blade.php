@@ -1,13 +1,6 @@
-<div class="space-y-6">
+<div class="px-4 py-5 sm:p-6 space-y-6">
     {{-- 頁面標題 --}}
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">整合設定管理</h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                管理第三方服務整合設定，包含社群媒體登入、雲端儲存、支付閘道等
-            </p>
-        </div>
-    </div>
+    {{-- 移除頁面級標題，遵循 UI 設計標準 --}}
 
     {{-- 成功訊息 --}}
     @if($successMessage)

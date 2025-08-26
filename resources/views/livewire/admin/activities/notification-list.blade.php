@@ -1,11 +1,9 @@
 <div class="space-y-6">
     <!-- 頁面標題和統計 -->
     <div class="bg-white shadow rounded-lg p-6">
-        <div class="flex justify-between items-center mb-4">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900">活動通知</h2>
-                <p class="text-gray-600">檢視和管理活動記錄相關的通知</p>
-            </div>
+        {{-- 移除頁面級標題，遵循 UI 設計標準 --}}
+        <div class="flex justify-end mb-4">
+            <div class="flex items-center space-x-3">
             <div class="flex space-x-2">
                 <button wire:click="markAllAsRead" 
                         class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm">

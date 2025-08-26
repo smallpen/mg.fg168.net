@@ -3,7 +3,20 @@
 @section('title', '自訂統計報告')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <livewire:admin.activities.custom-report-builder />
-</div>
+    <div class="space-y-6">
+        <!-- 頁面標題 -->
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    自訂報告
+                </h1>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    建立和管理自訂的活動統計報告
+                </p>
+            </div>
+        </div>
+
+        <!-- 自訂報告內容 -->
+        <livewire:admin.activities.custom-report-builder />
+    </div>
 @endsection

@@ -152,7 +152,7 @@ class ActivityController extends Controller
      */
     public function downloadExport(string $filename)
     {
-        $path = storage_path('app/exports/' . $filename);
+        $path = storage_path('app/exports/activities/' . $filename);
         
         if (!file_exists($path)) {
             abort(404, '檔案不存在或已過期');

@@ -309,7 +309,7 @@ class User extends Authenticatable
      */
     public function getCreatedAtRelativeAttribute(): string
     {
-        return \App\Helpers\DateTimeHelper::format($this->created_at, 'relative');
+        return \App\Helpers\DateTimeHelper::formatRelative($this->created_at);
     }
 
     /**
@@ -319,7 +319,7 @@ class User extends Authenticatable
      */
     public function getFormattedLastLoginAttribute(): string
     {
-        return \App\Helpers\DateTimeHelper::formatStatusChangeTime($this->last_login_at ?? null);
+        return $this->last_login_at ? \App\Helpers\DateTimeHelper::formatDateTime($this->last_login_at) : '從未登入';
     }
 
     /**
@@ -329,7 +329,7 @@ class User extends Authenticatable
      */
     public function getFormattedStatusChangedAtAttribute(): string
     {
-        return \App\Helpers\DateTimeHelper::formatStatusChangeTime($this->updated_at);
+        return \App\Helpers\DateTimeHelper::formatDateTime($this->updated_at);
     }
 
     /**

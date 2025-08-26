@@ -1,11 +1,9 @@
 <div class="space-y-6">
     <!-- 頁面標題和統計 -->
     <div class="bg-white shadow rounded-lg p-6">
-        <div class="flex justify-between items-center mb-4">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900">通知規則管理</h2>
-                <p class="text-gray-600">管理活動記錄的通知規則和警報設定</p>
-            </div>
+        {{-- 移除頁面級標題，遵循 UI 設計標準 --}}
+        <div class="flex justify-end mb-4">
+            <div class="flex items-center space-x-3">
             @can('activity_logs.create')
                 <button wire:click="create" 
                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">

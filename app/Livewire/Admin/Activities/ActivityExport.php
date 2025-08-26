@@ -91,6 +91,7 @@ class ActivityExport extends AdminComponent
     {
         $this->authorize('activity_logs.export');
         
+        // 初始化依賴服務
         $this->activityRepository = app(ActivityRepositoryInterface::class);
         $this->exportService = app(ActivityExportService::class);
         
@@ -98,11 +99,11 @@ class ActivityExport extends AdminComponent
         $this->dateTo = now()->format('Y-m-d');
         $this->dateFrom = now()->subDays(7)->format('Y-m-d');
         
-        // 載入匯出歷史
-        $this->loadExportHistory();
-        
         // 更新統計資訊
         $this->updateStatistics();
+        
+        // 載入匯出歷史（放在最後，確保服務已初始化）
+        $this->loadExportHistory();
     }
 
     /**
@@ -399,6 +400,11 @@ class ActivityExport extends AdminComponent
     protected function performDirectExport(array $config): void
     {
         $this->exportStatus = '正在匯出資料...';
+        
+        // 確保服務已初始化
+        if (!isset($this->exportService)) {
+            $this->exportService = app(ActivityExportService::class);
+        }
         
         $result = $this->exportService->exportDirect($config);
         

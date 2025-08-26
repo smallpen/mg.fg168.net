@@ -1153,8 +1153,9 @@ class PermissionRepository implements PermissionRepositoryInterface
     public function getAvailableModules(): Collection
     {
         return Permission::distinct()
+                        ->select('module')
                         ->orderBy('module')
-                        ->pluck('module');
+                        ->get();
     }
 
     /**
@@ -1165,7 +1166,8 @@ class PermissionRepository implements PermissionRepositoryInterface
     public function getAvailableTypes(): Collection
     {
         return Permission::distinct()
+                        ->select('type')
                         ->orderBy('type')
-                        ->pluck('type');
+                        ->get();
     }
 }

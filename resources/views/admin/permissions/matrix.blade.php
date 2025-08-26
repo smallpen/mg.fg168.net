@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', __('permissions.titles.permission_matrix', ['default' => '權限矩陣']))
-@section('page-title', __('permissions.titles.permission_matrix', ['default' => '權限矩陣']))
 
 @push('styles')
 <style>

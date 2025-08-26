@@ -202,7 +202,7 @@ class Role extends Model
      */
     public function getFormattedCreatedAtAttribute(): string
     {
-        return \App\Helpers\DateTimeHelper::formatCreatedAt($this->created_at);
+        return \App\Helpers\DateTimeHelper::formatDateTime($this->created_at);
     }
 
     /**
@@ -212,7 +212,7 @@ class Role extends Model
      */
     public function getFormattedUpdatedAtAttribute(): string
     {
-        return \App\Helpers\DateTimeHelper::formatUpdatedAt($this->updated_at);
+        return \App\Helpers\DateTimeHelper::formatDateTime($this->updated_at);
     }
 
     /**

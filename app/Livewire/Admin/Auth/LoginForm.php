@@ -103,10 +103,10 @@ class LoginForm extends Component
                     request()->session()->regenerate();
                 }
 
-                // 檢查使用者是否有管理員權限
-                if (!auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super_admin')) {
+                // 檢查使用者是否有管理後台存取權限
+                if (!auth()->user()->hasPermission('dashboard.view')) {
                     Auth::logout();
-                    logger()->warning('使用者無管理員權限', [
+                    logger()->warning('使用者無管理後台存取權限', [
                         'username' => $this->username,
                         'user_id' => auth()->id(),
                     ]);

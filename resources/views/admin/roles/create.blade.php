@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', __('admin.roles.create'))
-@section('page-title', __('admin.roles.create'))
 
 @push('styles')
 <style>

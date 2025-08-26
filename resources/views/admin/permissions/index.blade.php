@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', __('permissions.titles.permission_management'))
-@section('page-title', __('permissions.titles.permission_management'))
 
 @section('content')
 <div class="space-y-6">

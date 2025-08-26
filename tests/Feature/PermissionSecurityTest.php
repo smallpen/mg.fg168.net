@@ -196,7 +196,7 @@ class PermissionSecurityTest extends TestCase
             'users.create',
             'reports.export',
             'dashboard.view',
-            'settings.manage',
+            'settings.view',
         ];
 
         foreach ($validNames as $name) {

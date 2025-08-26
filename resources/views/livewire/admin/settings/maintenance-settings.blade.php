@@ -1,4 +1,4 @@
-<div>
+<div class="px-4 py-5 sm:p-6">
     <form wire:submit.prevent="save" class="space-y-12">
 
         {{-- 備份設定 --}}

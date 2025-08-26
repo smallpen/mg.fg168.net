@@ -1,14 +1,7 @@
 <div class="space-y-6">
-    {{-- 頁面標題和控制項 --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">活動統計分析</h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                檢視系統活動的統計資訊和趨勢分析
-            </p>
-        </div>
-        
-        <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-3">
+    {{-- 控制項 --}}
+    <div class="flex justify-end">
+        <div class="flex flex-col sm:flex-row gap-3">
             {{-- 時間範圍選擇 --}}
             <div class="flex items-center space-x-2">
                 <label for="timeRange" class="text-sm font-medium text-gray-700 dark:text-gray-300">

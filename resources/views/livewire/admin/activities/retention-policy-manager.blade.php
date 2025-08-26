@@ -1,10 +1,8 @@
 <div class="space-y-6">
     <!-- 頁面標題和操作按鈕 -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900">活動記錄保留政策管理</h2>
-            <p class="mt-1 text-sm text-gray-600">管理活動記錄的保留政策、自動清理和歸檔設定</p>
-        </div>
+    {{-- 移除頁面級標題，遵循 UI 設計標準 --}}
+    <div class="flex justify-end">
+        <div class="flex items-center space-x-3">
         <div class="mt-4 sm:mt-0 flex space-x-3">
             <button wire:click="createDefaultPolicies" 
                     class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">

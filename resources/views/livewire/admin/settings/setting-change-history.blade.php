@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="px-4 py-5 sm:p-6 space-y-6">
     {{-- 頁面標題和操作按鈕 --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>

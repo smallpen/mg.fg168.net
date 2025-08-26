@@ -172,7 +172,20 @@ class UserList extends Component
      */
     public function getFormattedDateTime($datetime, string $format = 'default'): string
     {
-        return \App\Helpers\DateTimeHelper::format($datetime, $format);
+        if (!$datetime) {
+            return '';
+        }
+        
+        switch ($format) {
+            case 'relative':
+                return \App\Helpers\DateTimeHelper::formatRelative($datetime);
+            case 'date_only':
+                return \App\Helpers\DateTimeHelper::formatDate($datetime);
+            case 'time_only':
+                return \App\Helpers\DateTimeHelper::formatTime($datetime);
+            default:
+                return \App\Helpers\DateTimeHelper::formatDateTime($datetime);
+        }
     }
 
     /**

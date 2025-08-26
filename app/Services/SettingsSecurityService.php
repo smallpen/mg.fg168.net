@@ -447,13 +447,13 @@ class SettingsSecurityService
         }
 
         // 檢查基本設定權限
-        if (!$user->hasPermission('settings.manage')) {
+        if (!$user->hasPermission('settings.view')) {
             return false;
         }
 
-        // 檢查敏感設定權限
+        // 檢查敏感設定權限（需要編輯權限）
         if ($this->shouldEncryptSetting($settingKey)) {
-            if (!$user->hasPermission('settings.manage_sensitive')) {
+            if (!$user->hasPermission('settings.edit')) {
                 return false;
             }
         }

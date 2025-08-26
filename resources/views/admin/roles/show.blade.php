@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', __('admin.roles.show.title'))
-@section('page-title', $role->display_name)
 
 @push('styles')
 <style>

@@ -1,16 +1,7 @@
 <div class="space-y-6">
-    <!-- 頁面標題和操作按鈕 -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                權限使用情況分析
-            </h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                分析權限使用統計、趨勢和未使用權限
-            </p>
-        </div>
-        
-        <div class="mt-4 sm:mt-0 flex space-x-3">
+    {{-- 移除頁面級標題，遵循 UI 設計標準 --}}
+    <div class="flex justify-end">
+        <div class="flex items-center space-x-3">
             <button 
                 wire:click="refreshAnalysis"
                 class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

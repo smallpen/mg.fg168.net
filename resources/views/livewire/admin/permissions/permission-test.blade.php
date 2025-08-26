@@ -1,14 +1,8 @@
 <div class="space-y-6">
     {{-- 頁面標題 --}}
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                {{ __('permissions.test.title') }}
-            </h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                {{ __('permissions.test.description') }}
-            </p>
-        </div>
+    {{-- 移除頁面級標題，遵循 UI 設計標準 --}}
+    <div class="flex justify-end">
+        <div class="flex items-center space-x-3">
         
         @if(!empty($testResults))
             <div class="flex space-x-2">

@@ -1,7 +1,9 @@
 <div class="max-w-7xl mx-auto">
-    <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">安全性控制中心</h2>
-        <p class="mt-1 text-sm text-gray-600">監控和管理系統安全性狀態</p>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">安全監控</h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">監控和管理系統安全性狀態</p>
+        </div>
     </div>
 
     @if($loading)

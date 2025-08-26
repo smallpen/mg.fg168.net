@@ -4,7 +4,7 @@ namespace App\Livewire\Admin\Roles;
 
 use App\Livewire\Admin\AdminComponent;
 use App\Repositories\Contracts\RoleRepositoryInterface;
-use App\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Repositories\PermissionRepositoryInterface;
 use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Support\Collection;

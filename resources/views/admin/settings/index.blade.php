@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', '系統設定')
-@section('page-title', '系統設定')
 
 @section('content')
 <div class="space-y-6">

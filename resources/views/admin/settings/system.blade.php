@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', '系統設定管理')
-@section('page-title', '系統設定管理')
 
 @push('styles')
 <style>

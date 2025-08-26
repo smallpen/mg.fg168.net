@@ -269,6 +269,60 @@ class PermissionSeeder extends Seeder
                 'description' => '可以執行安全稽核和檢查',
                 'module' => 'security'
             ],
+
+            // 匯入匯出權限
+            [
+                'name' => 'users.export',
+                'display_name' => '匯出使用者',
+                'description' => '可以匯出使用者資料',
+                'module' => 'users'
+            ],
+            [
+                'name' => 'permissions.export',
+                'display_name' => '匯出權限',
+                'description' => '可以匯出權限資料',
+                'module' => 'permissions'
+            ],
+            [
+                'name' => 'permissions.import',
+                'display_name' => '匯入權限',
+                'description' => '可以匯入權限資料',
+                'module' => 'permissions'
+            ],
+            [
+                'name' => 'permissions.manage',
+                'display_name' => '管理權限',
+                'description' => '可以進行權限的高級管理操作',
+                'module' => 'permissions'
+            ],
+
+            // 系統維護權限
+            [
+                'name' => 'maintenance.access',
+                'display_name' => '維護模式存取',
+                'description' => '可以在維護模式下存取系統',
+                'module' => 'system'
+            ],
+            [
+                'name' => 'system.permissions.manage',
+                'display_name' => '管理系統權限',
+                'description' => '可以管理系統模組的權限',
+                'module' => 'system'
+            ],
+            [
+                'name' => 'permissions.high_risk_operations',
+                'display_name' => '高風險權限操作',
+                'description' => '可以執行高風險的權限操作',
+                'module' => 'permissions'
+            ],
+
+            // 效能監控權限
+            [
+                'name' => 'admin.performance.monitor',
+                'display_name' => '效能監控',
+                'description' => '可以監控系統效能',
+                'module' => 'system'
+            ],
         ];
 
         // 建立權限記錄

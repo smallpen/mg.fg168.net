@@ -3,8 +3,6 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
-use App\Services\AuditLogService;
-use App\Services\PermissionService;
 
 /**
  * 管理後台基礎 Livewire 元件
@@ -78,8 +76,11 @@ abstract class AdminComponent extends Component
     protected function logPermissionDenied(string $permission, string $resource = ''): void
     {
         try {
-            $auditService = app(AuditLogService::class);
-            $auditService->logPermissionDenied($permission, $resource, [
+            // 簡化的權限拒絕記錄
+            logger()->warning('Permission denied', [
+                'permission' => $permission,
+                'resource' => $resource,
+                'user_id' => auth()->id(),
                 'component' => static::class,
                 'url' => request()->url(),
                 'method' => request()->method(),
@@ -100,8 +101,13 @@ abstract class AdminComponent extends Component
     protected function logUserAction(string $action, array $data = [], $targetUser = null): void
     {
         try {
-            $auditService = app(AuditLogService::class);
-            $auditService->logUserManagementAction($action, $data, $targetUser);
+            // 簡化的日誌記錄
+            logger()->info('User action logged', [
+                'action' => $action,
+                'data' => $data,
+                'user_id' => auth()->id(),
+                'target_user' => $targetUser ? $targetUser->id : null,
+            ]);
         } catch (\Exception $e) {
             logger()->error('Failed to log user action', [
                 'action' => $action,
@@ -116,12 +122,15 @@ abstract class AdminComponent extends Component
     protected function logSecurityEvent(string $event, string $severity = 'medium', array $data = []): void
     {
         try {
-            $auditService = app(AuditLogService::class);
-            $auditService->logSecurityEvent($event, $severity, array_merge($data, [
+            // 簡化的安全事件記錄
+            logger()->warning('Security event logged', [
+                'event' => $event,
+                'severity' => $severity,
+                'data' => $data,
+                'user_id' => auth()->id(),
                 'component' => static::class,
                 'url' => request()->url(),
-                'method' => request()->method(),
-            ]));
+            ]);
         } catch (\Exception $e) {
             logger()->error('Failed to log security event', [
                 'event' => $event,

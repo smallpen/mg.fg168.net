@@ -1,11 +1,7 @@
 <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-    <!-- 標題區域 -->
+    <!-- 統計資訊 -->
     <div class="px-6 py-4 border-b border-gray-200">
-        <div class="flex items-center justify-between">
-            <div>
-                <h3 class="text-lg font-medium text-gray-900">活動記錄匯出</h3>
-                <p class="mt-1 text-sm text-gray-500">匯出活動記錄為多種格式，支援大量資料批量處理</p>
-            </div>
+        <div class="flex justify-end">
             <div class="flex items-center space-x-2">
                 @if($totalRecords > 0)
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

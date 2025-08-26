@@ -63,10 +63,7 @@ class ActivityLogServiceProvider extends ServiceProvider
         // 註冊通用活動觀察者（用於其他模型）
         Permission::observe(ActivityObserver::class);
         
-        // 如果 Setting 模型存在，也註冊觀察者
-        if (class_exists(Setting::class)) {
-            Setting::observe(ActivityObserver::class);
-        }
+        // 注意：Setting 模型不使用 ActivityObserver，因為它有自己的變更記錄機制
     }
 
     /**

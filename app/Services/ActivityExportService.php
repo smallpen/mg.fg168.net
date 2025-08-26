@@ -67,7 +67,7 @@ class ActivityExportService
         return [
             'filename' => $filename,
             'file_path' => $filePath,
-            'download_url' => \Storage::disk('local')->url($filePath),
+            'download_url' => route('admin.activities.download-export', ['filename' => $filename]),
             'record_count' => $activities->count(),
             'file_size' => \Storage::disk('local')->size($filePath),
         ];
@@ -181,7 +181,7 @@ class ActivityExportService
     /**
      * 取得使用者匯出歷史
      */
-    public function getUserExportHistory(int $userId, int $limit = 10): array
+    public function getUserExportHistory(int|string $userId, int $limit = 10): array
     {
         $cacheKey = $this->getCacheKey("history_{$userId}");
         
@@ -198,7 +198,7 @@ class ActivityExportService
     /**
      * 清除使用者匯出歷史
      */
-    public function clearUserExportHistory(int $userId): void
+    public function clearUserExportHistory(int|string $userId): void
     {
         Cache::forget($this->getCacheKey("history_{$userId}"));
     }
@@ -444,7 +444,7 @@ class ActivityExportService
     /**
      * 記錄匯出歷史
      */
-    protected function recordExportHistory(int $userId, array $data): void
+    protected function recordExportHistory(int|string $userId, array $data): void
     {
         $cacheKey = $this->getCacheKey("history_{$userId}");
         $history = Cache::get($cacheKey, []);

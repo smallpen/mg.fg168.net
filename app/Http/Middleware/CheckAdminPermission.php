@@ -148,9 +148,8 @@ class CheckAdminPermission
             abort(403, $message);
         }
 
-        // 一般 HTTP 請求重新導向到儀表板並顯示錯誤訊息
-        return redirect()->route('admin.dashboard')
-                       ->with('error', $message);
+        // 一般 HTTP 請求顯示 403 錯誤頁面
+        abort(403, $message);
     }
 
     /**
@@ -216,7 +215,7 @@ class CheckAdminPermission
             'admin.roles.create' => 'roles.create',
             'admin.roles.edit' => 'roles.edit',
             'admin.permissions.index' => 'permissions.view',
-            'admin.settings.index' => 'settings.manage',
+            'admin.settings.index' => 'settings.view',
         ];
         
         return $routePermissions[$routeName] ?? null;
