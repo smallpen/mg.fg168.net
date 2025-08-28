@@ -61,8 +61,39 @@ class SystemMonitor extends Component
             // 檢查警報
             $this->monitoringService->checkAlerts($this->performanceMetrics, $this->healthStatus);
             
+            // 清除之前的錯誤訊息
+            session()->forget('system_monitor_error');
+            
+            // 強制重新渲染元件
+            $this->dispatch('$refresh');
+            
+            // 發送資料更新事件
+            $this->dispatch('system-monitor-data-updated');
+            
         } catch (\Exception $e) {
-            session()->flash('error', '監控資料更新失敗: ' . $e->getMessage());
+            // 記錄錯誤
+            \Log::error('系統監控資料更新失敗', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // 設定預設值
+            $this->healthStatus = [
+                'overall_status' => 'unknown',
+                'components' => []
+            ];
+            $this->performanceMetrics = [
+                'memory' => ['current_mb' => 0, 'peak_mb' => 0],
+                'disk' => ['usage_percent' => 0, 'free_gb' => 0, 'total_gb' => 0]
+            ];
+            $this->backupStatus = [
+                'database_count' => 0,
+                'files_count' => 0,
+                'latest_database' => null,
+                'latest_files' => null
+            ];
+            
+            session()->flash('system_monitor_error', '監控資料更新失敗: ' . $e->getMessage());
         }
     }
 
@@ -72,6 +103,12 @@ class SystemMonitor extends Component
     public function toggleAutoRefresh()
     {
         $this->autoRefresh = !$this->autoRefresh;
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('system-monitor-auto-refresh-changed', autoRefresh: $this->autoRefresh);
     }
 
     /**
@@ -80,6 +117,38 @@ class SystemMonitor extends Component
     public function setRefreshInterval(int $interval)
     {
         $this->refreshInterval = max(10, min(300, $interval)); // 限制在 10-300 秒之間
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('system-monitor-interval-changed', interval: $this->refreshInterval);
+    }
+
+    /**
+     * 當自動刷新狀態變更時觸發
+     */
+    public function updatedAutoRefresh($value)
+    {
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('system-monitor-auto-refresh-changed', autoRefresh: $value);
+    }
+
+    /**
+     * 當刷新間隔變更時觸發
+     */
+    public function updatedRefreshInterval($value)
+    {
+        $this->refreshInterval = max(10, min(300, (int)$value)); // 限制在 10-300 秒之間
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('system-monitor-interval-changed', interval: $this->refreshInterval);
     }
 
     /**

@@ -8,8 +8,7 @@
     <!-- CSS -->
     @vite(['resources/css/app.css', 'resources/css/admin-layout.css'])
     
-    <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Alpine.js 已在 app.js 中引入 -->
     
     <!-- Livewire -->
     @livewireStyles

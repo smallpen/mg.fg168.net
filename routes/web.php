@@ -91,11 +91,23 @@ Route::prefix('admin')->name('admin.')->middleware('guest')->group(function () {
     });
 });
 
-// 管理後台登出路由（保留作為備用，主要由 Livewire 元件處理）
-Route::post('/admin/logout', function () {
+// 管理後台登出路由（支援 GET 和 POST 請求）
+Route::match(['get', 'post'], '/admin/logout', function () {
+    // 記錄登出日誌
+    if (auth()->check()) {
+        logger()->info('管理員登出', [
+            'user_id' => auth()->id(),
+            'username' => auth()->user()->username,
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+    }
+    
+    // 執行登出
     auth()->logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
+    
     return redirect()->route('admin.login')->with('success', '您已成功登出');
 })->name('admin.logout');
 

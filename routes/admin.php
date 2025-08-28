@@ -407,6 +407,11 @@ if (app()->environment('local')) {
             return view('admin.test-performance');
         })->name('test-performance');
         
+        // Livewire 測試元件路由
+        Route::get('/test', function () {
+            return view('admin.test-component-page');
+        })->name('test');
+        
     });
 }
 

@@ -1,0 +1,514 @@
+<?php
+
+namespace App\Livewire\Admin\Roles;
+
+use App\Livewire\Admin\AdminComponent;
+use App\Models\Role;
+use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Services\RoleSecurityService;
+use App\Services\AuditLogService;
+use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\On;
+
+/**
+ * 角色刪除模態元件
+ * 
+ * 提供角色刪除前檢查、確認對話框和刪除操作功能
+ */
+class RoleDeleteModal extends AdminComponent
+{
+    // 模態狀態
+    public bool $showModal = false;
+    
+    // 角色資料
+    public ?Role $roleToDelete = null;
+    public int $roleId = 0;
+    
+    // 刪除檢查結果
+    public array $deleteChecks = [];
+    public bool $canDelete = false;
+    public bool $hasBlockingIssues = false;
+    
+    // 確認輸入
+    public string $confirmationText = '';
+    public bool $forceDelete = false;
+    
+    // 處理狀態
+    public bool $isProcessing = false;
+
+    protected RoleRepositoryInterface $roleRepository;
+    protected RoleSecurityService $securityService;
+    protected AuditLogService $auditLogService;
+
+    /**
+     * 元件初始化
+     */
+    public function boot(
+        RoleRepositoryInterface $roleRepository,
+        RoleSecurityService $securityService,
+        AuditLogService $auditLogService
+    ): void {
+        $this->roleRepository = $roleRepository;
+        $this->securityService = $securityService;
+        $this->auditLogService = $auditLogService;
+    }
+
+    /**
+     * 驗證規則
+     */
+    protected function rules(): array
+    {
+        return [
+            'confirmationText' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if ($this->roleToDelete && $value !== $this->roleToDelete->display_name) {
+                        $fail(__('admin.roles.errors.confirmation_mismatch'));
+                    }
+                },
+            ],
+        ];
+    }
+
+    /**
+     * 監聽刪除請求事件
+     */
+    #[On('confirm-delete')]
+    public function openModal(int $roleId): void
+    {
+        $this->openDeleteModal($roleId);
+    }
+
+    /**
+     * 開啟刪除模態
+     */
+    public function openDeleteModal(int $roleId): void
+    {
+        // 權限檢查 - 如果沒有權限會拋出 403 錯誤
+        $this->checkPermission('roles.delete');
+        
+        try {
+            $this->roleId = $roleId;
+            $this->roleToDelete = $this->roleRepository->findOrFail($roleId);
+            
+            $this->performDeleteChecks();
+            $this->resetForm();
+            $this->showModal = true;
+            
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $this->dispatch('role-delete-error', [
+                'message' => __('admin.roles.errors.role_not_found')
+            ]);
+        } catch (\Exception $e) {
+            $this->dispatch('role-delete-error', [
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * 關閉模態
+     */
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetModalState();
+    }
+
+    /**
+     * 重置表單
+     */
+    private function resetForm(): void
+    {
+        $this->confirmationText = '';
+        $this->forceDelete = false;
+        $this->isProcessing = false;
+        $this->resetErrorBag();
+    }
+
+    /**
+     * 重置模態狀態
+     */
+    private function resetModalState(): void
+    {
+        $this->roleToDelete = null;
+        $this->roleId = 0;
+        $this->deleteChecks = [];
+        $this->canDelete = false;
+        $this->hasBlockingIssues = false;
+        $this->resetForm();
+    }
+
+    /**
+     * 執行刪除前檢查
+     */
+    private function performDeleteChecks(): void
+    {
+        if (!$this->roleToDelete) {
+            return;
+        }
+
+        // 使用安全服務進行檢查
+        $securityCheck = $this->securityService->checkRoleDeletionSecurity($this->roleToDelete);
+        
+        $this->deleteChecks = [];
+        $this->hasBlockingIssues = $securityCheck['has_blocking_issues'];
+        $this->canDelete = $securityCheck['can_delete'];
+
+        // 轉換安全檢查結果為顯示格式
+        foreach ($securityCheck['issues'] as $issue) {
+            $this->deleteChecks[$issue['code']] = [
+                'status' => $issue['type'],
+                'message' => $issue['message'],
+                'details' => [],
+                'blocking' => $issue['blocking'],
+                'count' => $issue['count'] ?? 0
+            ];
+        }
+
+        // 如果沒有問題，添加成功檢查
+        if (empty($securityCheck['issues'])) {
+            $this->deleteChecks['all_clear'] = [
+                'status' => 'success',
+                'message' => '所有檢查通過，可以安全刪除',
+                'details' => [],
+                'blocking' => false,
+                'count' => 0
+            ];
+        }
+
+        // 最終判斷是否可以刪除
+        $this->canDelete = !$this->hasBlockingIssues || ($this->forceDelete && !$this->securityService->isSystemRole($this->roleToDelete));
+    }
+
+    /**
+     * 檢查系統角色
+     */
+    private function checkSystemRole(): void
+    {
+        if ($this->roleToDelete->is_system_role) {
+            $this->deleteChecks['system_role'] = [
+                'status' => 'error',
+                'message' => __('admin.roles.delete_checks.system_role_error'),
+                'details' => [],
+                'blocking' => true,
+                'count' => 0
+            ];
+            $this->hasBlockingIssues = true;
+            $this->canDelete = false;
+        } else {
+            $this->deleteChecks['system_role'] = [
+                'status' => 'success',
+                'message' => __('admin.roles.delete_checks.system_role_ok'),
+                'details' => [],
+                'blocking' => false,
+                'count' => 0
+            ];
+        }
+    }
+
+    /**
+     * 檢查使用者關聯
+     */
+    private function checkUserAssociations(): void
+    {
+        $users = $this->roleToDelete->users()->get();
+        $userCount = $users->count();
+
+        if ($userCount > 0) {
+            $userNames = $users->pluck('name')->toArray();
+            
+            $this->deleteChecks['users'] = [
+                'status' => 'error',
+                'message' => __('admin.roles.delete_checks.users_warning', ['count' => $userCount]),
+                'details' => $userNames,
+                'blocking' => true,
+                'count' => $userCount
+            ];
+            
+            $this->hasBlockingIssues = true;
+        } else {
+            $this->deleteChecks['users'] = [
+                'status' => 'success',
+                'message' => __('admin.roles.delete_checks.users_ok'),
+                'details' => [],
+                'blocking' => false,
+                'count' => 0
+            ];
+        }
+    }
+
+    /**
+     * 檢查子角色
+     */
+    private function checkChildRoles(): void
+    {
+        $children = $this->roleToDelete->children()->get();
+        $childCount = $children->count();
+
+        if ($childCount > 0) {
+            $childNames = $children->pluck('display_name')->toArray();
+            
+            $this->deleteChecks['children'] = [
+                'status' => 'warning',
+                'message' => __('admin.roles.delete_checks.children_warning', ['count' => $childCount]),
+                'details' => $childNames,
+                'blocking' => false,
+                'count' => $childCount
+            ];
+        } else {
+            $this->deleteChecks['children'] = [
+                'status' => 'success',
+                'message' => __('admin.roles.delete_checks.children_ok'),
+                'details' => [],
+                'blocking' => false,
+                'count' => 0
+            ];
+        }
+    }
+
+    /**
+     * 檢查權限依賴
+     */
+    private function checkPermissionDependencies(): void
+    {
+        $permissionCount = $this->roleToDelete->permissions()->count();
+        
+        if ($permissionCount > 0) {
+            $this->deleteChecks['permissions'] = [
+                'status' => 'info',
+                'message' => __('admin.roles.delete_checks.permissions_info', ['count' => $permissionCount]),
+                'details' => [],
+                'blocking' => false,
+                'count' => $permissionCount
+            ];
+        } else {
+            $this->deleteChecks['permissions'] = [
+                'status' => 'success',
+                'message' => __('admin.roles.delete_checks.permissions_ok'),
+                'details' => [],
+                'blocking' => false,
+                'count' => 0
+            ];
+        }
+    }
+
+    /**
+     * 確認刪除
+     */
+    public function confirmDelete(): void
+    {
+        // 先驗證確認文字
+        if (!$this->roleToDelete || $this->confirmationText !== $this->roleToDelete->display_name) {
+            $this->addError('confirmation', __('admin.roles.errors.confirmation_mismatch'));
+            return;
+        }
+        
+        if (!$this->roleToDelete) {
+            $this->addError('delete', __('admin.roles.errors.role_not_found'));
+            return;
+        }
+
+        // 檢查是否有阻塞性問題且未強制刪除
+        if ($this->hasBlockingIssues && !$this->forceDelete) {
+            $this->addError('delete', __('admin.roles.errors.blocking_issues_exist'));
+            return;
+        }
+
+        $this->isProcessing = true;
+
+        try {
+            // 執行刪除操作
+            $this->performDelete();
+            
+            // 發送成功事件
+            $this->dispatch('role-deleted', [
+                'message' => __('admin.roles.messages.deleted_successfully', [
+                    'name' => $this->roleToDelete->display_name
+                ])
+            ]);
+            
+            $this->closeModal();
+            
+        } catch (\Exception $e) {
+            $this->isProcessing = false;
+            $this->addError('delete', $e->getMessage());
+            
+            // 記錄錯誤
+            Log::error('角色刪除失敗', [
+                'role_id' => $this->roleToDelete->id,
+                'role_name' => $this->roleToDelete->name,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id()
+            ]);
+        }
+    }
+
+    /**
+     * 執行刪除操作
+     */
+    private function performDelete(): void
+    {
+        if (!$this->roleToDelete) {
+            throw new \Exception(__('admin.roles.errors.role_not_found'));
+        }
+
+        // 使用安全服務執行刪除
+        $deleteResult = $this->securityService->secureRoleDelete($this->roleToDelete, $this->forceDelete);
+        
+        if (!$deleteResult['success']) {
+            throw new \Exception($deleteResult['message'] ?? '刪除失敗');
+        }
+    }
+
+
+
+    /**
+     * 取得檢查圖示
+     */
+    public function getCheckIcon(string $status): string
+    {
+        return match ($status) {
+            'success' => 'heroicon-o-check-circle',
+            'warning' => 'heroicon-o-exclamation-triangle',
+            'error' => 'heroicon-o-x-circle',
+            default => 'heroicon-o-information-circle',
+        };
+    }
+
+    /**
+     * 取得檢查顏色
+     */
+    public function getCheckColor(string $status): string
+    {
+        return match ($status) {
+            'success' => 'text-green-500',
+            'warning' => 'text-yellow-500',
+            'error' => 'text-red-500',
+            default => 'text-blue-500',
+        };
+    }
+
+    /**
+     * 監聽強制刪除選項變更
+     */
+    public function updatedForceDelete(): void
+    {
+        $this->canDelete = !$this->hasBlockingIssues || ($this->forceDelete && !$this->roleToDelete?->is_system_role);
+    }
+
+    /**
+     * 取得確認按鈕文字
+     */
+    public function getConfirmButtonTextProperty(): string
+    {
+        if ($this->isProcessing) {
+            return __('admin.roles.actions.deleting');
+        }
+
+        return $this->forceDelete 
+            ? __('admin.roles.actions.force_delete')
+            : __('admin.roles.actions.confirm_delete');
+    }
+
+    /**
+     * 取得確認按鈕樣式
+     */
+    public function getConfirmButtonClassProperty(): string
+    {
+        $baseClass = 'px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+        
+        if (!$this->canDelete || $this->isProcessing) {
+            return $baseClass . ' bg-gray-400 cursor-not-allowed';
+        }
+
+        return $this->forceDelete 
+            ? $baseClass . ' bg-red-800 hover:bg-red-900 focus:ring-red-700'
+            : $baseClass . ' bg-red-600 hover:bg-red-700 focus:ring-red-500';
+    }
+
+    /**
+     * 檢查是否可以確認刪除
+     */
+    public function getCanConfirmProperty(): bool
+    {
+        if (!$this->roleToDelete) {
+            return false;
+        }
+
+        // 系統角色絕對不能刪除
+        if ($this->roleToDelete->is_system_role) {
+            return false;
+        }
+
+        // 確認文字必須正確
+        if ($this->confirmationText !== $this->roleToDelete->display_name) {
+            return false;
+        }
+
+        // 如果有阻塞性問題，必須勾選強制刪除
+        if ($this->hasBlockingIssues && !$this->forceDelete) {
+            return false;
+        }
+
+        return !$this->isProcessing;
+    }
+
+    /**
+     * 取得使用者列表（計算屬性）
+     */
+    public function getUserListProperty(): array
+    {
+        if (!$this->roleToDelete) {
+            return [];
+        }
+
+        return $this->roleToDelete->users()
+            ->select('users.id', 'users.name', 'users.username')
+            ->get()
+            ->toArray();
+    }
+
+    /**
+     * 取得子角色列表（計算屬性）
+     */
+    public function getChildrenListProperty(): array
+    {
+        if (!$this->roleToDelete) {
+            return [];
+        }
+
+        return $this->roleToDelete->children()
+            ->select('roles.id', 'roles.name', 'roles.display_name')
+            ->get()
+            ->toArray();
+    }
+
+    /**
+     * 取得刪除原因（計算屬性）
+     */
+    public function getDeleteReasonProperty(): string
+    {
+        if (!$this->roleToDelete) {
+            return '';
+        }
+
+        if ($this->roleToDelete->is_system_role) {
+            return '系統角色受到保護';
+        }
+
+        if ($this->roleToDelete->users()->exists()) {
+            return '角色仍有使用者關聯';
+        }
+
+        return '';
+    }
+
+    /**
+     * 渲染元件
+     */
+    public function render()
+    {
+        return view('livewire.admin.roles.role-delete-modal');
+    }
+}

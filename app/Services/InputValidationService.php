@@ -356,4 +356,45 @@ class InputValidationService
         
         return $sanitized;
     }
+
+    /**
+     * 驗證權限篩選條件
+     * 
+     * @param array $filters
+     * @return array
+     * @throws ValidationException
+     */
+    public function validatePermissionFilters(array $filters): array
+    {
+        $validator = Validator::make($filters, [
+            'search' => 'nullable|string|max:255',
+            'module' => 'nullable|string|max:50',
+            'type' => 'nullable|string|max:50',
+            'usage' => 'nullable|string|max:50',
+            'sort_field' => 'nullable|string|in:name,module,type,display_name,created_at',
+            'sort_direction' => 'nullable|string|in:asc,desc',
+            'per_page' => 'nullable|integer|min:5|max:100',
+        ], [
+            'sort_field.in' => '無效的排序欄位',
+            'sort_direction.in' => '無效的排序方向',
+            'per_page.min' => '每頁顯示數量不能少於 5 筆',
+            'per_page.max' => '每頁顯示數量不能超過 100 筆',
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        // 清理字串類型的篩選條件
+        $cleanFilters = [];
+        foreach ($filters as $key => $value) {
+            if (is_string($value)) {
+                $cleanFilters[$key] = $this->sanitizeString($value);
+            } else {
+                $cleanFilters[$key] = $value;
+            }
+        }
+
+        return $cleanFilters;
+    }
 }

@@ -132,10 +132,23 @@ class RoleSecurityMiddleware
      */
     protected function getTargetRole(Request $request): ?Role
     {
-        // 從路由參數取得角色ID
-        $roleId = $request->route('role') ?? $request->route('id') ?? $request->input('role_id');
+        // 從路由參數取得角色物件或ID
+        $role = $request->route('role');
         
-        if ($roleId) {
+        // 如果已經是 Role 物件，直接返回
+        if ($role instanceof Role) {
+            return $role;
+        }
+        
+        // 如果是 ID，查詢角色
+        if ($role && is_numeric($role)) {
+            return Role::find($role);
+        }
+        
+        // 嘗試從其他路由參數取得ID
+        $roleId = $request->route('id') ?? $request->input('role_id');
+        
+        if ($roleId && is_numeric($roleId)) {
             return Role::find($roleId);
         }
 
@@ -144,7 +157,7 @@ class RoleSecurityMiddleware
             $livewireData = json_decode($request->getContent(), true);
             $roleId = $livewireData['serverMemo']['data']['role']['id'] ?? null;
             
-            if ($roleId) {
+            if ($roleId && is_numeric($roleId)) {
                 return Role::find($roleId);
             }
         }

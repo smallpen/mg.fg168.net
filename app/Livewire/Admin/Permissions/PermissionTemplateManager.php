@@ -365,6 +365,12 @@ class PermissionTemplateManager extends Component
             ]
         ];
         $this->showTemplateForm = false;
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('permission-template-manager-reset');
     }
 
     /**
@@ -376,6 +382,12 @@ class PermissionTemplateManager extends Component
         $this->applyModulePrefix = '';
         $this->previewPermissions = [];
         $this->showApplyModal = false;
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('permission-template-apply-reset');
     }
 
     /**
@@ -389,6 +401,12 @@ class PermissionTemplateManager extends Component
         $this->templateDisplayName = '';
         $this->templateDescription = '';
         $this->showCreateFromPermissionsModal = false;
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('permission-template-create-from-permissions-reset');
     }
 
     /**

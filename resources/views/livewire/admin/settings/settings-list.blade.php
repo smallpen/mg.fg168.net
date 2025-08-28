@@ -54,7 +54,8 @@
                     <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input 
                         type="text" 
-                        wire:model.live.debounce.300ms="search"
+                        wire:model.defer="search"
+                        wire:key="settings-search-input"
                         placeholder="搜尋設定項目..."
                         class="input input-bordered w-full pl-10"
                     />
@@ -72,7 +73,7 @@
             {{-- 篩選器 --}}
             <div class="flex flex-wrap gap-2">
                 {{-- 分類篩選 --}}
-                <select wire:model.live="categoryFilter" class="select select-bordered select-sm">
+                <select wire:model.defer="categoryFilter" wire:key="category-filter-select" class="select select-bordered select-sm">
                     <option value="all">所有分類</option>
                     @foreach($this->categories as $key => $category)
                         <option value="{{ $key }}">{{ $category['name'] }}</option>
@@ -80,7 +81,7 @@
                 </select>
 
                 {{-- 類型篩選 --}}
-                <select wire:model.live="typeFilter" class="select select-bordered select-sm">
+                <select wire:model.defer="typeFilter" wire:key="type-filter-select" class="select select-bordered select-sm">
                     <option value="all">所有類型</option>
                     @foreach($this->availableTypes as $type)
                         <option value="{{ $type }}">{{ ucfirst($type) }}</option>
@@ -88,14 +89,14 @@
                 </select>
 
                 {{-- 變更狀態篩選 --}}
-                <select wire:model.live="changedFilter" class="select select-bordered select-sm">
+                <select wire:model.defer="changedFilter" wire:key="changed-filter-select" class="select select-bordered select-sm">
                     <option value="all">所有狀態</option>
                     <option value="changed">已變更</option>
                     <option value="unchanged">未變更</option>
                 </select>
 
                 {{-- 檢視模式 --}}
-                <select wire:model.live="viewMode" class="select select-bordered select-sm">
+                <select wire:model.defer="viewMode" wire:key="view-mode-select" class="select select-bordered select-sm">
                     <option value="category">分類檢視</option>
                     <option value="list">列表檢視</option>
                     <option value="tree">樹狀檢視</option>
@@ -533,3 +534,73 @@
     {{-- 設定匯入匯出元件 --}}
     <livewire:admin.settings.setting-import-export />
 </div>
+
+@script
+<script>
+    // 監聽設定列表重置事件
+    $wire.on('settings-list-reset', () => {
+        console.log('🔄 收到 settings-list-reset 事件，手動更新前端...');
+        
+        // 重置所有表單元素
+        const formElements = [
+            // 搜尋輸入框
+            'input[wire\\:key="settings-search-input"]',
+            // 下拉選單
+            'select[wire\\:key="category-filter-select"]',
+            'select[wire\\:key="type-filter-select"]',
+            'select[wire\\:key="changed-filter-select"]',
+            'select[wire\\:key="view-mode-select"]'
+        ];
+        
+        formElements.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                if (element.tagName === 'SELECT') {
+                    // 重置下拉選單為第一個選項（通常是 'all'）
+                    element.selectedIndex = 0;
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                } else if (element.type === 'text') {
+                    // 清空文字輸入框
+                    element.value = '';
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                
+                // 觸發 blur 事件確保同步
+                element.blur();
+            });
+        });
+        
+        // 延遲刷新以確保同步
+        setTimeout(() => {
+            console.log('🔄 SettingsList 延遲刷新執行');
+            $wire.$refresh();
+        }, 500);
+    });
+
+    // 為表單元素添加手動觸發事件
+    document.addEventListener('DOMContentLoaded', function() {
+        // 為所有 select 元素添加 change 事件監聽
+        const selects = document.querySelectorAll('select[wire\\:model\\.defer]');
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                this.blur();
+                setTimeout(() => $wire.$refresh(), 100);
+            });
+        });
+        
+        // 為搜尋輸入框添加事件監聽
+        const searchInput = document.querySelector('input[wire\\:key="settings-search-input"]');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    this.blur();
+                    $wire.$refresh();
+                }
+            });
+            searchInput.addEventListener('blur', function() {
+                setTimeout(() => $wire.$refresh(), 100);
+            });
+        }
+    });
+</script>
+@endscript

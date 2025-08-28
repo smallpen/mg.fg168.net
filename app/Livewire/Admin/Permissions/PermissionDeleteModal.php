@@ -3,7 +3,7 @@
 namespace App\Livewire\Admin\Permissions;
 
 use App\Models\Permission;
-use App\Repositories\PermissionRepository;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\InputValidationService;
 use App\Traits\HandlesLivewireErrors;
@@ -40,7 +40,7 @@ class PermissionDeleteModal extends Component
     // 處理狀態
     public bool $processing = false;
 
-    protected PermissionRepository $permissionRepository;
+    protected PermissionRepositoryInterface $permissionRepository;
     protected InputValidationService $validationService;
     protected AuditLogService $auditService;
 
@@ -75,7 +75,7 @@ class PermissionDeleteModal extends Component
      * 元件初始化
      */
     public function boot(
-        PermissionRepository $permissionRepository,
+        PermissionRepositoryInterface $permissionRepository,
         InputValidationService $validationService,
         AuditLogService $auditService
     ): void {
@@ -382,10 +382,19 @@ class PermissionDeleteModal extends Component
      */
     public function closeModal(): void
     {
+        // 關閉模態
         $this->showModal = false;
+        
+        // 重置表單和驗證
         $this->resetForm();
-        $this->resetModalState();
-    }
+        $this->resetValidation();
+        
+        // 強制重新渲染
+        $this->dispatch('$refresh');
+        
+        // 發送模態關閉事件
+        $this->dispatch('modal-closed');
+}
 
     /**
      * 重置表單
@@ -395,6 +404,12 @@ class PermissionDeleteModal extends Component
         $this->confirmationText = '';
         $this->processing = false;
         $this->resetErrorBag();
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('permission-delete-modal-reset');
     }
 
     /**
@@ -557,6 +572,23 @@ class PermissionDeleteModal extends Component
     /**
      * 渲染元件
      */
+    
+    /**
+     * 開啟模態並初始化狀態
+     */
+    public function openModal(): void
+    {
+        // 先重置表單確保乾淨狀態
+        $this->resetForm();
+        
+        // 開啟模態
+        $this->showModal = true;
+        
+        // 發送模態開啟事件
+        $this->dispatch('modal-opened');
+    }
+
+
     public function render()
     {
         return view('livewire.admin.permissions.permission-delete-modal');

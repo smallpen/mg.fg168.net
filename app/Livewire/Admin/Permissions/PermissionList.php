@@ -3,7 +3,7 @@
 namespace App\Livewire\Admin\Permissions;
 
 use App\Models\Permission;
-use App\Repositories\PermissionRepository;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\InputValidationService;
 use App\Traits\HandlesLivewireErrors;
@@ -48,7 +48,7 @@ class PermissionList extends Component
     public bool $selectAll = false;
     public string $bulkAction = '';
 
-    protected PermissionRepository $permissionRepository;
+    protected PermissionRepositoryInterface $permissionRepository;
     protected InputValidationService $validationService;
     protected AuditLogService $auditService;
 
@@ -56,7 +56,7 @@ class PermissionList extends Component
      * 元件初始化
      */
     public function boot(
-        PermissionRepository $permissionRepository,
+        PermissionRepositoryInterface $permissionRepository,
         InputValidationService $validationService,
         AuditLogService $auditService
     ): void {
@@ -90,7 +90,7 @@ class PermissionList extends Component
             
             return Cache::remember($cacheKey, 300, function () {
                 // 驗證和清理篩選條件
-                $filters = $this->validationService->validateFilters([
+                $filters = $this->validationService->validatePermissionFilters([
                     'search' => $this->search,
                     'module' => $this->moduleFilter,
                     'type' => $this->typeFilter,
@@ -230,13 +230,20 @@ class PermissionList extends Component
     }
 
     /**
-     * 搜尋條件更新時重置分頁
+     * 搜尋條件更新時重置分頁 - 增強版本
      */
     public function updatedSearch(): void
     {
         try {
-            // 驗證搜尋輸入
+            // 記錄搜尋操作以進行效能分析
             if (!empty($this->search)) {
+                \Log::info('🔍 Permission search performed', [
+                    'search_term' => $this->search,
+                    'search_length' => strlen($this->search),
+                    'user' => auth()->user()->username ?? 'unknown',
+                    'timestamp' => now()->toISOString()
+                ]);
+                
                 $this->search = $this->validationService->validateSearchInput($this->search);
                 
                 // 檢查是否包含惡意內容
@@ -253,10 +260,28 @@ class PermissionList extends Component
                     ]);
                     return;
                 }
+                
+                // 如果搜尋詞太短，顯示提示
+                if (strlen($this->search) < 2) {
+                    $this->dispatch('search-hint', [
+                        'message' => '請輸入至少2個字元以獲得更好的搜尋結果'
+                    ]);
+                }
+                
+                // 如果搜尋詞很長，可能需要優化
+                if (strlen($this->search) > 50) {
+                    $this->dispatch('search-warning', [
+                        'message' => '搜尋詞過長，建議使用更簡潔的關鍵字'
+                    ]);
+                }
             }
             
             $this->resetPage();
             $this->clearCache();
+            
+            // 清除之前的搜尋錯誤
+            $this->resetErrorBag('search');
+            
         } catch (ValidationException $e) {
             $this->search = '';
             $this->dispatch('show-toast', [
@@ -673,18 +698,62 @@ class PermissionList extends Component
      */
     public function resetFilters(): void
     {
+        try {
+        // 記錄篩選重置操作
+        \Log::info('🔄 resetFilters - 篩選重置開始', [
+            'timestamp' => now()->toISOString(),
+            'user' => auth()->user()->username ?? 'unknown',
+            'before_reset' => [
+                'search' => $this->search ?? '',
+                'filters' => array_filter([
+                    'status' => $this->statusFilter ?? null,
+                    'role' => $this->roleFilter ?? null,
+                ]),
+            ]
+        ]);
+        
+        // 重置所有篩選條件
         $this->search = '';
         $this->moduleFilter = 'all';
         $this->typeFilter = 'all';
         $this->usageFilter = 'all';
-        $this->sortField = 'module';
-        $this->sortDirection = 'asc';
+        $this->viewMode = '';
+        $this->expandedGroups = '';
         $this->selectedPermissions = [];
         $this->selectAll = false;
-        $this->expandedGroups = [];
+        $this->bulkAction = '';
         $this->resetPage();
-        $this->clearCache();
-    }
+        $this->resetValidation();
+        
+        // 強制重新渲染以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送篩選重置完成事件
+        $this->dispatch('resetFilters-completed');
+        
+        // 顯示成功訊息
+        $this->dispatch('show-toast', [
+            'type' => 'success',
+            'message' => '篩選條件已清除'
+        ]);
+        
+        // 記錄重置完成
+        \Log::info('✅ resetFilters - 篩選重置完成');
+
+        
+        $this->resetValidation();
+    } catch (\Exception $e) {
+            \Log::error('重置方法執行失敗', [
+                'method' => 'resetFilters',
+                'error' => $e->getMessage(),
+                'component' => static::class,
+            ]);
+            
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => '重置操作失敗，請重試'
+            ]);
+        }}
 
     /**
      * 取得權限的本地化顯示名稱
@@ -949,4 +1018,24 @@ class PermissionList extends Component
 
         return view('livewire.admin.permissions.permission-list', $data);
     }
+
+    /**
+     * statusFilter 更新時重置分頁
+     */
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+
+    /**
+     * roleFilter 更新時重置分頁
+     */
+    public function updatedRoleFilter(): void
+    {
+        $this->resetPage();
+    }
+
+
 }
+

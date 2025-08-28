@@ -643,3 +643,84 @@
         </div>
     @endif
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('livewire:init', () => {
+        // 監聽篩選清除事件
+        Livewire.on('setting-change-history-filters-cleared', () => {
+            console.log('🗑️ 設定變更歷史篩選已清除');
+            
+            // 重置所有篩選欄位的視覺狀態
+            const filterInputs = document.querySelectorAll('input[wire\\:model], select[wire\\:model]');
+            filterInputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    input.checked = false;
+                } else if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0;
+                } else {
+                    input.value = '';
+                }
+                
+                // 添加視覺反饋
+                input.style.backgroundColor = '#f0f9ff';
+                setTimeout(() => {
+                    input.style.backgroundColor = '';
+                }, 1000);
+            });
+            
+            // 顯示篩選狀態視覺指示器
+            const filterIndicators = document.querySelectorAll('.inline-flex.items-center.px-2\\.5.py-0\\.5.rounded-full');
+            filterIndicators.forEach(indicator => {
+                indicator.style.opacity = '0.5';
+                setTimeout(() => {
+                    indicator.style.opacity = '1';
+                }, 300);
+            });
+            
+            showSuccessMessage('所有篩選條件已清除');
+        });
+
+        // 監聽設定更新事件
+        Livewire.on('setting-updated', (event) => {
+            console.log('⚙️ 設定已更新:', event.settingKey);
+            showSuccessMessage(`設定 "${event.settingKey}" 已更新`);
+        });
+
+        // 監聽下載檔案事件
+        Livewire.on('download-file', (event) => {
+            console.log('📥 開始下載檔案:', event.filename);
+            
+            const blob = new Blob([event.content], { type: event.mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = event.filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showSuccessMessage('檔案下載已開始');
+        });
+    });
+
+    function showSuccessMessage(message) {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50';
+        successDiv.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>${message}</span>
+            </div>
+        `;
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            successDiv.remove();
+        }, 3000);
+    }
+</script>
+@endpush

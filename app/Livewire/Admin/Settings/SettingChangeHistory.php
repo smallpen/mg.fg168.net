@@ -283,6 +283,7 @@ class SettingChangeHistory extends AdminComponent
      */
     public function clearFilters(): void
     {
+        try {
         $this->search = '';
         $this->settingKeyFilter = '';
         $this->categoryFilter = 'all';
@@ -291,7 +292,27 @@ class SettingChangeHistory extends AdminComponent
         $this->dateTo = now()->format('Y-m-d');
         $this->importantOnly = false;
         $this->resetPage();
-    }
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('setting-change-history-filters-cleared');
+    
+        
+        $this->resetValidation();
+    } catch (\Exception $e) {
+            \Log::error('重置方法執行失敗', [
+                'method' => 'clearFilters',
+                'error' => $e->getMessage(),
+                'component' => static::class,
+            ]);
+            
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => '重置操作失敗，請重試'
+            ]);
+        }}
 
     /**
      * 設定快速日期範圍
@@ -377,7 +398,7 @@ class SettingChangeHistory extends AdminComponent
                     'setting_key' => $settingKey,
                     'old_value' => $this->selectedChange->new_value,
                     'new_value' => $oldValue,
-                    'changed_by' => auth()->id(),
+                    'changed_by' => auth()->user() ? auth()->user()->id : null,
                     'ip_address' => request()->ip(),
                     'user_agent' => request()->userAgent(),
                     'reason' => "回復到 {$this->selectedChange->created_at->format('Y-m-d H:i:s')} 的版本",
@@ -720,6 +741,42 @@ class SettingChangeHistory extends AdminComponent
     /**
      * 渲染元件
      */
+    
+    /**
+     * search 更新時重置分頁
+     */
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+
+    
+    /**
+     * statusFilter 更新時重置分頁
+     */
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+
+
+
+    
+    /**
+     * roleFilter 更新時重置分頁
+     */
+    public function updatedRoleFilter(): void
+    {
+        $this->resetPage();
+    }
+
+
+
+
+
+
     public function render()
     {
         return view('livewire.admin.settings.setting-change-history')

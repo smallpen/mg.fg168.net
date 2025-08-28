@@ -168,31 +168,80 @@ class RoleList extends AdminComponent
     }
 
     /**
-     * 取得批量操作選項（計算屬性）
+     * 取得批量操作選項（計算屬性）- 增強版本
      */
     public function getBulkActionsProperty(): array
     {
         $actions = [];
+        $selectedCount = count($this->selectedRoles);
+        
+        // 檢查選中的角色類型
+        $selectedRoles = Role::whereIn('id', $this->selectedRoles)->get();
+        $hasSystemRoles = $selectedRoles->where('is_system_role', true)->count() > 0;
+        $hasActiveRoles = $selectedRoles->where('is_active', true)->count() > 0;
+        $hasInactiveRoles = $selectedRoles->where('is_active', false)->count() > 0;
 
-        if ($this->can('roles.edit')) {
-            $actions['activate'] = __('admin.roles.bulk_actions.activate');
-            $actions['deactivate'] = __('admin.roles.bulk_actions.deactivate');
-            $actions['permissions'] = __('admin.roles.bulk_actions.permissions');
+        if ($this->can('roles.edit') && $selectedCount > 0) {
+            // 只有在有非活躍角色時才顯示啟用選項
+            if ($hasInactiveRoles) {
+                $actions['activate'] = __('admin.roles.bulk_actions.activate') . " ({$selectedRoles->where('is_active', false)->count()})";
+            }
+            
+            // 只有在有活躍的非系統角色時才顯示停用選項
+            if ($hasActiveRoles && !$hasSystemRoles) {
+                $actions['deactivate'] = __('admin.roles.bulk_actions.deactivate') . " ({$selectedRoles->where('is_active', true)->count()})";
+            }
+            
+            // 權限批量設定
+            $actions['permissions'] = __('admin.roles.bulk_actions.permissions') . " ({$selectedCount})";
+            
+            // 批量匯出
+            $actions['export'] = __('admin.roles.bulk_actions.export') . " ({$selectedCount})";
         }
 
-        if ($this->can('roles.delete')) {
-            $actions['delete'] = __('admin.roles.bulk_actions.delete');
+        if ($this->can('roles.delete') && $selectedCount > 0) {
+            // 只有在沒有系統角色時才顯示刪除選項
+            if (!$hasSystemRoles) {
+                $actions['delete'] = __('admin.roles.bulk_actions.delete') . " ({$selectedCount})";
+            }
         }
 
         return $actions;
     }
 
     /**
-     * 搜尋功能
+     * 搜尋功能 - 增強版本，包含效能優化和搜尋建議
      */
     public function updatedSearch(): void
     {
+        // 記錄搜尋操作以進行效能分析
+        if (!empty($this->search)) {
+            \Log::info('🔍 Role search performed', [
+                'search_term' => $this->search,
+                'search_length' => strlen($this->search),
+                'user' => auth()->user()->username ?? 'unknown',
+                'timestamp' => now()->toISOString()
+            ]);
+        }
+
         $this->resetPage();
+        
+        // 清除之前的搜尋錯誤
+        $this->resetErrorBag('search');
+        
+        // 如果搜尋詞太短，顯示提示
+        if (!empty($this->search) && strlen($this->search) < 2) {
+            $this->dispatch('search-hint', [
+                'message' => '請輸入至少2個字元以獲得更好的搜尋結果'
+            ]);
+        }
+        
+        // 如果搜尋詞很長，可能需要優化
+        if (strlen($this->search) > 50) {
+            $this->dispatch('search-warning', [
+                'message' => '搜尋詞過長，建議使用更簡潔的關鍵字'
+            ]);
+        }
     }
 
     /**
@@ -238,15 +287,63 @@ class RoleList extends AdminComponent
      */
     public function resetFilters(): void
     {
+        try {
+        // 記錄篩選重置操作
+        \Log::info('🔄 resetFilters - 篩選重置開始', [
+            'timestamp' => now()->toISOString(),
+            'user' => auth()->user()->username ?? 'unknown',
+            'before_reset' => [
+                'search' => $this->search ?? '',
+                'filters' => array_filter([
+                    'status' => $this->statusFilter ?? null,
+                    'role' => $this->roleFilter ?? null,
+                ]),
+            ]
+        ]);
+        
+        // 重置所有篩選條件
         $this->search = '';
         $this->permissionCountFilter = 'all';
         $this->userCountFilter = 'all';
         $this->systemRoleFilter = 'all';
         $this->statusFilter = 'all';
-        $this->sortField = 'created_at';
-        $this->sortDirection = 'desc';
+        $this->selectedRoles = [];
+        $this->selectAll = false;
+        $this->bulkAction = '';
+        $this->showFilters = 'all';
+        $this->showBulkActions = false;
         $this->resetPage();
-    }
+        $this->resetValidation();
+        
+        // 強制重新渲染以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送篩選重置完成事件
+        $this->dispatch('resetFilters-completed');
+        
+        // 顯示成功訊息
+        $this->dispatch('show-toast', [
+            'type' => 'success',
+            'message' => '篩選條件已清除'
+        ]);
+        
+        // 記錄重置完成
+        \Log::info('✅ resetFilters - 篩選重置完成');
+
+        
+        $this->resetValidation();
+    } catch (\Exception $e) {
+            \Log::error('重置方法執行失敗', [
+                'method' => 'resetFilters',
+                'error' => $e->getMessage(),
+                'component' => static::class,
+            ]);
+            
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => '重置操作失敗，請重試'
+            ]);
+        }}
 
     /**
      * 切換篩選器顯示
@@ -719,6 +816,16 @@ class RoleList extends AdminComponent
     /**
      * 渲染元件
      */
+    
+    /**
+     * roleFilter 更新時重置分頁
+     */
+    public function updatedRoleFilter(): void
+    {
+        $this->resetPage();
+    }
+
+
     public function render()
     {
         return view('livewire.admin.roles.role-list')

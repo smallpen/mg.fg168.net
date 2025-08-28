@@ -96,6 +96,25 @@ class Role extends Model
     }
 
     /**
+     * 取得角色的層級
+     * 
+     * @return int
+     */
+    public function getLevel(): int
+    {
+        // 根據角色名稱定義層級
+        return match ($this->name) {
+            'super_admin' => 100,
+            'admin' => 90,
+            'manager' => 80,
+            'editor' => 70,
+            'moderator' => 60,
+            'user' => 10,
+            default => 50, // 預設層級
+        };
+    }
+
+    /**
      * 為角色指派權限
      * 
      * @param string|Permission $permission

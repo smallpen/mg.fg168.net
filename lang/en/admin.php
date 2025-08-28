@@ -276,6 +276,21 @@ return [
         'cannot_modify_super_admin' => 'Cannot modify super admin role',
         'cannot_change_super_admin_name' => 'Cannot change super admin role name',
         
+        // Bulk actions
+        'bulk_actions' => [
+            'selected' => ':count roles selected',
+            'choose' => 'Choose Action',
+            'execute' => 'Execute',
+            'activate' => 'Bulk Activate',
+            'deactivate' => 'Bulk Deactivate',
+            'delete' => 'Bulk Delete',
+            'permissions' => 'Bulk Permission Settings',
+            'export' => 'Bulk Export',
+            'processing' => 'Processing...',
+            'completed' => 'Operation Completed',
+            'partial_success' => 'Partial Success: :success succeeded, :failed failed',
+        ],
+
         // Role deletion related
         'confirm_delete_title' => 'Confirm Role Deletion',
         'confirm_role_name_label' => 'Please enter the role name ":name" to confirm deletion',

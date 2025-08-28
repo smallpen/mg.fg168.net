@@ -151,6 +151,12 @@ class RecentActivity extends Component
     {
         $this->filterType = null;
         $this->filterModule = null;
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('recent-activity-filters-cleared');
     }
 
     /**

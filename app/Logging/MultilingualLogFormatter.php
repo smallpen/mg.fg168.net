@@ -24,11 +24,12 @@ class MultilingualLogFormatter
     public function __invoke(LaravelLogger $logger): void
     {
         // 設定自定義格式
-        $formatter = new LineFormatter();
-        $formatter->setFormat("[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n");
-        $formatter->setDateFormat('Y-m-d H:i:s');
-        $formatter->allowInlineLineBreaks(true);
-        $formatter->ignoreEmptyContextAndExtra(false); // 顯示 extra 資訊
+        $formatter = new LineFormatter(
+            "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n",
+            'Y-m-d H:i:s',
+            true, // allowInlineLineBreaks
+            false // ignoreEmptyContextAndExtra
+        );
 
         // 取得底層的 Monolog Logger
         $monologLogger = $logger->getLogger();
@@ -87,7 +88,15 @@ class MultilingualLogFormatter
                 // 添加時間戳記
                 $extra['multilingual_context']['timestamp'] = now()->toISOString();
                 
-                return $record->with(['extra' => $extra]);
+                // 使用 Monolog 3.x 的正確方式來更新 extra 資料
+                return new \Monolog\LogRecord(
+                    $record->datetime,
+                    $record->channel,
+                    $record->level,
+                    $record->message,
+                    $record->context,
+                    $extra
+                );
             }
             
             // 處理舊版本的陣列格式

@@ -20,6 +20,209 @@
     box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1);
 }
 
+/* 專業圖表樣式 */
+.chart-area {
+    position: relative;
+}
+
+/* 柱狀圖動畫效果 */
+.chart-area .group:hover {
+    z-index: 10;
+}
+
+/* 圖表工具提示 */
+.chart-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.chart-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+/* 漸變柱狀圖效果 */
+.chart-bar {
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s ease-in-out;
+}
+
+.chart-bar:hover::before {
+    left: 100%;
+}
+
+/* 尖峰時段脈衝動畫 */
+@keyframes peak-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+}
+
+.peak-indicator {
+    animation: peak-pulse 2s infinite;
+}
+
+/* 時段背景漸變 */
+.time-period-bg {
+    position: relative;
+    overflow: hidden;
+}
+
+.time-period-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.1;
+    transition: opacity 0.3s ease;
+}
+
+.time-period-bg:hover::before {
+    opacity: 0.2;
+}
+
+/* 統計摘要卡片動畫 */
+.stats-summary {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    transition: all 0.3s ease;
+}
+
+.dark .stats-summary {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+.stats-summary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 趨勢指標動畫 */
+.trend-indicator {
+    transition: all 0.3s ease;
+}
+
+.trend-indicator:hover {
+    transform: scale(1.05);
+}
+
+/* 圖表網格線 */
+.chart-grid-line {
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+}
+
+.chart-container:hover .chart-grid-line {
+    opacity: 0.5;
+}
+
+/* Y軸標籤樣式 */
+.y-axis-label {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+/* 時間標籤樣式 */
+.time-label {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.time-label:hover {
+    transform: scale(1.1);
+}
+
+/* 分析摘要樣式 */
+.analysis-summary {
+    border-left: 4px solid #3b82f6;
+    transition: all 0.3s ease;
+}
+
+.analysis-summary:hover {
+    border-left-color: #1d4ed8;
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+.dark .analysis-summary:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* 響應式圖表調整 */
+@media (max-width: 768px) {
+    .chart-area {
+        height: 200px !important;
+    }
+    
+    .stats-summary {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .time-period-bg {
+        display: none;
+    }
+    
+    .y-axis-label {
+        font-size: 8px;
+    }
+}
+
+/* 載入狀態動畫 */
+.chart-loading {
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* 深色模式優化 */
+.dark .chart-tooltip {
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+}
+
+.dark .chart-tooltip::after {
+    border-top-color: rgba(255, 255, 255, 0.95);
+}
+
 /* 圖表區域樣式 */
 .chart-area {
     position: relative;

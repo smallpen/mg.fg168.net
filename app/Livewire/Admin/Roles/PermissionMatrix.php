@@ -97,16 +97,22 @@ class PermissionMatrix extends Component
     }
 
     /**
-     * 取得所有角色（含權限數量）
+     * 取得所有角色（含權限數量）- 效能優化版本
      */
     public function getRolesProperty(): Collection
     {
-        return Cache::remember('permission_matrix_roles', 300, function () {
-            return Role::with('permissions')
+        return Cache::remember('permission_matrix_roles_optimized', 600, function () {
+            // 使用 eager loading 避免 N+1 查詢
+            return Role::with(['permissions:id,name,display_name,module'])
                       ->withCount('permissions')
                       ->where('is_active', true)
                       ->orderBy('name')
-                      ->get();
+                      ->get()
+                      ->map(function ($role) {
+                          // 預處理權限 ID 陣列以提升查詢效能
+                          $role->permission_ids = $role->permissions->pluck('id')->toArray();
+                          return $role;
+                      });
         });
     }
 
@@ -123,21 +129,31 @@ class PermissionMatrix extends Component
     }
 
     /**
-     * 取得篩選後的權限（按模組分組）
+     * 取得篩選後的權限（按模組分組）- 效能優化版本
      */
     public function getFilteredPermissionsProperty(): Collection
     {
-        $cacheKey = 'permission_matrix_filtered_' . md5($this->search . $this->moduleFilter);
+        $cacheKey = 'permission_matrix_filtered_optimized_' . md5($this->search . $this->moduleFilter . $this->viewMode);
         
-        return Cache::remember($cacheKey, 300, function () {
-            $query = Permission::query();
+        return Cache::remember($cacheKey, 600, function () {
+            $query = Permission::select(['id', 'name', 'display_name', 'module', 'type']);
 
-            // 搜尋篩選
+            // 搜尋篩選 - 優化搜尋邏輯
             if ($this->search) {
-                $query->where(function ($q) {
-                    $q->where('name', 'like', "%{$this->search}%")
-                      ->orWhere('display_name', 'like', "%{$this->search}%")
-                      ->orWhere('description', 'like', "%{$this->search}%");
+                $searchTerm = trim($this->search);
+                $query->where(function ($q) use ($searchTerm) {
+                    // 精確匹配優先
+                    $q->where('name', $searchTerm)
+                      ->orWhere('display_name', $searchTerm)
+                      // 前綴匹配次之
+                      ->orWhere('name', 'like', "{$searchTerm}%")
+                      ->orWhere('display_name', 'like', "{$searchTerm}%");
+                    
+                    // 只有搜尋詞長度 >= 3 才進行模糊搜尋
+                    if (strlen($searchTerm) >= 3) {
+                        $q->orWhere('name', 'like', "%{$searchTerm}%")
+                          ->orWhere('display_name', 'like', "%{$searchTerm}%");
+                    }
                 });
             }
 
@@ -146,10 +162,13 @@ class PermissionMatrix extends Component
                 $query->where('module', $this->moduleFilter);
             }
 
-            return $query->orderBy('module')
-                        ->orderBy('name')
-                        ->get()
-                        ->groupBy('module');
+            // 限制結果數量以提升效能
+            $permissions = $query->orderBy('module')
+                                ->orderBy('name')
+                                ->limit(200) // 限制最多 200 個權限
+                                ->get();
+
+            return $permissions->groupBy('module');
         });
     }
 
@@ -574,32 +593,84 @@ class PermissionMatrix extends Component
      */
     public function clearFilters(): void
     {
+        try {
+        // 記錄重置操作
+        \Log::info('🔄 clearFilters - 方法被呼叫', [
+            'timestamp' => now()->toISOString(),
+            'user' => auth()->user()->username ?? 'unknown',
+        ]);
+        
+        // 重置屬性
         $this->search = '';
         $this->moduleFilter = '';
+        $this->viewMode = '';
+        $this->showDescriptions = false;
+        $this->showPreview = false;
+        $this->permissionChanges = false;
+        $this->selectedRoles = [];
+        $this->selectedPermissions = [];
+        $this->bulkMode = '';
+        $this->resetValidation();
         
-        $this->dispatch('filters-cleared');
-    }
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('clearFilters-completed');
+        
+        // 記錄重置完成
+        \Log::info('✅ clearFilters - 重置完成');
+
+        
+        $this->resetValidation();
+    } catch (\Exception $e) {
+            \Log::error('重置方法執行失敗', [
+                'method' => 'clearFilters',
+                'error' => $e->getMessage(),
+                'component' => static::class,
+            ]);
+            
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => '重置操作失敗，請重試'
+            ]);
+        }}
 
     /**
-     * 檢查角色是否擁有特定權限
+     * 檢查角色是否擁有特定權限 - 效能優化版本
      */
     public function roleHasPermission(int $roleId, int $permissionId): bool
     {
-        $role = $this->roles->firstWhere('id', $roleId);
-        if (!$role) {
-            return false;
+        // 使用靜態快取避免重複查詢
+        static $rolePermissionCache = [];
+        
+        $cacheKey = "{$roleId}_{$permissionId}";
+        
+        if (!isset($rolePermissionCache[$cacheKey])) {
+            $role = $this->roles->firstWhere('id', $roleId);
+            if (!$role) {
+                $rolePermissionCache[$cacheKey] = false;
+                return false;
+            }
+
+            // 使用預處理的 permission_ids 陣列提升效能
+            $hasPermission = isset($role->permission_ids) 
+                ? in_array($permissionId, $role->permission_ids)
+                : $role->permissions->contains('id', $permissionId);
+                
+            $rolePermissionCache[$cacheKey] = $hasPermission;
         }
+
+        $baseHasPermission = $rolePermissionCache[$cacheKey];
 
         // 檢查是否有待處理的變更
         $changeKey = "{$roleId}_{$permissionId}";
         if (isset($this->permissionChanges[$changeKey])) {
             $change = $this->permissionChanges[$changeKey];
-            $currentHas = $role->permissions->contains('id', $permissionId);
-            
-            return $change['action'] === 'add' ? true : false;
+            return $change['action'] === 'add';
         }
 
-        return $role->permissions->contains('id', $permissionId);
+        return $baseHasPermission;
     }
 
     /**
@@ -657,16 +728,85 @@ class PermissionMatrix extends Component
     }
 
     /**
-     * 清除權限相關快取
+     * 批量檢查角色權限 - 效能優化方法
+     */
+    public function batchCheckRolePermissions(array $roleIds, array $permissionIds): array
+    {
+        $cacheKey = 'batch_role_permissions_' . md5(implode(',', $roleIds) . '_' . implode(',', $permissionIds));
+        
+        return Cache::remember($cacheKey, 300, function () use ($roleIds, $permissionIds) {
+            $results = [];
+            
+            // 批量查詢角色權限關聯
+            $rolePermissions = DB::table('role_permissions')
+                                ->whereIn('role_id', $roleIds)
+                                ->whereIn('permission_id', $permissionIds)
+                                ->get()
+                                ->groupBy('role_id');
+            
+            foreach ($roleIds as $roleId) {
+                $results[$roleId] = [];
+                $rolePerms = $rolePermissions->get($roleId, collect());
+                $rolePermIds = $rolePerms->pluck('permission_id')->toArray();
+                
+                foreach ($permissionIds as $permissionId) {
+                    $results[$roleId][$permissionId] = in_array($permissionId, $rolePermIds);
+                }
+            }
+            
+            return $results;
+        });
+    }
+
+    /**
+     * 取得權限矩陣資料 - 效能優化版本
+     */
+    public function getPermissionMatrixProperty(): array
+    {
+        $roles = $this->roles;
+        $permissions = $this->filteredPermissions->flatten();
+        
+        if ($roles->isEmpty() || $permissions->isEmpty()) {
+            return [];
+        }
+        
+        $roleIds = $roles->pluck('id')->toArray();
+        $permissionIds = $permissions->pluck('id')->toArray();
+        
+        // 使用批量查詢獲取權限矩陣
+        $matrix = $this->batchCheckRolePermissions($roleIds, $permissionIds);
+        
+        // 應用待處理的變更
+        foreach ($this->permissionChanges as $changeKey => $change) {
+            $roleId = $change['role_id'];
+            $permissionId = $change['permission_id'];
+            
+            if (isset($matrix[$roleId][$permissionId])) {
+                $matrix[$roleId][$permissionId] = $change['action'] === 'add';
+            }
+        }
+        
+        return $matrix;
+    }
+
+    /**
+     * 清除權限相關快取 - 效能優化版本
      */
     protected function clearPermissionCache(): void
     {
-        Cache::forget('permission_matrix_roles');
+        // 清除主要快取
+        Cache::forget('permission_matrix_roles_optimized');
         Cache::forget('permission_matrix_modules');
         
-        // 清除篩選快取
-        $cachePattern = 'permission_matrix_filtered_*';
-        // 注意：這裡需要根據實際快取驅動實作清除模式匹配的快取
+        // 清除篩選快取（使用標籤清除）
+        Cache::tags(['permission_matrix'])->flush();
+        
+        // 清除批量查詢快取
+        $cacheKeys = Cache::get('permission_matrix_cache_keys', []);
+        foreach ($cacheKeys as $key) {
+            Cache::forget($key);
+        }
+        Cache::forget('permission_matrix_cache_keys');
     }
 
     /**

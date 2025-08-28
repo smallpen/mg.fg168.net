@@ -3,9 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use App\Repositories\RoleRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\RoleRepository;
-use App\Repositories\PermissionRepositoryInterface;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\PermissionRepository;
 use App\Repositories\SettingsRepositoryInterface;
 use App\Repositories\SettingsRepository;
@@ -32,9 +32,7 @@ class RepositoryServiceProvider extends ServiceProvider
     {
         // 註冊資料存取層
         $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
-        $this->app->bind(\App\Repositories\Contracts\RoleRepositoryInterface::class, RoleRepository::class);
         $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
-        $this->app->bind(\App\Repositories\Contracts\PermissionRepositoryInterface::class, PermissionRepository::class);
         $this->app->bind(SettingsRepositoryInterface::class, SettingsRepository::class);
         // ActivityRepositoryInterface binding is handled in AppServiceProvider
         

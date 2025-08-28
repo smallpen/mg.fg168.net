@@ -39,8 +39,33 @@ class PerformanceMonitor extends Component
      */
     public function loadMetrics()
     {
-        $this->metrics = $this->performanceService->getPerformanceStats($this->selectedPeriod);
-        $this->recommendations = $this->performanceService->getPerformanceRecommendations();
+        try {
+            $this->metrics = $this->performanceService->getPerformanceStats($this->selectedPeriod);
+            $this->recommendations = $this->performanceService->getPerformanceRecommendations();
+            
+            // 清除之前的錯誤訊息
+            session()->forget('performance_error');
+            
+        } catch (\Exception $e) {
+            // 記錄錯誤
+            \Log::error('效能指標載入失敗', [
+                'period' => $this->selectedPeriod,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // 設定預設值
+            $this->metrics = [
+                'performance_score' => 0,
+                'average_lcp' => 0,
+                'average_fid' => 0,
+                'average_cls' => 0,
+            ];
+            $this->recommendations = [];
+            
+            // 顯示錯誤訊息
+            session()->flash('performance_error', '載入效能資料時發生錯誤，請稍後再試');
+        }
     }
 
     /**
@@ -62,6 +87,26 @@ class PerformanceMonitor extends Component
     {
         $this->selectedPeriod = $period;
         $this->loadMetrics();
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('performance-period-changed', period: $period);
+    }
+
+    /**
+     * 當時間週期選擇變更時觸發
+     */
+    public function updatedSelectedPeriod($value)
+    {
+        $this->loadMetrics();
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('performance-period-changed', period: $value);
     }
 
     /**
@@ -69,10 +114,23 @@ class PerformanceMonitor extends Component
      */
     public function clearData()
     {
-        $this->performanceService->clearPerformanceData($this->selectedPeriod);
-        $this->loadMetrics();
-        
-        $this->dispatch('performance-data-cleared');
+        try {
+            $this->performanceService->clearPerformanceData($this->selectedPeriod);
+            $this->loadMetrics();
+            
+            // 強制重新渲染元件
+            $this->dispatch('$refresh');
+            
+            $this->dispatch('performance-data-cleared');
+            
+        } catch (\Exception $e) {
+            \Log::error('清除效能資料失敗', [
+                'period' => $this->selectedPeriod,
+                'error' => $e->getMessage()
+            ]);
+            
+            session()->flash('performance_error', '清除效能資料時發生錯誤，請稍後再試');
+        }
     }
 
     /**

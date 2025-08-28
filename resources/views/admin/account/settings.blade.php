@@ -5,77 +5,53 @@
 @section('content')
 <div class="space-y-6">
     <!-- 頁面標題 -->
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">帳號設定</h1>
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                帳號設定
+            </h1>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                管理您的帳號安全性和偏好設定
+                管理您的帳號安全性和隱私設定
             </p>
+        </div>
+        
+        <div class="flex space-x-3">
+            <a href="{{ route('admin.profile') }}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                個人資料
+            </a>
         </div>
     </div>
 
-    <!-- 帳號設定內容 -->
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-            <div class="space-y-6">
-                <!-- 安全設定 -->
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">安全設定</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <div>
-                                <h4 class="font-medium text-gray-900 dark:text-gray-100">密碼</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">上次更新：{{ auth()->user()->updated_at->diffForHumans() }}</p>
-                            </div>
-                            <button class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-                                更改密碼
-                            </button>
-                        </div>
-                        
-                        <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <div>
-                                <h4 class="font-medium text-gray-900 dark:text-gray-100">兩步驟驗證</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">增強帳號安全性</p>
-                            </div>
-                            <button class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-                                設定
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <!-- 分頁導航 -->
+    <div class="border-b border-gray-200 dark:border-gray-700">
+        <nav class="-mb-px flex space-x-8" x-data="{ activeTab: 'password' }">
+            <button @click="activeTab = 'password'" 
+                    :class="activeTab === 'password' ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                密碼安全
+            </button>
+            <button @click="activeTab = 'security'" 
+                    :class="activeTab === 'security' ? 'border-primary-500 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
+                    class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                安全設定
+            </button>
+        </nav>
+    </div>
 
-                <!-- 偏好設定 -->
-                <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">偏好設定</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <div>
-                                <h4 class="font-medium text-gray-900 dark:text-gray-100">主題</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">選擇您偏好的介面主題</p>
-                            </div>
-                            <div class="text-sm text-gray-600 dark:text-gray-400">
-                                {{ auth()->user()->theme_preference ?? '亮色' }}
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <div>
-                                <h4 class="font-medium text-gray-900 dark:text-gray-100">語言</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">選擇介面語言</p>
-                            </div>
-                            <div class="text-sm text-gray-600 dark:text-gray-400">
-                                正體中文
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-8 text-center">
-                <p class="text-gray-500 dark:text-gray-400">
-                    帳號設定功能正在開發中...
-                </p>
-            </div>
+    <!-- 分頁內容 -->
+    <div x-data="{ activeTab: 'password' }">
+        <!-- 密碼安全分頁 -->
+        <div x-show="activeTab === 'password'" x-transition>
+            <livewire:admin.profile.password-form />
+        </div>
+
+        <!-- 安全設定分頁 -->
+        <div x-show="activeTab === 'security'" x-transition>
+            <livewire:admin.profile.security-settings />
         </div>
     </div>
 </div>

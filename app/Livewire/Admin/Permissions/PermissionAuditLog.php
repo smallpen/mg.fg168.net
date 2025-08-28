@@ -69,10 +69,27 @@ class PermissionAuditLog extends Component
     }
 
     /**
-     * 重設篩選條件
+     * 重設篩選條件 - 修復版本
      */
     public function resetFilters(): void
     {
+        try {
+        \Log::info('🔥 PermissionAuditLog resetFilters - 方法被呼叫了！', [
+            'timestamp' => now()->toISOString(),
+            'user' => auth()->user()->username ?? 'unknown',
+            'before_reset' => [
+                'search' => $this->search,
+                'actionFilter' => $this->actionFilter,
+                'userFilter' => $this->userFilter,
+                'permissionFilter' => $this->permissionFilter,
+                'moduleFilter' => $this->moduleFilter,
+                'startDate' => $this->startDate,
+                'endDate' => $this->endDate,
+                'ipFilter' => $this->ipFilter,
+            ]
+        ]);
+        
+        // 重置所有篩選條件
         $this->search = '';
         $this->actionFilter = 'all';
         $this->userFilter = '';
@@ -81,8 +98,51 @@ class PermissionAuditLog extends Component
         $this->startDate = Carbon::now()->subDays(30)->format('Y-m-d');
         $this->endDate = Carbon::now()->format('Y-m-d');
         $this->ipFilter = '';
+        
+        // 重置分頁
         $this->resetPage();
-    }
+        
+        // 重新載入統計資料
+        $this->loadStats();
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('permission-audit-reset');
+        
+        \Log::info('🔥 PermissionAuditLog resetFilters - 屬性已重置', [
+            'after_reset' => [
+                'search' => $this->search,
+                'actionFilter' => $this->actionFilter,
+                'userFilter' => $this->userFilter,
+                'permissionFilter' => $this->permissionFilter,
+                'moduleFilter' => $this->moduleFilter,
+                'startDate' => $this->startDate,
+                'endDate' => $this->endDate,
+                'ipFilter' => $this->ipFilter,
+            ]
+        ]);
+        
+        // 顯示成功訊息
+        session()->flash('success', '篩選條件已重置');
+        
+        \Log::info('🔥 PermissionAuditLog resetFilters - 修復版本執行完成');
+    
+        
+        $this->resetValidation();
+    } catch (\Exception $e) {
+            \Log::error('重置方法執行失敗', [
+                'method' => 'resetFilters',
+                'error' => $e->getMessage(),
+                'component' => static::class,
+            ]);
+            
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => '重置操作失敗，請重試'
+            ]);
+        }}
 
     /**
      * 更新排序

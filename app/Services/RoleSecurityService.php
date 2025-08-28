@@ -157,18 +157,21 @@ class RoleSecurityService
      */
     protected function checkRoleLevelPermission(string $action, Role $targetRole, User $user): array
     {
+        // 超級管理員和管理員可以操作所有角色
+        if ($user->isSuperAdmin() || $user->isAdmin()) {
+            return ['allowed' => true];
+        }
+
         // 檢查是否可以操作比自己權限高的角色
-        if (!$user->isSuperAdmin()) {
-            $userMaxRoleLevel = $user->getMaxRoleLevel();
-            $targetRoleLevel = $targetRole->getLevel();
-            
-            if ($targetRoleLevel >= $userMaxRoleLevel) {
-                return [
-                    'allowed' => false,
-                    'reason' => 'insufficient_role_level',
-                    'message' => '無法操作權限等級相同或更高的角色'
-                ];
-            }
+        $userMaxRoleLevel = $user->getMaxRoleLevel();
+        $targetRoleLevel = $targetRole->getLevel();
+        
+        if ($targetRoleLevel >= $userMaxRoleLevel) {
+            return [
+                'allowed' => false,
+                'reason' => 'insufficient_role_level',
+                'message' => '無法操作權限等級相同或更高的角色'
+            ];
         }
 
         // 檢查是否可以操作系統角色

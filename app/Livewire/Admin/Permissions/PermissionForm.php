@@ -3,7 +3,7 @@
 namespace App\Livewire\Admin\Permissions;
 
 use App\Models\Permission;
-use App\Repositories\PermissionRepository;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\PermissionValidationService;
 use App\Traits\HandlesLivewireErrors;
@@ -46,7 +46,7 @@ class PermissionForm extends Component
     public bool $isLoading = false;
     public bool $isSystemPermission = false;
     
-    protected PermissionRepository $permissionRepository;
+    protected PermissionRepositoryInterface $permissionRepository;
     protected PermissionValidationService $validationService;
     protected AuditLogService $auditService;
 
@@ -54,7 +54,7 @@ class PermissionForm extends Component
      * 元件初始化
      */
     public function boot(
-        PermissionRepository $permissionRepository,
+        PermissionRepositoryInterface $permissionRepository,
         PermissionValidationService $validationService,
         AuditLogService $auditService
     ): void {
@@ -70,6 +70,11 @@ class PermissionForm extends Component
     {
         $this->loadFormOptions();
         $this->availablePermissions = collect();
+        
+        // If we're on the create page, automatically show the form
+        if (request()->routeIs('admin.permissions.create')) {
+            $this->openModal();
+        }
     }
 
     /**
@@ -406,6 +411,8 @@ class PermissionForm extends Component
     public function cancel(): void
     {
         $this->closeForm();
+    
+        $this->resetValidation();
     }
 
     /**
@@ -432,6 +439,12 @@ class PermissionForm extends Component
         $this->dependencies = [];
         $this->isSystemPermission = false;
         $this->resetErrorBag();
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('permission-form-reset');
     }
 
     /**
@@ -523,6 +536,50 @@ class PermissionForm extends Component
     /**
      * 渲染元件
      */
+    
+    /**
+     * 關閉模態並重置表單
+     */
+    public function closeModal(): void
+    {
+        // 關閉模態
+        $this->showForm = false;
+        
+        // 重置表單和驗證
+        $this->resetForm();
+        $this->resetValidation();
+        
+        // 強制重新渲染
+        $this->dispatch('$refresh');
+        
+        // 發送模態關閉事件
+        $this->dispatch('modal-closed');
+
+        $this->resetValidation('name');
+    
+        $this->resetValidation('description');
+    }
+
+
+    
+    /**
+     * 開啟模態並初始化狀態
+     */
+    public function openModal(): void
+    {
+        // 先重置表單確保乾淨狀態
+        $this->resetForm();
+        
+        // 開啟模態
+        $this->showForm = true;
+        
+        // 發送模態開啟事件
+        $this->dispatch('modal-opened');
+    }
+
+
+
+
     public function render()
     {
         return view('livewire.admin.permissions.permission-form', [

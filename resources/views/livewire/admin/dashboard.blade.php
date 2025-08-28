@@ -127,16 +127,55 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">使用者活動趨勢</h3>
                     <span class="text-sm text-gray-500 dark:text-gray-400">過去 7 天</span>
                 </div>
-                <div class="chart-area h-64 flex items-end justify-between space-x-2">
-                    @foreach($chartData['activity_trend'] ?? [] as $data)
-                        <div class="flex flex-col items-center flex-1">
-                            <div class="bg-blue-500 rounded-t w-full transition-all duration-300 hover:bg-blue-600" 
-                                 style="height: {{ $data['count'] > 0 ? max(($data['count'] / max(array_column($chartData['activity_trend'] ?? [], 'count'))) * 200, 10) : 10 }}px">
+                
+                @php
+                    $maxValue = max(array_column($chartData['activity_trend'] ?? [], 'count'));
+                    $totalActivities = array_sum(array_column($chartData['activity_trend'] ?? [], 'count'));
+                @endphp
+                
+                <!-- 簡潔的統計摘要 -->
+                <div class="flex items-center justify-between mb-6 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ number_format($totalActivities) }}</div>
+                        <div class="text-xs text-gray-600 dark:text-gray-400">總活動數</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ number_format($maxValue) }}</div>
+                        <div class="text-xs text-gray-600 dark:text-gray-400">單日最高</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ $totalActivities > 0 ? number_format($totalActivities / 7, 1) : 0 }}</div>
+                        <div class="text-xs text-gray-600 dark:text-gray-400">日均活動</div>
+                    </div>
+                </div>
+                
+                <!-- 簡化的圖表區域 -->
+                <div class="relative bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4">
+                    <div class="h-40 flex items-end justify-between space-x-2">
+                        @foreach($chartData['activity_trend'] ?? [] as $index => $data)
+                            @php
+                                $height = $maxValue > 0 ? max(($data['count'] / $maxValue) * 120, 8) : 8;
+                                $isToday = $index === count($chartData['activity_trend']) - 1;
+                            @endphp
+                            <div class="flex flex-col items-center flex-1 group">
+                                <!-- 柱狀圖 -->
+                                <div class="relative w-full max-w-6 mb-2">
+                                    <div class="w-full rounded-t {{ $isToday ? 'bg-blue-600' : 'bg-blue-500' }} transition-all duration-300 group-hover:bg-blue-700" 
+                                         style="height: {{ $height }}px">
+                                    </div>
+                                    <!-- 懸停顯示數值 -->
+                                    <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                        {{ $data['count'] }} 次
+                                    </div>
+                                </div>
+                                
+                                <!-- 日期標籤 -->
+                                <span class="text-xs {{ $isToday ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-500 dark:text-gray-400' }}">
+                                    {{ $data['date'] }}
+                                </span>
                             </div>
-                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-2">{{ $data['date'] }}</span>
-                            <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ $data['count'] }}</span>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
@@ -146,24 +185,94 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">登入時間分佈</h3>
                     <span class="text-sm text-gray-500 dark:text-gray-400">24 小時</span>
                 </div>
-                <div class="chart-area h-48 flex items-end justify-between space-x-1">
-                    @foreach($chartData['login_distribution'] ?? [] as $data)
-                        @php
-                            $maxValue = max(array_column($chartData['login_distribution'] ?? [], 'count'));
-                            $height = $maxValue > 0 ? max(($data['count'] / $maxValue) * 160, 2) : 2;
-                        @endphp
-                        <div class="flex flex-col items-center flex-1">
-                            <div class="bg-green-500 rounded-t w-full transition-all duration-300 hover:bg-green-600 relative group" 
-                                 style="height: {{ $height }}px">
-                                <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {{ $data['count'] }} 次登入
+                
+                @php
+                    $loginData = $chartData['login_distribution'] ?? [];
+                    $maxLoginValue = max(array_column($loginData, 'count'));
+                    $totalLogins = array_sum(array_column($loginData, 'count'));
+                    $peakHour = '';
+                    $peakCount = 0;
+                    foreach($loginData as $data) {
+                        if($data['count'] > $peakCount) {
+                            $peakCount = $data['count'];
+                            $peakHour = $data['hour'];
+                        }
+                    }
+                @endphp
+                
+                <!-- 簡潔的統計摘要 -->
+                <div class="flex items-center justify-between mb-6 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-green-600 dark:text-green-400">{{ number_format($totalLogins) }}</div>
+                        <div class="text-xs text-gray-600 dark:text-gray-400">總登入次數</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-green-600 dark:text-green-400">{{ $peakHour }}</div>
+                        <div class="text-xs text-gray-600 dark:text-gray-400">尖峰時段</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-green-600 dark:text-green-400">{{ number_format($peakCount) }}</div>
+                        <div class="text-xs text-gray-600 dark:text-gray-400">尖峰登入數</div>
+                    </div>
+                </div>
+                
+                <!-- 簡化的圖表區域 -->
+                <div class="relative bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4">
+                    <div class="h-32 flex items-end justify-between">
+                        @foreach($loginData as $index => $data)
+                            @php
+                                $height = $maxLoginValue > 0 ? max(($data['count'] / $maxLoginValue) * 100, 4) : 4;
+                                $hour = intval(substr($data['hour'], 0, 2));
+                                $isPeakHour = $data['count'] === $peakCount;
+                                
+                                // 簡化的顏色系統
+                                if ($isPeakHour) {
+                                    $colorClass = 'bg-green-600'; // 尖峰時段
+                                } elseif ($hour >= 9 && $hour <= 17) {
+                                    $colorClass = 'bg-green-500'; // 工作時間
+                                } else {
+                                    $colorClass = 'bg-green-400'; // 其他時間
+                                }
+                            @endphp
+                            <div class="flex flex-col items-center group" style="width: {{ 100/24 }}%;">
+                                <!-- 柱狀圖 -->
+                                <div class="relative w-full max-w-2 mb-1">
+                                    <div class="w-full rounded-t {{ $colorClass }} transition-all duration-300 group-hover:bg-green-700" 
+                                         style="height: {{ $height }}px">
+                                    </div>
+                                    <!-- 懸停顯示數值 -->
+                                    <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                        {{ substr($data['hour'], 0, 2) }}:00 - {{ $data['count'] }} 次
+                                    </div>
                                 </div>
+                                
+                                <!-- 時間標籤 -->
+                                @if($index % 4 === 0)
+                                    <span class="text-xs {{ $isPeakHour ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-gray-500 dark:text-gray-400' }}">
+                                        {{ substr($data['hour'], 0, 2) }}
+                                    </span>
+                                @endif
                             </div>
-                            @if($loop->index % 4 === 0)
-                                <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $data['hour'] }}</span>
-                            @endif
+                        @endforeach
+                    </div>
+                </div>
+                
+                <!-- 簡化的說明 -->
+                <div class="mt-4 flex items-center justify-between text-sm">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-600 rounded mr-2"></div>
+                            <span class="text-gray-600 dark:text-gray-400">尖峰時段</span>
                         </div>
-                    @endforeach
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded mr-2"></div>
+                            <span class="text-gray-600 dark:text-gray-400">工作時間</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-400 rounded mr-2"></div>
+                            <span class="text-gray-600 dark:text-gray-400">其他時間</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 

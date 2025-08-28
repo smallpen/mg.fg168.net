@@ -1,0 +1,500 @@
+<?php
+
+namespace App\Livewire\Admin\Activities;
+
+use App\Models\ActivityRetentionPolicy;
+use App\Models\ActivityCleanupLog;
+use App\Services\ActivityRetentionService;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Livewire\Attributes\On;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
+/**
+ * 活動記錄保留政策管理元件
+ * 
+ * 提供保留政策的建立、編輯、刪除和執行功能
+ */
+class RetentionPolicyManager extends Component
+{
+    use WithPagination, AuthorizesRequests;
+
+    /**
+     * 搜尋關鍵字
+     */
+    public string $search = '';
+
+    /**
+     * 篩選條件
+     */
+    public string $statusFilter = '';
+    public string $actionFilter = '';
+
+    /**
+     * 排序設定
+     */
+    public string $sortField = 'priority';
+    public string $sortDirection = 'desc';
+
+    /**
+     * 顯示模式
+     */
+    public string $viewMode = 'list'; // list, stats, logs
+
+    /**
+     * 政策表單資料
+     */
+    public array $policyForm = [
+        'name' => '',
+        'activity_type' => '',
+        'module' => '',
+        'retention_days' => 90,
+        'action' => 'archive',
+        'is_active' => true,
+        'priority' => 1,
+        'conditions' => [],
+        'description' => '',
+    ];
+
+    /**
+     * 手動清理表單資料
+     */
+    public array $cleanupForm = [
+        'date_from' => '',
+        'date_to' => '',
+        'activity_type' => '',
+        'module' => '',
+        'action' => 'archive',
+        'risk_level_min' => '',
+        'risk_level_max' => '',
+    ];
+
+    /**
+     * 顯示狀態
+     */
+    public bool $showPolicyModal = false;
+    public bool $showCleanupModal = false;
+    public bool $showPreviewModal = false;
+    public bool $editMode = false;
+    public ?int $editingPolicyId = null;
+
+    /**
+     * 預覽資料
+     */
+    public array $previewData = [];
+
+    /**
+     * 統計資料
+     */
+    public array $stats = [];
+
+    /**
+     * 活動保留服務
+     */
+    protected ActivityRetentionService $retentionService;
+
+    /**
+     * 初始化元件
+     */
+    public function mount()
+    {
+        $this->authorize('system.logs');
+        $this->retentionService = app(ActivityRetentionService::class);
+        $this->loadStats();
+        
+        // 設定預設日期範圍
+        $this->cleanupForm['date_to'] = now()->format('Y-m-d');
+        $this->cleanupForm['date_from'] = now()->subDays(90)->format('Y-m-d');
+    }
+
+    /**
+     * 載入統計資料
+     */
+    public function loadStats(): void
+    {
+        $this->stats = [
+            'policy_stats' => $this->retentionService->getPolicyStats(),
+            'cleanup_history' => $this->retentionService->getCleanupHistory('30d'),
+            'archive_stats' => $this->retentionService->getArchiveStats('30d'),
+        ];
+    }
+
+    /**
+     * 取得保留政策列表
+     */
+    public function getPoliciesProperty()
+    {
+        $query = ActivityRetentionPolicy::with(['creator', 'cleanupLogs' => function ($q) {
+            $q->recent(7)->completed();
+        }]);
+
+        // 應用搜尋
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('name', 'like', "%{$this->search}%")
+                  ->orWhere('description', 'like', "%{$this->search}%")
+                  ->orWhere('activity_type', 'like', "%{$this->search}%")
+                  ->orWhere('module', 'like', "%{$this->search}%");
+            });
+        }
+
+        // 應用篩選
+        if ($this->statusFilter) {
+            $isActive = $this->statusFilter === 'active';
+            $query->where('is_active', $isActive);
+        }
+
+        if ($this->actionFilter) {
+            $query->where('action', $this->actionFilter);
+        }
+
+        // 應用排序
+        $query->orderBy($this->sortField, $this->sortDirection);
+
+        return $query->paginate(10);
+    }
+
+    /**
+     * 取得清理日誌列表
+     */
+    public function getCleanupLogsProperty()
+    {
+        return ActivityCleanupLog::with(['policy', 'executor'])
+            ->recent(30)
+            ->orderBy('started_at', 'desc')
+            ->paginate(10);
+    }
+
+    /**
+     * 切換檢視模式
+     */
+    public function setViewMode(string $mode): void
+    {
+        $this->viewMode = $mode;
+        
+        if ($mode === 'stats') {
+            $this->loadStats();
+        }
+    }
+
+    /**
+     * 排序
+     */
+    public function sortBy(string $field): void
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+
+        $this->resetPage();
+    }
+
+    /**
+     * 清除篩選
+     */
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->statusFilter = '';
+        $this->actionFilter = '';
+        $this->resetPage();
+    }
+
+    /**
+     * 開啟新增政策模態框
+     */
+    public function openCreateModal(): void
+    {
+        $this->resetPolicyForm();
+        $this->editMode = false;
+        $this->showPolicyModal = true;
+    }
+
+    /**
+     * 開啟編輯政策模態框
+     */
+    public function openEditModal(int $policyId): void
+    {
+        $policy = ActivityRetentionPolicy::findOrFail($policyId);
+        
+        $this->policyForm = [
+            'name' => $policy->name,
+            'activity_type' => $policy->activity_type ?? '',
+            'module' => $policy->module ?? '',
+            'retention_days' => $policy->retention_days,
+            'action' => $policy->action,
+            'is_active' => $policy->is_active,
+            'priority' => $policy->priority,
+            'conditions' => $policy->conditions ?? [],
+            'description' => $policy->description ?? '',
+        ];
+
+        $this->editingPolicyId = $policyId;
+        $this->editMode = true;
+        $this->showPolicyModal = true;
+    }
+
+    /**
+     * 儲存政策
+     */
+    public function savePolicy(): void
+    {
+        $this->validate([
+            'policyForm.name' => 'required|string|max:255',
+            'policyForm.retention_days' => 'required|integer|min:1|max:3650',
+            'policyForm.action' => 'required|in:delete,archive',
+            'policyForm.priority' => 'required|integer|min:0|max:100',
+        ], [
+            'policyForm.name.required' => '政策名稱為必填項目',
+            'policyForm.retention_days.required' => '保留天數為必填項目',
+            'policyForm.retention_days.min' => '保留天數至少為 1 天',
+            'policyForm.retention_days.max' => '保留天數最多為 3650 天（10年）',
+            'policyForm.action.required' => '請選擇處理動作',
+            'policyForm.priority.required' => '優先級為必填項目',
+        ]);
+
+        $data = $this->policyForm;
+        $data['created_by'] = auth()->id();
+
+        // 清理空值
+        if (empty($data['activity_type'])) {
+            $data['activity_type'] = null;
+        }
+        if (empty($data['module'])) {
+            $data['module'] = null;
+        }
+        if (empty($data['conditions'])) {
+            $data['conditions'] = null;
+        }
+
+        if ($this->editMode) {
+            $policy = ActivityRetentionPolicy::findOrFail($this->editingPolicyId);
+            $policy->update($data);
+            $message = '保留政策已更新';
+        } else {
+            ActivityRetentionPolicy::create($data);
+            $message = '保留政策已建立';
+        }
+
+        $this->showPolicyModal = false;
+        $this->resetPolicyForm();
+        
+        $this->dispatch('policy-saved', message: $message);
+        session()->flash('success', $message);
+    }
+
+    /**
+     * 刪除政策
+     */
+    public function deletePolicy(int $policyId): void
+    {
+        $policy = ActivityRetentionPolicy::findOrFail($policyId);
+        
+        // 檢查是否有關聯的清理日誌
+        if ($policy->cleanupLogs()->exists()) {
+            session()->flash('error', '無法刪除已有執行記錄的政策');
+            return;
+        }
+
+        $policy->delete();
+        
+        $this->dispatch('policy-deleted', message: '保留政策已刪除');
+        session()->flash('success', '保留政策已刪除');
+    }
+
+    /**
+     * 切換政策狀態
+     */
+    public function togglePolicyStatus(int $policyId): void
+    {
+        $policy = ActivityRetentionPolicy::findOrFail($policyId);
+        $policy->update(['is_active' => !$policy->is_active]);
+        
+        $status = $policy->is_active ? '啟用' : '停用';
+        $this->dispatch('policy-toggled', message: "政策已{$status}");
+    }
+
+    /**
+     * 預覽政策影響
+     */
+    public function previewPolicy(int $policyId): void
+    {
+        $policy = ActivityRetentionPolicy::findOrFail($policyId);
+        $this->previewData = $this->retentionService->previewPolicyImpact($policy);
+        $this->showPreviewModal = true;
+    }
+
+    /**
+     * 執行政策
+     */
+    public function executePolicy(int $policyId, bool $dryRun = false): void
+    {
+        try {
+            $policy = ActivityRetentionPolicy::findOrFail($policyId);
+            $result = $this->retentionService->executePolicy($policy, $dryRun);
+            
+            $message = $dryRun ? '政策預覽執行完成' : '政策執行完成';
+            $message .= "，處理了 {$result['records_processed']} 筆記錄";
+            
+            $this->dispatch('policy-executed', message: $message);
+            session()->flash('success', $message);
+            
+            // 重新載入統計資料
+            $this->loadStats();
+            
+        } catch (\Exception $e) {
+            $this->dispatch('policy-execution-failed', message: "政策執行失敗: {$e->getMessage()}");
+            session()->flash('error', "政策執行失敗: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * 執行所有政策
+     */
+    public function executeAllPolicies(bool $dryRun = false): void
+    {
+        try {
+            $results = $this->retentionService->executeAllPolicies($dryRun);
+            
+            $message = $dryRun ? '所有政策預覽執行完成' : '所有政策執行完成';
+            $message .= "，共處理了 {$results['total_records_processed']} 筆記錄";
+            
+            $this->dispatch('policies-executed', message: $message);
+            session()->flash('success', $message);
+            
+            // 重新載入統計資料
+            $this->loadStats();
+            
+        } catch (\Exception $e) {
+            $this->dispatch('policies-execution-failed', message: "政策執行失敗: {$e->getMessage()}");
+            session()->flash('error', "政策執行失敗: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * 開啟手動清理模態框
+     */
+    public function openCleanupModal(): void
+    {
+        $this->showCleanupModal = true;
+    }
+
+    /**
+     * 執行手動清理
+     */
+    public function executeManualCleanup(bool $dryRun = false): void
+    {
+        $this->validate([
+            'cleanupForm.date_from' => 'required|date',
+            'cleanupForm.date_to' => 'required|date|after_or_equal:cleanupForm.date_from',
+            'cleanupForm.action' => 'required|in:delete,archive',
+        ], [
+            'cleanupForm.date_from.required' => '開始日期為必填項目',
+            'cleanupForm.date_to.required' => '結束日期為必填項目',
+            'cleanupForm.date_to.after_or_equal' => '結束日期必須大於或等於開始日期',
+            'cleanupForm.action.required' => '請選擇處理動作',
+        ]);
+
+        try {
+            $criteria = array_filter($this->cleanupForm, function ($value) {
+                return $value !== '' && $value !== null;
+            });
+
+            $result = $this->retentionService->manualCleanup(
+                $criteria, 
+                $this->cleanupForm['action'], 
+                $dryRun
+            );
+            
+            $message = $dryRun ? '手動清理預覽完成' : '手動清理執行完成';
+            $message .= "，處理了 {$result['records_processed']} 筆記錄";
+            
+            $this->showCleanupModal = false;
+            $this->dispatch('cleanup-executed', message: $message);
+            session()->flash('success', $message);
+            
+            // 重新載入統計資料
+            $this->loadStats();
+            
+        } catch (\Exception $e) {
+            $this->dispatch('cleanup-execution-failed', message: "清理執行失敗: {$e->getMessage()}");
+            session()->flash('error', "清理執行失敗: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * 建立預設政策
+     */
+    public function createDefaultPolicies(): void
+    {
+        ActivityRetentionPolicy::createDefaultPolicies();
+        
+        $this->dispatch('default-policies-created', message: '預設保留政策已建立');
+        session()->flash('success', '預設保留政策已建立');
+    }
+
+    /**
+     * 重設政策表單
+     */
+    protected function resetPolicyForm(): void
+    {
+        $this->policyForm = [
+            'name' => '',
+            'activity_type' => '',
+            'module' => '',
+            'retention_days' => 90,
+            'action' => 'archive',
+            'is_active' => true,
+            'priority' => 1,
+            'conditions' => [],
+            'description' => '',
+        ];
+        $this->editingPolicyId = null;
+        
+        // 強制重新渲染元件以確保前端同步
+        $this->dispatch('$refresh');
+        
+        // 發送前端刷新事件
+        $this->dispatch('retention-policy-form-reset');
+    }
+
+    /**
+     * 關閉模態框
+     */
+    public function closeModal(): void
+    {
+        $this->showPolicyModal = false;
+        $this->showCleanupModal = false;
+        $this->showPreviewModal = false;
+        $this->resetPolicyForm();
+    }
+
+    /**
+     * 監聽事件
+     */
+    #[On('policy-saved')]
+    #[On('policy-deleted')]
+    #[On('policy-toggled')]
+    #[On('policy-executed')]
+    #[On('policies-executed')]
+    #[On('cleanup-executed')]
+    #[On('default-policies-created')]
+    public function refreshComponent(): void
+    {
+        // 元件會自動重新渲染
+    }
+
+    /**
+     * 渲染元件
+     */
+    public function render()
+    {
+        return view('livewire.admin.activities.retention-policy-manager', [
+            'policies' => $this->policies,
+            'cleanupLogs' => $this->cleanupLogs,
+        ]);
+    }
+}

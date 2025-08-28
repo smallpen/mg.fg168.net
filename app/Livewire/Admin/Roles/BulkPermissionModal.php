@@ -4,7 +4,7 @@ namespace App\Livewire\Admin\Roles;
 
 use App\Livewire\Admin\AdminComponent;
 use App\Repositories\Contracts\RoleRepositoryInterface;
-use App\Repositories\PermissionRepositoryInterface;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Support\Collection;
@@ -72,10 +72,19 @@ class BulkPermissionModal extends AdminComponent
      */
     public function closeModal(): void
     {
+        // 關閉模態
         $this->showModal = false;
-        $this->showResults = false;
+        
+        // 重置表單和驗證
         $this->resetForm();
-    }
+        $this->resetValidation();
+        
+        // 強制重新渲染
+        $this->dispatch('$refresh');
+        
+        // 發送模態關閉事件
+        $this->dispatch('modal-closed');
+}
 
     /**
      * 重置表單

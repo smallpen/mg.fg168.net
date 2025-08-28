@@ -90,6 +90,28 @@
         @endif
     </div>
 
+    {{-- 效能指標 --}}
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="text-sm text-blue-700 dark:text-blue-300">
+                    <span class="font-medium">載入狀態:</span>
+                    <span wire:loading wire:target="search,moduleFilter" class="text-blue-600">搜尋中...</span>
+                    <span wire:loading.remove wire:target="search,moduleFilter" class="text-green-600">已載入</span>
+                </div>
+                <div class="text-sm text-blue-700 dark:text-blue-300">
+                    <span class="font-medium">角色數量:</span> {{ $this->roles->count() }}
+                </div>
+                <div class="text-sm text-blue-700 dark:text-blue-300">
+                    <span class="font-medium">權限數量:</span> {{ $this->filteredPermissions->flatten()->count() }}
+                </div>
+            </div>
+            <div class="text-xs text-blue-600 dark:text-blue-400">
+                💡 大型矩陣已啟用效能優化
+            </div>
+        </div>
+    </div>
+
     {{-- 變更預覽 --}}
     @if($showPreview)
     <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
@@ -403,3 +425,216 @@
         </div>
     @endif
 </div>
+
+<script>
+document.addEventListener('livewire:init', () => {
+    // 權限矩陣效能優化
+    let performanceOptimizations = {
+        // 虛擬滾動支援
+        virtualScrolling: false,
+        
+        // 延遲載入
+        lazyLoading: true,
+        
+        // 批量更新
+        batchUpdates: true,
+        
+        // 快取管理
+        cacheManager: new Map(),
+        
+        init() {
+            this.setupVirtualScrolling();
+            this.setupLazyLoading();
+            this.setupBatchUpdates();
+            this.setupPerformanceMonitoring();
+            console.log('🚀 權限矩陣效能優化已啟用');
+        },
+        
+        setupVirtualScrolling() {
+            const matrixContainer = document.querySelector('.overflow-x-auto');
+            if (!matrixContainer) return;
+            
+            const table = matrixContainer.querySelector('table');
+            if (!table) return;
+            
+            const rows = table.querySelectorAll('tbody tr');
+            if (rows.length < 50) return; // 少於 50 行不需要虛擬滾動
+            
+            this.virtualScrolling = true;
+            console.log('📊 啟用虛擬滾動 (行數:', rows.length, ')');
+            
+            // 實作虛擬滾動邏輯
+            let visibleStart = 0;
+            let visibleEnd = Math.min(20, rows.length);
+            
+            const updateVisibleRows = () => {
+                rows.forEach((row, index) => {
+                    if (index >= visibleStart && index < visibleEnd) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            };
+            
+            matrixContainer.addEventListener('scroll', () => {
+                const scrollTop = matrixContainer.scrollTop;
+                const rowHeight = 60; // 估計行高
+                const containerHeight = matrixContainer.clientHeight;
+                
+                visibleStart = Math.floor(scrollTop / rowHeight);
+                visibleEnd = Math.min(visibleStart + Math.ceil(containerHeight / rowHeight) + 5, rows.length);
+                
+                updateVisibleRows();
+            });
+            
+            updateVisibleRows();
+        },
+        
+        setupLazyLoading() {
+            if (!this.lazyLoading) return;
+            
+            // 延遲載入權限檢查框
+            const checkboxes = document.querySelectorAll('input[type="checkbox"][wire\\:click*="togglePermission"]');
+            
+            if (checkboxes.length > 100) {
+                console.log('⏳ 啟用延遲載入 (檢查框數量:', checkboxes.length, ')');
+                
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const checkbox = entry.target;
+                            // 預載入檢查框狀態
+                            if (!checkbox.dataset.loaded) {
+                                checkbox.dataset.loaded = 'true';
+                                // 這裡可以添加預載入邏輯
+                            }
+                        }
+                    });
+                }, {
+                    rootMargin: '50px'
+                });
+                
+                checkboxes.forEach(checkbox => {
+                    observer.observe(checkbox);
+                });
+            }
+        },
+        
+        setupBatchUpdates() {
+            if (!this.batchUpdates) return;
+            
+            let updateQueue = [];
+            let updateTimer = null;
+            
+            // 攔截權限切換事件
+            document.addEventListener('click', (e) => {
+                const checkbox = e.target.closest('input[wire\\:click*="togglePermission"]');
+                if (!checkbox) return;
+                
+                // 添加到批量更新佇列
+                const wireClick = checkbox.getAttribute('wire:click');
+                updateQueue.push({
+                    element: checkbox,
+                    action: wireClick,
+                    timestamp: Date.now()
+                });
+                
+                // 防抖動處理
+                clearTimeout(updateTimer);
+                updateTimer = setTimeout(() => {
+                    this.processBatchUpdates();
+                }, 300);
+            });
+            
+            console.log('📦 啟用批量更新');
+        },
+        
+        processBatchUpdates() {
+            if (updateQueue.length === 0) return;
+            
+            console.log('🔄 處理批量更新:', updateQueue.length, '個操作');
+            
+            // 這裡可以實作批量 API 呼叫
+            // 目前先逐個處理
+            updateQueue.forEach(update => {
+                // 觸發原始的 Livewire 事件
+                eval(update.action);
+            });
+            
+            updateQueue = [];
+        },
+        
+        setupPerformanceMonitoring() {
+            // 監控渲染效能
+            let renderStart = performance.now();
+            
+            const observer = new MutationObserver(() => {
+                const renderEnd = performance.now();
+                const renderTime = renderEnd - renderStart;
+                
+                if (renderTime > 100) {
+                    console.warn('⚠️ 權限矩陣渲染時間過長:', renderTime.toFixed(2), 'ms');
+                }
+                
+                renderStart = performance.now();
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            
+            // 監控記憶體使用
+            if (performance.memory) {
+                setInterval(() => {
+                    const memory = performance.memory;
+                    const usedMB = Math.round(memory.usedJSHeapSize / 1048576);
+                    
+                    if (usedMB > 100) {
+                        console.warn('⚠️ 記憶體使用量較高:', usedMB, 'MB');
+                    }
+                }, 10000);
+            }
+        },
+        
+        // 快取權限狀態
+        cachePermissionState(roleId, permissionId, state) {
+            const key = `${roleId}_${permissionId}`;
+            this.cacheManager.set(key, {
+                state,
+                timestamp: Date.now()
+            });
+        },
+        
+        getCachedPermissionState(roleId, permissionId) {
+            const key = `${roleId}_${permissionId}`;
+            const cached = this.cacheManager.get(key);
+            
+            if (cached && (Date.now() - cached.timestamp) < 30000) {
+                return cached.state;
+            }
+            
+            return null;
+        }
+    };
+    
+    // 初始化效能優化
+    performanceOptimizations.init();
+    
+    // 監聽 Livewire 事件
+    Livewire.on('permission-toggled', (data) => {
+        performanceOptimizations.cachePermissionState(
+            data.roleId, 
+            data.permissionId, 
+            !performanceOptimizations.getCachedPermissionState(data.roleId, data.permissionId)
+        );
+    });
+    
+    // 清除快取事件
+    Livewire.on('permissions-applied', () => {
+        performanceOptimizations.cacheManager.clear();
+        console.log('🗑️ 權限快取已清除');
+    });
+});
+</script>

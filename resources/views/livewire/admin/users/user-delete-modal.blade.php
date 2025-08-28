@@ -52,7 +52,8 @@
                         {{-- 停用選項 --}}
                         <label class="relative flex items-start p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 {{ $selectedAction === 'disable' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600' }}">
                             <input type="radio" 
-                                   wire:model.live="selectedAction" 
+                                   wire:model.defer="selectedAction" 
+                                   wire:key="user-delete-action-disable"
                                    value="disable"
                                    class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
                             <div class="ml-3 flex-1">
@@ -73,7 +74,8 @@
                         {{-- 刪除選項 --}}
                         <label class="relative flex items-start p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 {{ $selectedAction === 'delete' ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-gray-300 dark:border-gray-600' }}">
                             <input type="radio" 
-                                   wire:model.live="selectedAction" 
+                                   wire:model.defer="selectedAction" 
+                                   wire:key="user-delete-action-delete"
                                    value="delete"
                                    class="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500">
                             <div class="ml-3 flex-1">
@@ -119,7 +121,8 @@
                                 </label>
                                 <input type="text" 
                                        id="confirmText"
-                                       wire:model.live="confirmText"
+                                       wire:model.defer="confirmText"
+                                       wire:key="user-delete-confirm-text"
                                        placeholder="{{ $user?->username }}"
                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white sm:text-sm"
                                        autocomplete="off">
@@ -185,3 +188,32 @@
         </div>
     @endif
 </div>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        // 監聽使用者刪除模態重置事件
+        Livewire.on('user-delete-modal-reset', () => {
+            console.log('🔄 收到 user-delete-modal-reset 事件，手動更新前端...');
+            
+            setTimeout(() => {
+                // 清除使用者刪除模態表單欄位
+                const deleteModal = document.querySelector('[wire\\:click="executeAction"]');
+                if (deleteModal) {
+                    const modalContainer = deleteModal.closest('.fixed');
+                    if (modalContainer) {
+                        const inputs = modalContainer.querySelectorAll('input[type="radio"], input[type="text"]');
+                        inputs.forEach(input => {
+                            if (input.type === 'radio') {
+                                input.checked = false;
+                            } else {
+                                input.value = '';
+                            }
+                            // 觸發 blur 事件確保 Livewire 同步
+                            input.dispatchEvent(new Event('blur', { bubbles: true }));
+                        });
+                    }
+                }
+            }, 100);
+        });
+    });
+</script>

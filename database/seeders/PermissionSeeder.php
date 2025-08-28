@@ -32,9 +32,23 @@ class PermissionSeeder extends Seeder
      */
     private function seedPermissions(): void
     {
-        // 定義系統基本權限
+        // 定義系統核心權限 - 精簡且完整的權限結構
         $permissions = [
-            // 使用者管理權限
+            // === 儀表板模組 (2個權限) ===
+            [
+                'name' => 'dashboard.view',
+                'display_name' => '檢視儀表板',
+                'description' => '可以存取管理後台儀表板',
+                'module' => 'dashboard'
+            ],
+            [
+                'name' => 'dashboard.stats',
+                'display_name' => '檢視統計資訊',
+                'description' => '可以檢視系統統計資訊和圖表',
+                'module' => 'dashboard'
+            ],
+
+            // === 使用者管理模組 (6個權限) ===
             [
                 'name' => 'users.view',
                 'display_name' => '檢視使用者',
@@ -65,8 +79,14 @@ class PermissionSeeder extends Seeder
                 'description' => '可以為使用者指派或移除角色',
                 'module' => 'users'
             ],
+            [
+                'name' => 'users.export',
+                'display_name' => '匯出使用者',
+                'description' => '可以匯出使用者資料',
+                'module' => 'users'
+            ],
 
-            // 角色管理權限
+            // === 角色管理模組 (5個權限) ===
             [
                 'name' => 'roles.view',
                 'display_name' => '檢視角色',
@@ -98,7 +118,7 @@ class PermissionSeeder extends Seeder
                 'module' => 'roles'
             ],
 
-            // 權限管理權限
+            // === 權限管理模組 (4個權限) ===
             [
                 'name' => 'permissions.view',
                 'display_name' => '檢視權限',
@@ -124,41 +144,7 @@ class PermissionSeeder extends Seeder
                 'module' => 'permissions'
             ],
 
-            // 儀表板權限
-            [
-                'name' => 'dashboard.view',
-                'display_name' => '檢視儀表板',
-                'description' => '可以存取管理後台儀表板',
-                'module' => 'dashboard'
-            ],
-            [
-                'name' => 'dashboard.stats',
-                'display_name' => '檢視統計資訊',
-                'description' => '可以檢視系統統計資訊',
-                'module' => 'dashboard'
-            ],
-
-            // 系統管理權限
-            [
-                'name' => 'system.settings',
-                'display_name' => '系統設定',
-                'description' => '可以修改系統設定',
-                'module' => 'system'
-            ],
-            [
-                'name' => 'system.logs',
-                'display_name' => '檢視系統日誌',
-                'description' => '可以檢視系統日誌和錯誤記錄',
-                'module' => 'system'
-            ],
-            [
-                'name' => 'system.maintenance',
-                'display_name' => '系統維護',
-                'description' => '可以執行系統維護操作',
-                'module' => 'system'
-            ],
-
-            // 個人資料權限
+            // === 個人資料模組 (2個權限) ===
             [
                 'name' => 'profile.view',
                 'display_name' => '檢視個人資料',
@@ -172,7 +158,7 @@ class PermissionSeeder extends Seeder
                 'module' => 'profile'
             ],
 
-            // 活動日誌權限
+            // === 活動日誌模組 (3個權限) ===
             [
                 'name' => 'activity_logs.view',
                 'display_name' => '檢視活動日誌',
@@ -192,7 +178,7 @@ class PermissionSeeder extends Seeder
                 'module' => 'activity_logs'
             ],
 
-            // 通知權限
+            // === 通知管理模組 (5個權限) ===
             [
                 'name' => 'notifications.view',
                 'display_name' => '檢視通知',
@@ -224,7 +210,7 @@ class PermissionSeeder extends Seeder
                 'module' => 'notifications'
             ],
 
-            // 設定管理權限
+            // === 系統設定模組 (4個權限) ===
             [
                 'name' => 'settings.view',
                 'display_name' => '檢視設定',
@@ -250,77 +236,29 @@ class PermissionSeeder extends Seeder
                 'module' => 'settings'
             ],
 
-            // 安全管理權限
+            // === 系統管理模組 (4個權限) ===
             [
-                'name' => 'security.view',
-                'display_name' => '檢視安全資訊',
-                'description' => '可以檢視安全事件和報告',
-                'module' => 'security'
-            ],
-            [
-                'name' => 'security.incidents',
-                'display_name' => '管理安全事件',
-                'description' => '可以處理和管理安全事件',
-                'module' => 'security'
-            ],
-            [
-                'name' => 'security.audit',
-                'display_name' => '安全稽核',
-                'description' => '可以執行安全稽核和檢查',
-                'module' => 'security'
-            ],
-
-            // 匯入匯出權限
-            [
-                'name' => 'users.export',
-                'display_name' => '匯出使用者',
-                'description' => '可以匯出使用者資料',
-                'module' => 'users'
-            ],
-            [
-                'name' => 'permissions.export',
-                'display_name' => '匯出權限',
-                'description' => '可以匯出權限資料',
-                'module' => 'permissions'
-            ],
-            [
-                'name' => 'permissions.import',
-                'display_name' => '匯入權限',
-                'description' => '可以匯入權限資料',
-                'module' => 'permissions'
-            ],
-            [
-                'name' => 'permissions.manage',
-                'display_name' => '管理權限',
-                'description' => '可以進行權限的高級管理操作',
-                'module' => 'permissions'
-            ],
-
-            // 系統維護權限
-            [
-                'name' => 'maintenance.access',
-                'display_name' => '維護模式存取',
-                'description' => '可以在維護模式下存取系統',
+                'name' => 'system.logs',
+                'display_name' => '檢視系統日誌',
+                'description' => '可以檢視系統日誌和錯誤記錄',
                 'module' => 'system'
             ],
             [
-                'name' => 'system.permissions.manage',
-                'display_name' => '管理系統權限',
-                'description' => '可以管理系統模組的權限',
+                'name' => 'system.maintenance',
+                'display_name' => '系統維護',
+                'description' => '可以執行系統維護操作',
                 'module' => 'system'
             ],
             [
-                'name' => 'permissions.high_risk_operations',
-                'display_name' => '高風險權限操作',
-                'description' => '可以執行高風險的權限操作',
-                'module' => 'permissions'
+                'name' => 'system.monitor',
+                'display_name' => '系統監控',
+                'description' => '可以監控系統效能和狀態',
+                'module' => 'system'
             ],
-
-            // 效能監控權限
             [
-                'name' => 'admin.performance.monitor',
-                'display_name' => '效能監控',
-                'description' => '可以監控系統效能',
+                'name' => 'system.security',
+                'display_name' => '安全管理',
+                'description' => '可以管理系統安全設定和事件',
                 'module' => 'system'
             ],
         ];
@@ -333,6 +271,17 @@ class PermissionSeeder extends Seeder
             );
         }
 
-        $this->command->info('已成功建立 ' . count($permissions) . ' 個權限');
+        // 統計資訊
+        $this->command->info('');
+        $this->command->info('=== 權限建立完成 ===');
+        $this->command->info("✓ 總計權限: " . count($permissions) . " 個");
+        
+        // 按模組統計
+        $moduleStats = collect($permissions)->groupBy('module')->map->count();
+        $this->command->info('');
+        $this->command->info('=== 模組權限分佈 ===');
+        foreach ($moduleStats as $module => $count) {
+            $this->command->info("  {$module}: {$count} 個權限");
+        }
     }
 }

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -1169,5 +1170,411 @@ class PermissionRepository implements PermissionRepositoryInterface
                         ->select('type')
                         ->orderBy('type')
                         ->get();
+    }
+
+    // Interface methods implementation
+
+    /**
+     * 取得所有權限
+     *
+     * @return Collection
+     */
+    public function all(): Collection
+    {
+        return Permission::all();
+    }
+
+    /**
+     * 分頁取得權限列表
+     *
+     * @param int $perPage 每頁筆數
+     * @param array $filters 篩選條件
+     * @return LengthAwarePaginator
+     */
+    public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
+    {
+        return $this->getPaginatedPermissions($filters, $perPage);
+    }
+
+    /**
+     * 根據 ID 尋找權限
+     *
+     * @param int $id 權限 ID
+     * @return Permission|null
+     */
+    public function find(int $id): ?Permission
+    {
+        return Permission::find($id);
+    }
+
+    /**
+     * 根據 ID 尋找權限，找不到則拋出例外
+     *
+     * @param int $id 權限 ID
+     * @return Permission
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function findOrFail(int $id): Permission
+    {
+        return Permission::findOrFail($id);
+    }
+
+    /**
+     * 根據名稱尋找權限
+     *
+     * @param string $name 權限名稱
+     * @return Permission|null
+     */
+    public function findByName(string $name): ?Permission
+    {
+        return Permission::where('name', $name)->first();
+    }
+
+    /**
+     * 建立新權限
+     *
+     * @param array $data 權限資料
+     * @return Permission
+     */
+    public function create(array $data): Permission
+    {
+        return $this->createPermission($data);
+    }
+
+    /**
+     * 更新權限
+     *
+     * @param Permission $permission 權限實例
+     * @param array $data 更新資料
+     * @return bool
+     */
+    public function update(Permission $permission, array $data): bool
+    {
+        return $this->updatePermission($permission, $data);
+    }
+
+    /**
+     * 刪除權限
+     *
+     * @param Permission $permission 權限實例
+     * @return bool
+     * @throws \Exception
+     */
+    public function delete(Permission $permission): bool
+    {
+        return $this->deletePermission($permission);
+    }
+
+    /**
+     * 取得權限及其角色
+     *
+     * @param int $id 權限 ID
+     * @return Permission|null
+     */
+    public function findWithRoles(int $id): ?Permission
+    {
+        return Permission::with('roles')->find($id);
+    }
+
+    /**
+     * 檢查權限名稱是否已存在
+     *
+     * @param string $name 權限名稱
+     * @param int|null $excludeId 排除的權限 ID
+     * @return bool
+     */
+    public function nameExists(string $name, ?int $excludeId = null): bool
+    {
+        $query = Permission::where('name', $name);
+        
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+        
+        return $query->exists();
+    }
+
+    /**
+     * 根據模組取得權限
+     *
+     * @param string $module 模組名稱
+     * @return Collection
+     */
+    public function getByModule(string $module): Collection
+    {
+        return Permission::where('module', $module)->get();
+    }
+
+    /**
+     * 取得所有模組列表
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getAllModules(): \Illuminate\Support\Collection
+    {
+        return Permission::distinct()->pluck('module')->sort()->values();
+    }
+
+    /**
+     * 取得權限按模組分組
+     *
+     * @return Collection
+     */
+    public function getAllGroupedByModule(): Collection
+    {
+        return $this->getPermissionsByModule();
+    }
+
+    /**
+     * 搜尋權限
+     *
+     * @param string $term 搜尋關鍵字
+     * @param int $limit 限制筆數
+     * @return Collection
+     */
+    public function search(string $term, int $limit = 10): Collection
+    {
+        return $this->searchPermissionsOptimized($term, [], $limit);
+    }
+
+    /**
+     * 批量建立權限
+     *
+     * @param array $permissions 權限資料陣列
+     * @return bool
+     * @throws \Exception
+     */
+    public function bulkCreate(array $permissions): bool
+    {
+        try {
+            DB::beginTransaction();
+            
+            foreach ($permissions as $permissionData) {
+                Permission::create($permissionData);
+            }
+            
+            DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * 批量刪除權限
+     *
+     * @param array $permissionIds 權限 ID 陣列
+     * @return int 刪除的記錄數
+     * @throws \Exception
+     */
+    public function bulkDelete(array $permissionIds): int
+    {
+        try {
+            DB::beginTransaction();
+            
+            // 移除角色關聯
+            DB::table('role_permissions')->whereIn('permission_id', $permissionIds)->delete();
+            
+            // 移除依賴關係
+            DB::table('permission_dependencies')
+                ->whereIn('permission_id', $permissionIds)
+                ->orWhereIn('depends_on_permission_id', $permissionIds)
+                ->delete();
+            
+            // 刪除權限
+            $deleted = Permission::whereIn('id', $permissionIds)->delete();
+            
+            DB::commit();
+            return $deleted;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得權限統計資訊
+     *
+     * @return array
+     */
+    public function getStats(): array
+    {
+        return $this->getPermissionUsageStats();
+    }
+
+    /**
+     * 取得模組的權限樹狀結構
+     *
+     * @param string $module 模組名稱
+     * @return array
+     */
+    public function getModulePermissionTree(string $module): array
+    {
+        $permissions = Permission::where('module', $module)
+                                ->with(['dependencies', 'dependents'])
+                                ->get();
+        
+        return $permissions->map(function ($permission) {
+            return [
+                'id' => $permission->id,
+                'name' => $permission->name,
+                'display_name' => $permission->display_name,
+                'dependencies' => $permission->dependencies->pluck('name')->toArray(),
+                'dependents' => $permission->dependents->pluck('name')->toArray(),
+            ];
+        })->toArray();
+    }
+
+    /**
+     * 取得權限矩陣（所有模組和權限的結構化資料）
+     *
+     * @return array
+     */
+    public function getPermissionMatrix(): array
+    {
+        $permissions = $this->getPermissionsByModule();
+        $roles = Role::with('permissions')->get();
+        
+        return [
+            'permissions' => $permissions,
+            'roles' => $roles,
+            'matrix' => $roles->map(function ($role) use ($permissions) {
+                return [
+                    'role' => $role,
+                    'permissions' => $permissions->flatten()->map(function ($permission) use ($role) {
+                        return [
+                            'permission' => $permission,
+                            'has_permission' => $role->permissions->contains('id', $permission->id)
+                        ];
+                    })
+                ];
+            })
+        ];
+    }
+
+    /**
+     * 根據角色 ID 取得權限
+     *
+     * @param int $roleId 角色 ID
+     * @return Collection
+     */
+    public function getByRoleId(int $roleId): Collection
+    {
+        return Permission::whereHas('roles', function ($query) use ($roleId) {
+            $query->where('roles.id', $roleId);
+        })->get();
+    }
+
+    /**
+     * 取得未分配給任何角色的權限
+     *
+     * @return Collection
+     */
+    public function getUnassignedPermissions(): Collection
+    {
+        return $this->getUnusedPermissions();
+    }
+
+    /**
+     * 解析權限依賴關係
+     *
+     * @param array $permissionIds 權限 ID 陣列
+     * @return array 包含依賴關係的權限 ID 陣列
+     */
+    public function resolveDependencies(array $permissionIds): array
+    {
+        $resolved = [];
+        $toProcess = $permissionIds;
+        
+        while (!empty($toProcess)) {
+            $currentId = array_shift($toProcess);
+            
+            if (in_array($currentId, $resolved)) {
+                continue;
+            }
+            
+            $resolved[] = $currentId;
+            
+            $dependencies = $this->getPermissionDependencies($currentId);
+            foreach ($dependencies as $dependency) {
+                if (!in_array($dependency->id, $resolved) && !in_array($dependency->id, $toProcess)) {
+                    $toProcess[] = $dependency->id;
+                }
+            }
+        }
+        
+        return $resolved;
+    }
+
+    /**
+     * 取得權限的依賴權限
+     *
+     * @param Permission $permission 權限實例
+     * @return Collection
+     */
+    public function getDependencies(Permission $permission): Collection
+    {
+        return $this->getPermissionDependencies($permission->id);
+    }
+
+    /**
+     * 取得依賴於指定權限的其他權限
+     *
+     * @param Permission $permission 權限實例
+     * @return Collection
+     */
+    public function getDependents(Permission $permission): Collection
+    {
+        return $this->getPermissionDependents($permission->id);
+    }
+
+    /**
+     * 檢查權限是否可以被刪除（沒有其他權限依賴它）
+     *
+     * @param Permission $permission 權限實例
+     * @return bool
+     */
+    public function canBeDeleted(Permission $permission): bool
+    {
+        return $this->canDeletePermission($permission);
+    }
+
+    /**
+     * 取得權限的角色數量
+     *
+     * @param Permission $permission 權限實例
+     * @return int
+     */
+    public function getRoleCount(Permission $permission): int
+    {
+        return $permission->roles()->count();
+    }
+
+    /**
+     * 驗證權限組合的有效性
+     *
+     * @param array $permissionIds 權限 ID 陣列
+     * @return array 驗證結果，包含錯誤訊息
+     */
+    public function validatePermissionCombination(array $permissionIds): array
+    {
+        $errors = [];
+        
+        foreach ($permissionIds as $permissionId) {
+            $dependencies = $this->getPermissionDependencies($permissionId);
+            
+            foreach ($dependencies as $dependency) {
+                if (!in_array($dependency->id, $permissionIds)) {
+                    $permission = Permission::find($permissionId);
+                    $errors[] = "權限 '{$permission->display_name}' 需要依賴權限 '{$dependency->display_name}'";
+                }
+            }
+        }
+        
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors
+        ];
     }
 }

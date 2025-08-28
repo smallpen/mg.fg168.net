@@ -4,7 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Role;
 use App\Models\Permission;
-use App\Repositories\Contracts\RoleRepositoryInterface as ContractsRoleRepositoryInterface;
+use App\Repositories\Contracts\RoleRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * 角色資料存取實作
  */
-class RoleRepository implements RoleRepositoryInterface, ContractsRoleRepositoryInterface
+class RoleRepository implements RoleRepositoryInterface
 {
     /**
      * 取得分頁角色列表

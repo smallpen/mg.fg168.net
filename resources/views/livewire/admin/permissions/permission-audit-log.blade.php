@@ -121,7 +121,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">搜尋權限</label>
                     <input type="text" 
-                           wire:model.live.debounce.300ms="search"
+                           wire:model.defer="search"
+                           wire:key="search-input"
                            placeholder="輸入權限名稱..."
                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
@@ -129,7 +130,8 @@
                 {{-- 操作類型篩選 --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">操作類型</label>
-                    <select wire:model.live="actionFilter" 
+                    <select wire:model.defer="actionFilter" 
+                            wire:key="action-filter-select"
                             class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @foreach($availableActions as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
@@ -140,7 +142,8 @@
                 {{-- 模組篩選 --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">模組</label>
-                    <select wire:model.live="moduleFilter" 
+                    <select wire:model.defer="moduleFilter" 
+                            wire:key="module-filter-select"
                             class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @foreach($availableModules as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
@@ -152,7 +155,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">操作使用者</label>
                     <input type="text" 
-                           wire:model.live.debounce.300ms="userFilter"
+                           wire:model.defer="userFilter"
+                           wire:key="user-filter-input"
                            placeholder="輸入使用者名稱..."
                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
@@ -163,7 +167,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">開始日期</label>
                     <input type="date" 
-                           wire:model.live="startDate"
+                           wire:model.defer="startDate"
+                           wire:key="start-date-input"
                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
@@ -171,7 +176,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">結束日期</label>
                     <input type="date" 
-                           wire:model.live="endDate"
+                           wire:model.defer="endDate"
+                           wire:key="end-date-input"
                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
@@ -179,7 +185,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">IP 位址</label>
                     <input type="text" 
-                           wire:model.live.debounce.300ms="ipFilter"
+                           wire:model.defer="ipFilter"
+                           wire:key="ip-filter-input"
                            placeholder="輸入 IP 位址..."
                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
@@ -383,20 +390,109 @@
     @endif
 </div>
 
-{{-- JavaScript for file download --}}
+@script
 <script>
-    document.addEventListener('livewire:init', () => {
-        Livewire.on('download-file', (event) => {
-            const { content, filename, contentType } = event;
-            const blob = new Blob([content], { type: contentType });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+    // 檔案下載功能
+    $wire.on('download-file', (event) => {
+        const { content, filename, contentType } = event;
+        const blob = new Blob([content], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    });
+
+    // 監聽權限審計重置事件
+    $wire.on('permission-audit-reset', () => {
+        console.log('🔄 收到 permission-audit-reset 事件，手動更新前端...');
+        
+        // 重置所有表單元素
+        const formElements = [
+            // 搜尋輸入框
+            'input[wire\\:key="search-input"]',
+            'input[wire\\:key="user-filter-input"]',
+            'input[wire\\:key="ip-filter-input"]',
+            // 日期輸入框
+            'input[wire\\:key="start-date-input"]',
+            'input[wire\\:key="end-date-input"]',
+            // 下拉選單
+            'select[wire\\:key="action-filter-select"]',
+            'select[wire\\:key="module-filter-select"]'
+        ];
+        
+        formElements.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                if (element.tagName === 'SELECT') {
+                    // 重置下拉選單為第一個選項（通常是 'all'）
+                    element.selectedIndex = 0;
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                } else if (element.type === 'text') {
+                    // 清空文字輸入框
+                    element.value = '';
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                } else if (element.type === 'date') {
+                    // 重置日期輸入框為預設值
+                    if (element.getAttribute('wire:key') === 'start-date-input') {
+                        // 設定為 30 天前
+                        const startDate = new Date();
+                        startDate.setDate(startDate.getDate() - 30);
+                        element.value = startDate.toISOString().split('T')[0];
+                    } else if (element.getAttribute('wire:key') === 'end-date-input') {
+                        // 設定為今天
+                        const endDate = new Date();
+                        element.value = endDate.toISOString().split('T')[0];
+                    }
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                
+                // 觸發 blur 事件確保同步
+                element.blur();
+            });
+        });
+        
+        // 延遲刷新以確保同步
+        setTimeout(() => {
+            console.log('🔄 PermissionAuditLog 延遲刷新執行');
+            $wire.$refresh();
+        }, 500);
+    });
+
+    // 為表單元素添加手動觸發事件
+    document.addEventListener('DOMContentLoaded', function() {
+        // 為所有 select 元素添加 change 事件監聽
+        const selects = document.querySelectorAll('select[wire\\:model\\.defer]');
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                this.blur();
+                setTimeout(() => $wire.$refresh(), 100);
+            });
+        });
+        
+        // 為所有 input 元素添加事件監聽
+        const inputs = document.querySelectorAll('input[wire\\:model\\.defer]');
+        inputs.forEach(input => {
+            if (input.type === 'text') {
+                input.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        this.blur();
+                        $wire.$refresh();
+                    }
+                });
+                input.addEventListener('blur', function() {
+                    setTimeout(() => $wire.$refresh(), 100);
+                });
+            } else if (input.type === 'date') {
+                input.addEventListener('change', function() {
+                    this.blur();
+                    setTimeout(() => $wire.$refresh(), 100);
+                });
+            }
         });
     });
 </script>
+@endscript

@@ -175,7 +175,7 @@ class SettingObserver
                 'setting_key' => $setting->key,
                 'old_value' => $oldValue,
                 'new_value' => $newValue,
-                'changed_by' => Auth::id(),
+                'changed_by' => Auth::user() ? Auth::user()->id : null,
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
                 'reason' => $reason,

@@ -19,7 +19,12 @@
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">效能監控</h3>
             <div class="flex items-center space-x-2">
                 {{-- 時間週期選擇 --}}
-                <select wire:model.live="selectedPeriod" class="text-sm border-gray-300 dark:border-gray-600 rounded-md">
+                <select 
+                    wire:model.defer="selectedPeriod" 
+                    wire:key="performance-period-select"
+                    wire:change="updatedSelectedPeriod($event.target.value)"
+                    class="text-sm border-gray-300 dark:border-gray-600 rounded-md"
+                >
                     <option value="1h">1小時</option>
                     <option value="6h">6小時</option>
                     <option value="24h">24小時</option>
@@ -149,3 +154,81 @@
         <span class="text-gray-900 dark:text-white">載入效能資料中...</span>
     </div>
 </div>
+
+{{-- 錯誤狀態顯示 --}}
+@if(session()->has('performance_error'))
+<div class="fixed bottom-4 left-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50">
+    <div class="flex items-center space-x-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>{{ session('performance_error') }}</span>
+    </div>
+</div>
+@endif
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        // 監聽效能週期變更事件
+        Livewire.on('performance-period-changed', (event) => {
+            console.log('🔄 收到 performance-period-changed 事件，週期:', event.period);
+            
+            // 更新圖表或其他視覺元素
+            if (window.performanceChart) {
+                window.performanceChart.updatePeriod(event.period);
+            }
+            
+            // 顯示載入狀態
+            const loadingIndicator = document.querySelector('[wire\\:loading]');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'flex';
+                setTimeout(() => {
+                    loadingIndicator.style.display = 'none';
+                }, 1000);
+            }
+        });
+
+        // 監聽效能資料清除事件
+        Livewire.on('performance-data-cleared', () => {
+            console.log('🗑️ 效能資料已清除');
+            
+            // 重置圖表
+            if (window.performanceChart) {
+                window.performanceChart.reset();
+            }
+            
+            // 顯示成功訊息
+            const successMessage = document.createElement('div');
+            successMessage.className = 'fixed bottom-4 left-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50';
+            successMessage.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>效能資料已清除</span>
+                </div>
+            `;
+            document.body.appendChild(successMessage);
+            
+            setTimeout(() => {
+                successMessage.remove();
+            }, 3000);
+        });
+
+        // 處理選擇框變更事件
+        const periodSelect = document.querySelector('[wire\\:key="performance-period-select"]');
+        if (periodSelect) {
+            periodSelect.addEventListener('change', function(e) {
+                console.log('📊 效能週期選擇變更:', e.target.value);
+                
+                // 觸發 blur 事件確保 Livewire 同步
+                e.target.blur();
+                
+                // 延遲執行以確保資料同步
+                setTimeout(() => {
+                    // 可以在這裡添加額外的前端處理邏輯
+                }, 500);
+            });
+        }
+    });
+</script>

@@ -26,14 +26,16 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">搜尋</label>
-                <input wire:model.live="search" 
+                <input wire:model.defer="search" 
+                       wire:key="template-search-input"
                        type="text" 
                        placeholder="搜尋模板名稱、顯示名稱或描述..."
                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">模組</label>
-                <select wire:model.live="moduleFilter" 
+                <select wire:model.defer="moduleFilter" 
+                        wire:key="template-module-filter"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
                     <option value="all">所有模組</option>
                     @foreach($availableModules as $key => $label)
@@ -43,7 +45,8 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">類型</label>
-                <select wire:model.live="typeFilter" 
+                <select wire:model.defer="typeFilter" 
+                        wire:key="template-type-filter"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
                     <option value="all">所有類型</option>
                     <option value="system">系統模板</option>
@@ -155,7 +158,8 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">模板名稱</label>
-                                            <input wire:model="templateName" 
+                                            <input wire:model.defer="templateName" 
+                                                   wire:key="template-name-input"
                                                    type="text" 
                                                    placeholder="例如：crud_basic"
                                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
@@ -163,7 +167,8 @@
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">顯示名稱</label>
-                                            <input wire:model="templateDisplayName" 
+                                            <input wire:model.defer="templateDisplayName" 
+                                                   wire:key="template-display-name-input"
                                                    type="text" 
                                                    placeholder="例如：基本 CRUD 權限"
                                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
@@ -171,7 +176,8 @@
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">適用模組</label>
-                                            <select wire:model="templateModule" 
+                                            <select wire:model.defer="templateModule" 
+                                                    wire:key="template-module-select"
                                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
                                                 <option value="">請選擇模組</option>
                                                 @foreach($availableModules as $key => $label)
@@ -182,7 +188,8 @@
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">描述</label>
-                                            <input wire:model="templateDescription" 
+                                            <input wire:model.defer="templateDescription" 
+                                                   wire:key="template-description-input"
                                                    type="text" 
                                                    placeholder="模板描述（選填）"
                                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
@@ -208,7 +215,8 @@
                                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">動作</label>
-                                                    <input wire:model="templatePermissions.{{ $index }}.action" 
+                                                    <input wire:model.defer="templatePermissions.{{ $index }}.action" 
+                                                           wire:key="template-permission-action-{{ $index }}"
                                                            type="text" 
                                                            placeholder="例如：view"
                                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
@@ -216,7 +224,8 @@
                                                 </div>
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">顯示名稱</label>
-                                                    <input wire:model="templatePermissions.{{ $index }}.display_name" 
+                                                    <input wire:model.defer="templatePermissions.{{ $index }}.display_name" 
+                                                           wire:key="template-permission-display-name-{{ $index }}"
                                                            type="text" 
                                                            placeholder="例如：檢視"
                                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
@@ -224,7 +233,8 @@
                                                 </div>
                                                 <div>
                                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">類型</label>
-                                                    <select wire:model="templatePermissions.{{ $index }}.type" 
+                                                    <select wire:model.defer="templatePermissions.{{ $index }}.type" 
+                                                            wire:key="template-permission-type-{{ $index }}"
                                                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
                                                         @foreach($availableTypes as $key => $label)
                                                             <option value="{{ $key }}">{{ $label }}</option>
@@ -281,7 +291,8 @@
                                     
                                     <div class="mb-6">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">模組前綴</label>
-                                        <input wire:model.live="applyModulePrefix" 
+                                        <input wire:model.defer="applyModulePrefix" 
+                                               wire:key="apply-module-prefix-input"
                                                type="text" 
                                                placeholder="例如：users"
                                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
@@ -353,7 +364,8 @@
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">選擇模組</label>
-                                            <select wire:model.live="createFromModule" 
+                                            <select wire:model.defer="createFromModule" 
+                                                    wire:key="create-from-module-select"
                                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
                                                 <option value="">請選擇模組</option>
                                                 @foreach($availableModules as $key => $label)
@@ -364,7 +376,8 @@
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">模板名稱</label>
-                                            <input wire:model="templateName" 
+                                            <input wire:model.defer="templateName" 
+                                                   wire:key="create-template-name-input"
                                                    type="text" 
                                                    placeholder="例如：my_template"
                                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
@@ -372,7 +385,8 @@
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">顯示名稱</label>
-                                            <input wire:model="templateDisplayName" 
+                                            <input wire:model.defer="templateDisplayName" 
+                                                   wire:key="create-template-display-name-input"
                                                    type="text" 
                                                    placeholder="例如：我的模板"
                                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
@@ -382,7 +396,8 @@
 
                                     <div class="mb-6">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">描述</label>
-                                        <input wire:model="templateDescription" 
+                                        <input wire:model.defer="templateDescription" 
+                                               wire:key="create-template-description-input"
                                                type="text" 
                                                placeholder="模板描述（選填）"
                                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
@@ -396,7 +411,8 @@
                                                 @foreach($modulePermissions as $permission)
                                                     <label class="flex items-center py-2">
                                                         <input type="checkbox" 
-                                                               wire:model="selectedPermissions" 
+                                                               wire:model.defer="selectedPermissions" 
+                                                               wire:key="permission-checkbox-{{ $permission->id }}"
                                                                value="{{ $permission->id }}"
                                                                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                                         <span class="ml-3 text-sm text-gray-900 dark:text-white">
@@ -432,3 +448,67 @@
         </div>
     @endif
 </div>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        // 監聽模板表單重置事件
+        Livewire.on('permission-template-manager-reset', () => {
+            console.log('🔄 收到 permission-template-manager-reset 事件，手動更新前端...');
+            
+            setTimeout(() => {
+                // 清除所有表單欄位
+                const templateForm = document.querySelector('form[wire\\:submit="saveTemplate"]');
+                if (templateForm) {
+                    const inputs = templateForm.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        if (input.type === 'checkbox' || input.type === 'radio') {
+                            input.checked = false;
+                        } else {
+                            input.value = '';
+                        }
+                        // 觸發 blur 事件確保 Livewire 同步
+                        input.dispatchEvent(new Event('blur', { bubbles: true }));
+                    });
+                }
+            }, 100);
+        });
+
+        // 監聽應用模板表單重置事件
+        Livewire.on('permission-template-apply-reset', () => {
+            console.log('🔄 收到 permission-template-apply-reset 事件，手動更新前端...');
+            
+            setTimeout(() => {
+                // 清除應用表單欄位
+                const applyForm = document.querySelector('form[wire\\:submit="applyTemplate"]');
+                if (applyForm) {
+                    const inputs = applyForm.querySelectorAll('input, select');
+                    inputs.forEach(input => {
+                        input.value = '';
+                        input.dispatchEvent(new Event('blur', { bubbles: true }));
+                    });
+                }
+            }, 100);
+        });
+
+        // 監聽從權限建立模板表單重置事件
+        Livewire.on('permission-template-create-from-permissions-reset', () => {
+            console.log('🔄 收到 permission-template-create-from-permissions-reset 事件，手動更新前端...');
+            
+            setTimeout(() => {
+                // 清除從權限建立模板表單欄位
+                const createForm = document.querySelector('form[wire\\:submit="createFromSelectedPermissions"]');
+                if (createForm) {
+                    const inputs = createForm.querySelectorAll('input, select');
+                    inputs.forEach(input => {
+                        if (input.type === 'checkbox') {
+                            input.checked = false;
+                        } else {
+                            input.value = '';
+                        }
+                        input.dispatchEvent(new Event('blur', { bubbles: true }));
+                    });
+                }
+            }, 100);
+        });
+    });
+</script>

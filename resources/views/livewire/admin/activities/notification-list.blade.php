@@ -40,7 +40,8 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">搜尋</label>
                 <input type="text" 
-                       wire:model.live.debounce.300ms="search"
+                       wire:model.defer="search"
+                       wire:key="notification-search-input"
                        placeholder="搜尋通知內容..."
                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
@@ -48,7 +49,8 @@
             <!-- 類型篩選 -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">活動類型</label>
-                <select wire:model.live="typeFilter" 
+                <select wire:model.defer="typeFilter" 
+                        wire:key="type-filter-select"
                         class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="all">全部類型</option>
                     @foreach($typeOptions as $value => $label)
@@ -60,7 +62,8 @@
             <!-- 優先級篩選 -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">優先級</label>
-                <select wire:model.live="priorityFilter" 
+                <select wire:model.defer="priorityFilter" 
+                        wire:key="priority-filter-select"
                         class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="all">全部優先級</option>
                     <option value="low">低</option>
@@ -73,7 +76,8 @@
             <!-- 狀態篩選 -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">讀取狀態</label>
-                <select wire:model.live="statusFilter" 
+                <select wire:model.defer="statusFilter" 
+                        wire:key="status-filter-select"
                         class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="all">全部狀態</option>
                     <option value="unread">未讀</option>
@@ -84,7 +88,8 @@
             <!-- 使用者篩選 -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">接收者</label>
-                <select wire:model.live="userFilter" 
+                <select wire:model.defer="userFilter" 
+                        wire:key="user-filter-select"
                         class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="all">全部使用者</option>
                     @foreach($users as $user)
@@ -107,13 +112,15 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">開始日期</label>
                 <input type="date" 
-                       wire:model.live="dateFrom"
+                       wire:model.defer="dateFrom"
+                       wire:key="date-from-input"
                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">結束日期</label>
                 <input type="date" 
-                       wire:model.live="dateTo"
+                       wire:model.defer="dateTo"
+                       wire:key="date-to-input"
                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
         </div>
@@ -440,28 +447,115 @@
     @endif
 </div>
 
-@push('scripts')
+@script
 <script>
     // 處理通知顯示
-    document.addEventListener('livewire:init', () => {
-        Livewire.on('notification', (event) => {
-            const { type, message } = event;
-            
-            // 這裡可以整合您的通知系統
-            if (type === 'success') {
-                // 顯示成功通知
-                console.log('Success:', message);
-            } else if (type === 'error') {
-                // 顯示錯誤通知
-                console.log('Error:', message);
-            }
-        });
+    $wire.on('notification', (event) => {
+        const { type, message } = event;
+        
+        // 這裡可以整合您的通知系統
+        if (type === 'success') {
+            // 顯示成功通知
+            console.log('Success:', message);
+        } else if (type === 'error') {
+            // 顯示錯誤通知
+            console.log('Error:', message);
+        }
+    });
 
-        // 監聽新通知
-        Livewire.on('notification-received', () => {
-            // 可以在這裡添加聲音提示或其他效果
-            console.log('New notification received');
+    // 監聽新通知
+    $wire.on('notification-received', () => {
+        // 可以在這裡添加聲音提示或其他效果
+        console.log('New notification received');
+    });
+
+    // 監聽通知列表重置事件
+    $wire.on('notification-list-reset', () => {
+        console.log('🔄 收到 notification-list-reset 事件，手動更新前端...');
+        
+        // 重置所有表單元素
+        const formElements = [
+            // 搜尋輸入框
+            'input[wire\\:key="notification-search-input"]',
+            // 下拉選單
+            'select[wire\\:key="type-filter-select"]',
+            'select[wire\\:key="priority-filter-select"]',
+            'select[wire\\:key="status-filter-select"]',
+            'select[wire\\:key="user-filter-select"]',
+            // 日期輸入框
+            'input[wire\\:key="date-from-input"]',
+            'input[wire\\:key="date-to-input"]'
+        ];
+        
+        formElements.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                if (element.tagName === 'SELECT') {
+                    // 重置下拉選單為第一個選項（通常是 'all'）
+                    element.selectedIndex = 0;
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                } else if (element.type === 'text') {
+                    // 清空文字輸入框
+                    element.value = '';
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                } else if (element.type === 'date') {
+                    // 重置日期輸入框為預設值
+                    if (element.getAttribute('wire:key') === 'date-from-input') {
+                        // 設定為 7 天前
+                        const startDate = new Date();
+                        startDate.setDate(startDate.getDate() - 7);
+                        element.value = startDate.toISOString().split('T')[0];
+                    } else if (element.getAttribute('wire:key') === 'date-to-input') {
+                        // 設定為今天
+                        const endDate = new Date();
+                        element.value = endDate.toISOString().split('T')[0];
+                    }
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                
+                // 觸發 blur 事件確保同步
+                element.blur();
+            });
+        });
+        
+        // 延遲刷新以確保同步
+        setTimeout(() => {
+            console.log('🔄 NotificationList 延遲刷新執行');
+            $wire.$refresh();
+        }, 500);
+    });
+
+    // 為表單元素添加手動觸發事件
+    document.addEventListener('DOMContentLoaded', function() {
+        // 為所有 select 元素添加 change 事件監聽
+        const selects = document.querySelectorAll('select[wire\\:model\\.defer]');
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                this.blur();
+                setTimeout(() => $wire.$refresh(), 100);
+            });
+        });
+        
+        // 為所有 input 元素添加事件監聽
+        const inputs = document.querySelectorAll('input[wire\\:model\\.defer]');
+        inputs.forEach(input => {
+            if (input.type === 'text') {
+                input.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        this.blur();
+                        $wire.$refresh();
+                    }
+                });
+                input.addEventListener('blur', function() {
+                    setTimeout(() => $wire.$refresh(), 100);
+                });
+            } else if (input.type === 'date') {
+                input.addEventListener('change', function() {
+                    this.blur();
+                    setTimeout(() => $wire.$refresh(), 100);
+                });
+            }
         });
     });
 </script>
-@endpush
+@endscript

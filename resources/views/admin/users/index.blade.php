@@ -27,8 +27,6 @@
         </div>
 
         <!-- 使用者列表 Livewire 元件 -->
-        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
-            <livewire:admin.users.user-list />
-        </div>
+        <livewire:admin.users.user-list />
     </div>
 @endsection

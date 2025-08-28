@@ -81,27 +81,7 @@ return [
         'statistics_analysis' => '統計分析',
     ],
 
-    // 使用者管理
-    'users' => [
-        'title' => '使用者管理',
-        'description' => '管理系統使用者、角色和權限',
-        'user' => '使用者',
-        'role' => '角色',
-        'roles' => '角色',
-        'status' => '狀態',
-        'actions' => '操作',
-        'create_user' => '建立使用者',
-        'edit_user' => '編輯使用者',
-        'delete_user' => '刪除使用者',
-        'view_user' => '檢視使用者',
-        'search_placeholder' => '搜尋使用者...',
-        'no_users_found' => '找不到使用者',
-        'total_users' => '使用者總數',
-        'active_users' => '啟用使用者',
-        'inactive_users' => '停用使用者',
-        'recent_users' => '最近使用者',
-        'role_assignment' => '角色指派',
-    ],
+
 
     // 設定選單
     'settings' => [
@@ -311,6 +291,10 @@ return [
         'user_not_found' => '找不到指定的使用者',
         'delete_failed' => '刪除失敗',
         'user_deleted_permanently' => '使用者 :username 已永久刪除',
+        'no_users' => '沒有找到使用者',
+        'no_users_description' => '目前沒有符合條件的使用者，請嘗試調整搜尋或篩選條件',
+        'search_help' => '請嘗試調整搜尋條件或篩選設定',
+        'user_info' => '使用者資訊',
         
         // 頁面和操作
         'list' => '使用者列表',
@@ -350,6 +334,41 @@ return [
         'no_permission_create' => '您沒有權限建立使用者',
         'no_permission_edit' => '您沒有權限編輯使用者',
         'no_permission_delete' => '您沒有權限刪除使用者',
+        'no_permission_export' => '您沒有匯出使用者資料的權限',
+        
+        // 錯誤訊息
+        'invalid_search_content' => '搜尋條件包含無效內容',
+        'search_format_error' => '搜尋條件格式錯誤',
+        'invalid_user_id' => '無效的使用者 ID',
+        'invalid_user_ids' => '選中的使用者 ID 無效',
+        'user_not_exists' => '使用者不存在',
+        'status_toggle_failed' => '狀態切換失敗',
+        'no_role' => '無角色',
+        'no_roles' => '無角色',
+        'stats_refreshed' => '統計資料已重新整理',
+        
+        // 統計翻譯
+        'total_users' => '使用者總數',
+        'active_users' => '啟用使用者',
+        'inactive_users' => '停用使用者',
+        'recent_users' => '最近使用者',
+        'statistics' => '統計資訊',
+        'show_details' => '顯示詳細',
+        'refresh' => '重新整理',
+        
+        // 統計描述
+        'total_users_desc' => '系統中的使用者總數',
+        'active_users_desc' => '目前啟用的使用者數量',
+        'inactive_users_desc' => '目前停用的使用者數量',
+        'recent_users_desc' => '最近7天新增的使用者',
+        'hide_details' => '隱藏詳細',
+        'loading_stats' => '載入統計資料中...',
+        'activity_rate' => '活躍率',
+        'active_vs_total' => '啟用 / 總數',
+        'top_role' => '最受歡迎角色',
+        'users_count' => ':count 個使用者',
+        'users_without_roles_warning' => '發現無角色使用者',
+        'users_without_roles_count' => '有 :count 個使用者尚未分配角色',
     ],
 
     // 麵包屑導航
@@ -483,6 +502,10 @@ return [
             'deactivate' => '批量停用',
             'delete' => '批量刪除',
             'permissions' => '批量權限設定',
+            'export' => '批量匯出',
+            'processing' => '處理中...',
+            'completed' => '操作完成',
+            'partial_success' => '部分成功：:success 個成功，:failed 個失敗',
         ],
 
         // 批量權限設定
@@ -629,7 +652,6 @@ return [
         // 舊有翻譯保持相容性
         'management' => '管理系統角色和權限設定',
         'add_role' => '新增角色',
-        'search' => '搜尋角色',
         'search_placeholder' => '搜尋角色名稱、顯示名稱或描述...',
         'filter_by_status' => '狀態篩選',
         'all_status' => '全部狀態',
@@ -637,7 +659,6 @@ return [
         'inactive' => '停用',
         'status' => '狀態',
         'created_at' => '建立時間',
-        'actions' => '操作',
         'clear_filters' => '清除篩選',
         'total_roles' => '總角色數',
         'active_roles' => '啟用角色',

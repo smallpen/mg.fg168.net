@@ -293,12 +293,50 @@
 
 @push('scripts')
 <script>
-    // 監聽活動記錄更新事件
-    window.addEventListener('activities-refreshed', event => {
-        if (event.detail.message) {
-            // 這裡可以整合通知系統
-            console.log(event.detail.message);
-        }
+    document.addEventListener('livewire:init', () => {
+        // 監聽活動記錄更新事件
+        Livewire.on('activities-refreshed', (event) => {
+            if (event.message) {
+                console.log('📊 活動記錄已更新:', event.message);
+                
+                // 顯示成功訊息
+                showSuccessMessage(event.message);
+            }
+        });
+
+        // 監聽篩選清除事件
+        Livewire.on('recent-activity-filters-cleared', () => {
+            console.log('🗑️ 最近活動篩選已清除');
+            
+            // 顯示篩選狀態視覺指示器
+            const filterIndicators = document.querySelectorAll('.inline-flex.items-center.px-2\\.5.py-0\\.5.rounded-full');
+            filterIndicators.forEach(indicator => {
+                indicator.style.opacity = '0.5';
+                setTimeout(() => {
+                    indicator.style.opacity = '1';
+                }, 300);
+            });
+            
+            showSuccessMessage('篩選條件已清除');
+        });
     });
+
+    function showSuccessMessage(message) {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50';
+        successDiv.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>${message}</span>
+            </div>
+        `;
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            successDiv.remove();
+        }, 3000);
+    }
 </script>
 @endpush

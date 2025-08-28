@@ -30,8 +30,18 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'bio',
         'avatar',
+        'timezone',
+        'language_preference',
         'theme_preference',
+        'email_notifications',
+        'browser_notifications',
+        'two_factor_enabled',
+        'login_notifications',
+        'security_alerts',
+        'session_timeout',
         'custom_themes',
         'locale',
         'is_active',
@@ -58,6 +68,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_active' => 'boolean',
+        'email_notifications' => 'boolean',
+        'browser_notifications' => 'boolean',
+        'two_factor_enabled' => 'boolean',
+        'login_notifications' => 'boolean',
+        'security_alerts' => 'boolean',
         'accessibility_preferences' => 'array',
         'custom_themes' => 'array',
         'preferences' => 'array',
@@ -176,6 +191,35 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->hasRole('admin') || $this->isSuperAdmin();
+    }
+
+    /**
+     * 取得使用者的最高角色層級
+     * 
+     * @return int
+     */
+    public function getMaxRoleLevel(): int
+    {
+        // 如果是超級管理員，返回最高層級
+        if ($this->isSuperAdmin()) {
+            return 100;
+        }
+
+        // 如果是管理員，返回管理員層級
+        if ($this->hasRole('admin')) {
+            return 90;
+        }
+
+        // 取得使用者所有角色的最高層級
+        $maxLevel = 0;
+        foreach ($this->roles as $role) {
+            $roleLevel = $role->getLevel();
+            if ($roleLevel > $maxLevel) {
+                $maxLevel = $roleLevel;
+            }
+        }
+
+        return $maxLevel;
     }
 
     /**

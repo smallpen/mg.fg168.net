@@ -1,4 +1,5 @@
 <div class="space-y-6">
+
     {{-- 使用者統計資訊 --}}
     <livewire:admin.users.user-stats />
 
@@ -14,7 +15,8 @@
                 <div class="relative">
                     <input type="text" 
                            id="search-mobile"
-                           wire:model.live.debounce.500ms="search" 
+                           wire:model.live="search" 
+                           wire:key="search-mobile-input"
                            placeholder="{{ __('admin.users.search_placeholder') }}"
                            class="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -41,6 +43,7 @@
                     <div class="relative">
                         <select id="roleFilter-mobile" 
                                 wire:model.live="roleFilter"
+                                wire:key="role-filter-mobile-select"
                                 class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base">
                             <option value="all">{{ __('admin.users.all_roles') }}</option>
                             @foreach($availableRoles as $role)
@@ -64,6 +67,7 @@
                     <div class="relative">
                         <select id="statusFilter-mobile" 
                                 wire:model.live="statusFilter"
+                                wire:key="status-filter-mobile-select"
                                 class="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base">
                             @foreach($statusOptions as $value => $label)
                                 <option value="{{ $value }}">{{ $label }}</option>
@@ -81,8 +85,9 @@
 
             {{-- 清除篩選按鈕 --}}
             @if($search || $roleFilter !== 'all' || $statusFilter !== 'all')
-            <div class="flex justify-center">
+            <div class="flex justify-center" wire:key="mobile-reset-filters">
                 <button wire:click="resetFilters" 
+                        wire:key="mobile-reset-button"
                         class="inline-flex items-center px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -104,7 +109,8 @@
                     <div class="relative">
                         <input type="text" 
                                id="search"
-                               wire:model.live.debounce.500ms="search" 
+                               wire:model.live="search" 
+                               wire:key="search-desktop-input"
                                placeholder="{{ __('admin.users.search_placeholder') }}"
                                class="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -129,6 +135,7 @@
                     <div class="relative">
                         <select id="roleFilter" 
                                 wire:model.live="roleFilter"
+                                wire:key="role-filter-desktop-select"
                                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                             <option value="all">{{ __('admin.users.all_roles') }}</option>
                             @foreach($availableRoles as $role)
@@ -152,6 +159,7 @@
                     <div class="relative">
                         <select id="statusFilter" 
                                 wire:model.live="statusFilter"
+                                wire:key="status-filter-desktop-select"
                                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                             @foreach($statusOptions as $value => $label)
                                 <option value="{{ $value }}">{{ $label }}</option>
@@ -169,8 +177,9 @@
 
             {{-- 清除篩選按鈕 --}}
             @if($search || $roleFilter !== 'all' || $statusFilter !== 'all')
-            <div class="mt-4 flex justify-end">
+            <div class="mt-4 flex justify-end" wire:key="desktop-reset-filters">
                 <button wire:click="resetFilters" 
+                        wire:key="desktop-reset-button"
                         class="inline-flex items-center px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -222,6 +231,7 @@
                     </button>
                 @endif
                 <button wire:click="resetFilters" 
+                        wire:key="mobile-bulk-reset-button"
                         class="w-full inline-flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
                     {{ __('admin.users.cancel_selection') }}
                 </button>
@@ -265,6 +275,7 @@
                     </button>
                 @endif
                 <button wire:click="resetFilters" 
+                        wire:key="desktop-bulk-reset-button"
                         class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
                     {{ __('admin.users.cancel_selection') }}
                 </button>
@@ -386,7 +397,7 @@
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($users as $user)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                        <tr wire:key="user-{{ $user->id }}-{{ $loop->index }}" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                             {{-- 批量選擇 --}}
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <input type="checkbox" 
@@ -611,7 +622,7 @@
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($users as $user)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                        <tr wire:key="user-tablet-{{ $user->id }}-{{ $loop->index }}" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                             {{-- 批量選擇 --}}
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <input type="checkbox" 
@@ -760,7 +771,7 @@
         {{-- 手機和小平板版卡片式佈局 (≤1023px) --}}
         <div class="lg:hidden">
             @forelse($users as $user)
-                <div class="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                <div wire:key="user-mobile-{{ $user->id }}-{{ $loop->index }}" class="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                     {{-- 手機版卡片 (≤640px) --}}
                     <div class="block sm:hidden p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                         <div class="flex items-start space-x-3">
@@ -1041,9 +1052,167 @@
         @endif
     </div>
 
-    {{-- 統計資訊元件 --}}
-    <livewire:admin.users.user-stats />
-
     {{-- 使用者刪除確認對話框 --}}
     <livewire:admin.users.user-delete-modal />
 </div>
+
+@script
+<script>
+    // 監聽篩選重置事件
+    $wire.on('filters-reset', () => {
+        // 確保所有搜尋框都被清空
+        const searchInputs = document.querySelectorAll('input[wire\\:model\\.defer="search"]');
+        searchInputs.forEach(input => {
+            if (input.value !== '') {
+                input.value = '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.blur();
+            }
+        });
+        
+        // 確保所有篩選下拉選單都重置為預設值
+        const roleFilter = document.getElementById('roleFilter');
+        const roleFilterMobile = document.getElementById('roleFilter-mobile');
+        const statusFilter = document.getElementById('statusFilter');
+        const statusFilterMobile = document.getElementById('statusFilter-mobile');
+        
+        [roleFilter, roleFilterMobile].forEach(select => {
+            if (select && select.value !== 'all') {
+                select.value = 'all';
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                select.blur();
+            }
+        });
+        
+        [statusFilter, statusFilterMobile].forEach(select => {
+            if (select && select.value !== 'all') {
+                select.value = 'all';
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                select.blur();
+            }
+        });
+    });
+
+    // 監聽新的使用者列表重置事件
+    $wire.on('user-list-reset', () => {
+        console.log('🔄 收到 user-list-reset 事件，手動更新前端...');
+        
+        // 清空所有搜尋框
+        const searchInputs = document.querySelectorAll('#search, #search-mobile');
+        searchInputs.forEach(input => {
+            if (input) {
+                input.value = '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.blur();
+            }
+        });
+        
+        // 重置所有篩選下拉選單
+        const selects = document.querySelectorAll('#roleFilter, #roleFilter-mobile, #statusFilter, #statusFilter-mobile');
+        selects.forEach(select => {
+            if (select) {
+                select.value = 'all';
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                select.blur();
+            }
+        });
+        
+        // 延遲刷新以確保同步
+        setTimeout(() => {
+            console.log('🔄 延遲刷新執行');
+            // 觸發 Livewire 重新渲染
+            $wire.$refresh();
+        }, 300);
+    });
+
+    // 為搜尋框添加手動觸發事件
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInputs = document.querySelectorAll('#search, #search-mobile');
+        searchInputs.forEach(input => {
+            if (input) {
+                input.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        this.blur();
+                        $wire.$refresh();
+                    }
+                });
+            }
+        });
+        
+        const selects = document.querySelectorAll('#roleFilter, #roleFilter-mobile, #statusFilter, #statusFilter-mobile');
+        selects.forEach(select => {
+            if (select) {
+                select.addEventListener('change', function() {
+                    this.blur();
+                    setTimeout(() => {
+                        try {
+                            $wire.$refresh();
+                        } catch (error) {
+                            console.error('🚨 Livewire 刷新錯誤:', error);
+                            // 如果刷新失敗，嘗試重新載入頁面
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
+                    }, 100);
+                });
+            }
+        });
+        
+        // 監聽 Livewire 錯誤事件
+        document.addEventListener('livewire:error', function(event) {
+            console.error('❌ Livewire 錯誤:', event.detail);
+            
+            // 如果是 DOM 操作錯誤，嘗試修復
+            if (event.detail.message && event.detail.message.includes('Cannot read properties of null')) {
+                console.log('🔧 檢測到 DOM 操作錯誤，嘗試修復...');
+                
+                // 嘗試呼叫修復方法
+                try {
+                    $wire.fixDomState();
+                } catch (fixError) {
+                    console.error('修復失敗:', fixError);
+                    // 最後手段：重新載入頁面
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            }
+        });
+        
+        // 監聽自定義重置事件
+        document.addEventListener('user-list-reset', function() {
+            console.log('🔄 使用者列表重置事件觸發');
+            
+            // 重置所有表單元素的值
+            setTimeout(() => {
+                const searchInputs = document.querySelectorAll('input[wire\\:model\\.live="search"]');
+                searchInputs.forEach(input => {
+                    if (input.value !== '') {
+                        input.value = '';
+                    }
+                });
+                
+                const statusSelects = document.querySelectorAll('select[wire\\:model\\.live="statusFilter"]');
+                statusSelects.forEach(select => {
+                    if (select.value !== 'all') {
+                        select.value = 'all';
+                    }
+                });
+                
+                const roleSelects = document.querySelectorAll('select[wire\\:model\\.live="roleFilter"]');
+                roleSelects.forEach(select => {
+                    if (select.value !== 'all') {
+                        select.value = 'all';
+                    }
+                });
+            }, 100);
+        });
+    });
+    
+    // 全域錯誤處理
+    window.addEventListener('error', function(event) {
+        if (event.message && event.message.includes('Cannot read properties of null')) {
+            console.error('🚨 檢測到 DOM 操作錯誤:', event.message);
+            console.log('📍 錯誤位置:', event.filename, '行號:', event.lineno);
+            console.trace('錯誤堆疊追蹤');
+        }
+    });
+</script>
+@endscript

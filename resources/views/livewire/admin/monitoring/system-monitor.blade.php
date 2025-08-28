@@ -12,15 +12,17 @@
             {{-- 自動刷新切換 --}}
             <label class="flex items-center">
                 <input type="checkbox" 
-                       wire:model.live="autoRefresh" 
-                       wire:change="toggleAutoRefresh"
+                       wire:model.defer="autoRefresh" 
+                       wire:key="system-monitor-auto-refresh"
+                       wire:change="updatedAutoRefresh($event.target.checked)"
                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                 <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ __('自動刷新') }}</span>
             </label>
             
             {{-- 刷新間隔選擇 --}}
-            <select wire:model.live="refreshInterval" 
-                    wire:change="setRefreshInterval($event.target.value)"
+            <select wire:model.defer="refreshInterval" 
+                    wire:key="system-monitor-refresh-interval"
+                    wire:change="updatedRefreshInterval($event.target.value)"
                     class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm">
                 <option value="10">10秒</option>
                 <option value="30">30秒</option>
@@ -268,12 +270,149 @@
         </div>
     </div>
 
-    {{-- 自動刷新腳本 --}}
-    @if($autoRefresh)
-        <script>
-            setInterval(function() {
-                @this.call('handleAutoRefresh');
-            }, {{ $refreshInterval * 1000 }});
-        </script>
+    {{-- 錯誤狀態顯示 --}}
+    @if(session()->has('system_monitor_error'))
+    <div class="fixed bottom-4 left-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50">
+        <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>{{ session('system_monitor_error') }}</span>
+        </div>
+    </div>
     @endif
+
+    {{-- 設定變更確認反饋 --}}
+    @if(session()->has('system_monitor_success'))
+    <div class="fixed bottom-4 left-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50">
+        <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>{{ session('system_monitor_success') }}</span>
+        </div>
+    </div>
+    @endif
+
+    <script>
+        let autoRefreshInterval = null;
+        let currentAutoRefresh = @json($autoRefresh);
+        let currentRefreshInterval = @json($refreshInterval);
+
+        document.addEventListener('livewire:init', () => {
+            // 初始化自動刷新
+            if (currentAutoRefresh) {
+                startAutoRefresh();
+            }
+
+            // 監聽自動刷新狀態變更事件
+            Livewire.on('system-monitor-auto-refresh-changed', (event) => {
+                console.log('🔄 收到 system-monitor-auto-refresh-changed 事件，狀態:', event.autoRefresh);
+                
+                currentAutoRefresh = event.autoRefresh;
+                
+                if (currentAutoRefresh) {
+                    startAutoRefresh();
+                    showSuccessMessage('自動刷新已啟用');
+                } else {
+                    stopAutoRefresh();
+                    showSuccessMessage('自動刷新已停用');
+                }
+            });
+
+            // 監聽刷新間隔變更事件
+            Livewire.on('system-monitor-interval-changed', (event) => {
+                console.log('⏱️ 收到 system-monitor-interval-changed 事件，間隔:', event.interval);
+                
+                currentRefreshInterval = event.interval;
+                
+                // 如果自動刷新啟用，重新啟動定時器
+                if (currentAutoRefresh) {
+                    stopAutoRefresh();
+                    startAutoRefresh();
+                }
+                
+                showSuccessMessage(`刷新間隔已設定為 ${event.interval} 秒`);
+            });
+
+            // 監聽資料更新事件
+            Livewire.on('system-monitor-data-updated', () => {
+                console.log('📊 系統監控資料已更新');
+                
+                // 可以在這裡添加視覺反饋
+                const lastUpdatedElement = document.querySelector('.text-gray-500');
+                if (lastUpdatedElement) {
+                    lastUpdatedElement.style.color = '#10b981';
+                    setTimeout(() => {
+                        lastUpdatedElement.style.color = '';
+                    }, 2000);
+                }
+            });
+
+            // 處理控制項變更事件
+            const autoRefreshCheckbox = document.querySelector('[wire\\:key="system-monitor-auto-refresh"]');
+            if (autoRefreshCheckbox) {
+                autoRefreshCheckbox.addEventListener('change', function(e) {
+                    console.log('🔄 自動刷新狀態變更:', e.target.checked);
+                    
+                    // 觸發 blur 事件確保 Livewire 同步
+                    e.target.blur();
+                });
+            }
+
+            const intervalSelect = document.querySelector('[wire\\:key="system-monitor-refresh-interval"]');
+            if (intervalSelect) {
+                intervalSelect.addEventListener('change', function(e) {
+                    console.log('⏱️ 刷新間隔變更:', e.target.value);
+                    
+                    // 觸發 blur 事件確保 Livewire 同步
+                    e.target.blur();
+                });
+            }
+        });
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            autoRefreshInterval = setInterval(() => {
+                console.log('🔄 執行自動刷新...');
+                Livewire.dispatch('auto-refresh');
+            }, currentRefreshInterval * 1000);
+            
+            console.log(`✅ 自動刷新已啟動，間隔: ${currentRefreshInterval} 秒`);
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                console.log('⏹️ 自動刷新已停止');
+            }
+        }
+
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed bottom-4 left-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50';
+            successDiv.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+
+        // 頁面卸載時清理定時器
+        window.addEventListener('beforeunload', () => {
+            stopAutoRefresh();
+        });
+    </script>
 </div>

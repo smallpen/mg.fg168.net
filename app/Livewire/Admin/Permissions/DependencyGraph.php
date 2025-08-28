@@ -4,7 +4,7 @@ namespace App\Livewire\Admin\Permissions;
 
 use App\Models\Permission;
 use App\Models\PermissionDependency;
-use App\Repositories\PermissionRepository;
+use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\PermissionValidationService;
 use App\Traits\HandlesLivewireErrors;
@@ -53,7 +53,7 @@ class DependencyGraph extends Component
     public array $dependencyPaths = [];
     public array $dependentPaths = [];
     
-    protected PermissionRepository $permissionRepository;
+    protected PermissionRepositoryInterface $permissionRepository;
     protected PermissionValidationService $validationService;
     protected AuditLogService $auditService;
 
@@ -61,7 +61,7 @@ class DependencyGraph extends Component
      * 元件初始化
      */
     public function boot(
-        PermissionRepository $permissionRepository,
+        PermissionRepositoryInterface $permissionRepository,
         PermissionValidationService $validationService,
         AuditLogService $auditService
     ): void {

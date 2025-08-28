@@ -170,7 +170,8 @@
                                     </label>
                                     <input type="text" 
                                            id="confirmationText"
-                                           wire:model.live="confirmationText"
+                                           wire:model.defer="confirmationText"
+                                           wire:key="permission-delete-confirm-text"
                                            placeholder="{{ $permission->name }}"
                                            class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white sm:text-sm"
                                            autocomplete="off">
@@ -212,3 +213,28 @@
         </div>
     @endif
 </div>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        // 監聽權限刪除模態重置事件
+        Livewire.on('permission-delete-modal-reset', () => {
+            console.log('🔄 收到 permission-delete-modal-reset 事件，手動更新前端...');
+            
+            setTimeout(() => {
+                // 清除權限刪除模態表單欄位
+                const deleteModal = document.querySelector('[wire\\:click="executeDelete"]');
+                if (deleteModal) {
+                    const modalContainer = deleteModal.closest('.fixed');
+                    if (modalContainer) {
+                        const inputs = modalContainer.querySelectorAll('input[type="text"]');
+                        inputs.forEach(input => {
+                            input.value = '';
+                            // 觸發 blur 事件確保 Livewire 同步
+                            input.dispatchEvent(new Event('blur', { bubbles: true }));
+                        });
+                    }
+                }
+            }, 100);
+        });
+    });
+</script>

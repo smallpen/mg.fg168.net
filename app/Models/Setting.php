@@ -294,7 +294,7 @@ class Setting extends Model
                         'setting_key' => $this->key,
                         'old_value' => $oldValue,
                         'new_value' => $newValue,
-                        'changed_by' => auth()->id(),
+                        'changed_by' => auth()->user() ? auth()->user()->id : null,
                         'ip_address' => request()->ip(),
                         'user_agent' => request()->userAgent(),
                     ]);

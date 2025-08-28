@@ -24,7 +24,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 @foreach($availableFormats as $format => $label)
                     <label class="relative flex cursor-pointer rounded-lg border p-4 focus:outline-none {{ $exportFormat === $format ? 'border-blue-600 ring-2 ring-blue-600' : 'border-gray-300' }}">
-                        <input type="radio" wire:model.live="exportFormat" value="{{ $format }}" class="sr-only">
+                        <input type="radio" wire:model.defer="exportFormat" wire:key="export-format-{{ $format }}" value="{{ $format }}" class="sr-only">
                         <span class="flex flex-1">
                             <span class="flex flex-col">
                                 <span class="block text-sm font-medium text-gray-900">
@@ -61,7 +61,7 @@
             <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
                 @foreach($timeRangeOptions as $range => $label)
                     <label class="relative flex cursor-pointer rounded-md border p-3 focus:outline-none {{ $timeRange === $range ? 'border-blue-600 ring-1 ring-blue-600 bg-blue-50' : 'border-gray-300' }}">
-                        <input type="radio" wire:model.live="timeRange" value="{{ $range }}" class="sr-only">
+                        <input type="radio" wire:model.defer="timeRange" wire:key="time-range-{{ $range }}" value="{{ $range }}" class="sr-only">
                         <span class="flex flex-1 justify-center">
                             <span class="block text-sm font-medium {{ $timeRange === $range ? 'text-blue-900' : 'text-gray-900' }}">
                                 {{ $label }}
@@ -75,11 +75,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">開始日期</label>
-                        <input type="date" wire:model.live="dateFrom" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                        <input type="date" wire:model.defer="dateFrom" wire:key="date-from-input" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">結束日期</label>
-                        <input type="date" wire:model.live="dateTo" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                        <input type="date" wire:model.defer="dateTo" wire:key="date-to-input" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                     </div>
                 </div>
             @endif
@@ -98,7 +98,7 @@
                 <!-- 使用者篩選 -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">使用者</label>
-                    <select wire:model.live="userFilter" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <select wire:model.defer="userFilter" wire:key="user-filter-select" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                         <option value="">全部使用者</option>
                         @foreach($this->userOptions as $userId => $userName)
                             <option value="{{ $userId }}">{{ $userName }}</option>
@@ -109,7 +109,7 @@
                 <!-- 活動類型篩選 -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">活動類型</label>
-                    <select wire:model.live="typeFilter" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <select wire:model.defer="typeFilter" wire:key="type-filter-select" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                         <option value="">全部類型</option>
                         @foreach($this->typeOptions as $type => $typeName)
                             <option value="{{ $type }}">{{ $typeName }}</option>
@@ -120,7 +120,7 @@
                 <!-- 模組篩選 -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">模組</label>
-                    <select wire:model.live="moduleFilter" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <select wire:model.defer="moduleFilter" wire:key="module-filter-select" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                         <option value="">全部模組</option>
                         @foreach($this->moduleOptions as $module => $moduleName)
                             <option value="{{ $module }}">{{ $moduleName }}</option>
@@ -131,7 +131,7 @@
                 <!-- 結果篩選 -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">操作結果</label>
-                    <select wire:model.live="resultFilter" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <select wire:model.defer="resultFilter" wire:key="result-filter-select" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                         <option value="">全部結果</option>
                         <option value="success">成功</option>
                         <option value="failed">失敗</option>
@@ -143,13 +143,13 @@
                 <!-- IP 位址篩選 -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">IP 位址</label>
-                    <input type="text" wire:model.live.debounce.500ms="ipFilter" placeholder="輸入 IP 位址" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <input type="text" wire:model.defer="ipFilter" wire:key="ip-filter-input" placeholder="輸入 IP 位址" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                 </div>
 
                 <!-- 風險等級篩選 -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">風險等級</label>
-                    <select wire:model.live="riskLevelFilter" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <select wire:model.defer="riskLevelFilter" wire:key="risk-level-filter-select" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                         <option value="">全部等級</option>
                         <option value="high">高風險 (≥7)</option>
                         <option value="6">高 (6)</option>
@@ -165,7 +165,7 @@
             <!-- 安全事件篩選 -->
             <div class="mt-4">
                 <label class="flex items-center">
-                    <input type="checkbox" wire:model.live="securityEventsOnly" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <input type="checkbox" wire:model.defer="securityEventsOnly" wire:key="security-events-checkbox" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <span class="ml-2 text-sm text-gray-700">僅匯出安全事件</span>
                 </label>
             </div>
@@ -176,15 +176,15 @@
             <label class="block text-sm font-medium text-gray-700 mb-3">匯出選項</label>
             <div class="space-y-3">
                 <label class="flex items-center">
-                    <input type="checkbox" wire:model.live="includeUserDetails" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <input type="checkbox" wire:model.defer="includeUserDetails" wire:key="include-user-details-checkbox" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <span class="ml-2 text-sm text-gray-700">包含使用者詳細資訊</span>
                 </label>
                 <label class="flex items-center">
-                    <input type="checkbox" wire:model.live="includeProperties" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <input type="checkbox" wire:model.defer="includeProperties" wire:key="include-properties-checkbox" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <span class="ml-2 text-sm text-gray-700">包含活動詳細屬性</span>
                 </label>
                 <label class="flex items-center">
-                    <input type="checkbox" wire:model.live="includeRelatedData" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <input type="checkbox" wire:model.defer="includeRelatedData" wire:key="include-related-data-checkbox" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <span class="ml-2 text-sm text-gray-700">包含相關資料</span>
                 </label>
             </div>
@@ -373,6 +373,106 @@
             link.click();
             document.body.removeChild(link);
         }
+    });
+
+    // 監聽活動匯出重置事件
+    $wire.on('activity-export-reset', () => {
+        console.log('🔄 收到 activity-export-reset 事件，手動更新前端...');
+        
+        // 重置所有表單元素
+        const formElements = [
+            // 匯出格式 radio buttons
+            'input[wire\\:key^="export-format-"]',
+            // 時間範圍 radio buttons  
+            'input[wire\\:key^="time-range-"]',
+            // 日期輸入框
+            'input[wire\\:key="date-from-input"]',
+            'input[wire\\:key="date-to-input"]',
+            // 篩選下拉選單
+            'select[wire\\:key="user-filter-select"]',
+            'select[wire\\:key="type-filter-select"]',
+            'select[wire\\:key="module-filter-select"]',
+            'select[wire\\:key="result-filter-select"]',
+            'select[wire\\:key="risk-level-filter-select"]',
+            // IP 篩選輸入框
+            'input[wire\\:key="ip-filter-input"]',
+            // 核取方塊
+            'input[wire\\:key="security-events-checkbox"]',
+            'input[wire\\:key="include-user-details-checkbox"]',
+            'input[wire\\:key="include-properties-checkbox"]',
+            'input[wire\\:key="include-related-data-checkbox"]'
+        ];
+        
+        formElements.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                if (element.type === 'radio') {
+                    // 重置 radio buttons - 只選中預設值
+                    if (element.value === 'csv' || element.value === '7d') {
+                        element.checked = true;
+                        element.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        element.checked = false;
+                    }
+                } else if (element.type === 'checkbox') {
+                    // 重置核取方塊 - 根據預設值設定
+                    const defaultChecked = element.getAttribute('wire:key').includes('include-user-details') || 
+                                          element.getAttribute('wire:key').includes('include-properties');
+                    element.checked = defaultChecked;
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                } else if (element.tagName === 'SELECT') {
+                    // 重置下拉選單為第一個選項
+                    element.selectedIndex = 0;
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                } else if (element.type === 'text' || element.type === 'date') {
+                    // 清空文字和日期輸入框
+                    element.value = '';
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                
+                // 觸發 blur 事件確保同步
+                element.blur();
+            });
+        });
+        
+        // 延遲刷新以確保同步
+        setTimeout(() => {
+            console.log('🔄 ActivityExport 延遲刷新執行');
+            $wire.$refresh();
+        }, 500);
+    });
+
+    // 為表單元素添加手動觸發事件
+    document.addEventListener('DOMContentLoaded', function() {
+        // 為所有 select 元素添加 change 事件監聽
+        const selects = document.querySelectorAll('select[wire\\:model\\.defer]');
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                this.blur();
+                setTimeout(() => $wire.$refresh(), 100);
+            });
+        });
+        
+        // 為所有 input 元素添加事件監聽
+        const inputs = document.querySelectorAll('input[wire\\:model\\.defer]');
+        inputs.forEach(input => {
+            if (input.type === 'text' || input.type === 'date') {
+                input.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        this.blur();
+                        $wire.$refresh();
+                    }
+                });
+                input.addEventListener('blur', function() {
+                    setTimeout(() => $wire.$refresh(), 100);
+                });
+            } else if (input.type === 'checkbox' || input.type === 'radio') {
+                input.addEventListener('change', function() {
+                    this.blur();
+                    setTimeout(() => $wire.$refresh(), 100);
+                });
+            }
+        });
     });
 </script>
 @endscript

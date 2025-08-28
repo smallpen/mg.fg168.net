@@ -4,7 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Models\Permission;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection as SupportCollection;
 
 /**
@@ -28,7 +28,7 @@ interface PermissionRepositoryInterface
      * @param array $filters 篩選條件
      * @return LengthAwarePaginator
      */
-    public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator;
+    public function paginate(int $perPage = 15, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
     /**
      * 根據 ID 尋找權限

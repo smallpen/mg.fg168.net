@@ -54,7 +54,8 @@
                         </label>
                         <input type="text" 
                                id="name"
-                               wire:model.live="name"
+                               wire:model.defer="name"
+                               wire:key="permission-name-input"
                                @if($isSystemPermission && $mode === 'edit') readonly @endif
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm @if($isSystemPermission && $mode === 'edit') bg-gray-100 dark:bg-gray-600 @endif"
                                placeholder="{{ __('permissions.form.name_placeholder') }}">
@@ -78,7 +79,8 @@
                         </label>
                         <input type="text" 
                                id="display_name"
-                               wire:model.live="display_name"
+                               wire:model.defer="display_name"
+                               wire:key="permission-display-name-input"
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
                                placeholder="{{ __('permissions.form.display_name_placeholder') }}">
                         @error('display_name')
@@ -92,7 +94,8 @@
                             {{ __('permissions.form.description_label') }}
                         </label>
                         <textarea id="description"
-                                  wire:model.live="description"
+                                  wire:model.defer="description"
+                                  wire:key="permission-description-textarea"
                                   rows="3"
                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm"
                                   placeholder="{{ __('permissions.form.description_placeholder') }}"></textarea>
@@ -109,7 +112,8 @@
                                 {{ __('permissions.form.module_label') }} <span class="text-red-500">*</span>
                             </label>
                             <select id="module"
-                                    wire:model.live="module"
+                                    wire:model.defer="module"
+                                    wire:key="permission-module-select"
                                     @if($isSystemPermission && $mode === 'edit') disabled @endif
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm @if($isSystemPermission && $mode === 'edit') bg-gray-100 dark:bg-gray-600 @endif">
                                 <option value="">{{ __('permissions.form.module_placeholder') }}</option>
@@ -133,7 +137,8 @@
                                 {{ __('permissions.form.type_label') }} <span class="text-red-500">*</span>
                             </label>
                             <select id="type"
-                                    wire:model.live="type"
+                                    wire:model.defer="type"
+                                    wire:key="permission-type-select"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm">
                                 <option value="">{{ __('permissions.form.type_placeholder') }}</option>
                                 @foreach($availableTypes as $key => $label)
@@ -202,7 +207,8 @@
                                                     <label class="flex items-center cursor-pointer">
                                                         <input type="checkbox"
                                                                value="{{ $perm->id }}"
-                                                               wire:model.live="dependencies"
+                                                               wire:model.defer="dependencies"
+                                                               wire:key="permission-dependency-{{ $perm->id }}"
                                                                @if(!$this->canSelectAsDependency($perm->id)) disabled @endif
                                                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600">
                                                         <div class="ml-3 flex-1">
@@ -257,3 +263,31 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        // 監聽權限表單重置事件
+        Livewire.on('permission-form-reset', () => {
+            console.log('🔄 收到 permission-form-reset 事件，手動更新前端...');
+            
+            setTimeout(() => {
+                // 清除權限表單欄位
+                const permissionForm = document.querySelector('form[wire\\:submit\\.prevent="save"]');
+                if (permissionForm) {
+                    const inputs = permissionForm.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        if (input.type === 'checkbox') {
+                            input.checked = false;
+                        } else if (input.type === 'radio') {
+                            input.checked = false;
+                        } else {
+                            input.value = '';
+                        }
+                        // 觸發 blur 事件確保 Livewire 同步
+                        input.dispatchEvent(new Event('blur', { bubbles: true }));
+                    });
+                }
+            }, 100);
+        });
+    });
+</script>

@@ -30,7 +30,7 @@
         
         <!-- 權限建立表單元件 -->
         <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
-            <livewire:admin.permissions.permission-form />
+            <livewire:admin.permissions.permission-form wire:init="openModal" />
         </div>
         
     </div>
@@ -161,4 +161,3 @@
     }
 </style>
 @endpush
-</x-admin.layout.admin-layout>

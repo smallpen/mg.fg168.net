@@ -74,6 +74,28 @@ class MaintenanceSettings extends Component
         $this->settings = $this->configurationService->getSettingsByCategory('maintenance');
         $this->originalSettings = $this->settings;
         
+        // 確保所有必要的設定都存在，如果不存在則設定預設值
+        $defaultSettings = [
+            'maintenance.auto_backup_enabled' => true,
+            'maintenance.backup_frequency' => 'daily',
+            'maintenance.backup_retention_days' => 30,
+            'maintenance.backup_storage_path' => '',
+            'maintenance.log_level' => 'info',
+            'maintenance.log_retention_days' => 14,
+            'maintenance.cache_driver' => 'redis',
+            'maintenance.cache_ttl' => 3600,
+            'maintenance.maintenance_mode' => false,
+            'maintenance.maintenance_message' => '系統正在進行維護，請稍後再試。',
+            'maintenance.monitoring_enabled' => true,
+            'maintenance.monitoring_interval' => 300,
+        ];
+        
+        foreach ($defaultSettings as $key => $defaultValue) {
+            if (!array_key_exists($key, $this->settings)) {
+                $this->settings[$key] = $defaultValue;
+            }
+        }
+        
         // 檢查維護模式變更警告
         $this->showMaintenanceWarning = $this->settings['maintenance.maintenance_mode'] ?? false;
     }

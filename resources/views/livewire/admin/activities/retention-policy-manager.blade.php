@@ -54,12 +54,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">搜尋</label>
-                        <input wire:model.live="search" type="text" placeholder="搜尋政策名稱、描述..."
+                        <input wire:model.defer="search" 
+                               wire:key="retention-search-input"
+                               type="text" placeholder="搜尋政策名稱、描述..."
                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">狀態</label>
-                        <select wire:model.live="statusFilter" 
+                        <select wire:model.defer="statusFilter" 
+                                wire:key="retention-status-filter"
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             <option value="">全部</option>
                             <option value="active">啟用</option>
@@ -68,7 +71,8 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">動作</label>
-                        <select wire:model.live="actionFilter" 
+                        <select wire:model.defer="actionFilter" 
+                                wire:key="retention-action-filter"
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             <option value="">全部</option>
                             <option value="archive">歸檔</option>
@@ -416,7 +420,9 @@
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">政策名稱 *</label>
-                                    <input wire:model="policyForm.name" type="text" required
+                                    <input wire:model.defer="policyForm.name" 
+                                           wire:key="policy-name-input"
+                                           type="text" required
                                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     @error('policyForm.name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                 </div>
@@ -424,12 +430,16 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">活動類型</label>
-                                        <input wire:model="policyForm.activity_type" type="text" placeholder="留空表示所有類型"
+                                        <input wire:model.defer="policyForm.activity_type" 
+                                               wire:key="policy-activity-type-input"
+                                               type="text" placeholder="留空表示所有類型"
                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">模組</label>
-                                        <input wire:model="policyForm.module" type="text" placeholder="留空表示所有模組"
+                                        <input wire:model.defer="policyForm.module" 
+                                               wire:key="policy-module-input"
+                                               type="text" placeholder="留空表示所有模組"
                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     </div>
                                 </div>
@@ -437,13 +447,17 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">保留天數 *</label>
-                                        <input wire:model="policyForm.retention_days" type="number" min="1" max="3650" required
+                                        <input wire:model.defer="policyForm.retention_days" 
+                                               wire:key="policy-retention-days-input"
+                                               type="number" min="1" max="3650" required
                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         @error('policyForm.retention_days') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">處理動作 *</label>
-                                        <select wire:model="policyForm.action" required
+                                        <select wire:model.defer="policyForm.action" 
+                                                wire:key="policy-action-select"
+                                                required
                                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                             <option value="archive">歸檔</option>
                                             <option value="delete">刪除</option>
@@ -454,12 +468,16 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">優先級 *</label>
-                                        <input wire:model="policyForm.priority" type="number" min="0" max="100" required
+                                        <input wire:model.defer="policyForm.priority" 
+                                               wire:key="policy-priority-input"
+                                               type="number" min="0" max="100" required
                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         <p class="text-xs text-gray-500 mt-1">數字越大優先級越高</p>
                                     </div>
                                     <div class="flex items-center">
-                                        <input wire:model="policyForm.is_active" type="checkbox" id="is_active"
+                                        <input wire:model.defer="policyForm.is_active" 
+                                               wire:key="policy-is-active-checkbox"
+                                               type="checkbox" id="is_active"
                                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
                                         <label for="is_active" class="ml-2 block text-sm text-gray-900">啟用政策</label>
                                     </div>
@@ -467,7 +485,9 @@
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">描述</label>
-                                    <textarea wire:model="policyForm.description" rows="3"
+                                    <textarea wire:model.defer="policyForm.description" 
+                                              wire:key="policy-description-textarea"
+                                              rows="3"
                                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
                                 </div>
                             </div>
@@ -503,13 +523,17 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">開始日期 *</label>
-                                        <input wire:model="cleanupForm.date_from" type="date" required
+                                        <input wire:model.defer="cleanupForm.date_from" 
+                                               wire:key="cleanup-date-from-input"
+                                               type="date" required
                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         @error('cleanupForm.date_from') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">結束日期 *</label>
-                                        <input wire:model="cleanupForm.date_to" type="date" required
+                                        <input wire:model.defer="cleanupForm.date_to" 
+                                               wire:key="cleanup-date-to-input"
+                                               type="date" required
                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                         @error('cleanupForm.date_to') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </div>
@@ -518,12 +542,16 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">活動類型</label>
-                                        <input wire:model="cleanupForm.activity_type" type="text" placeholder="留空表示所有類型"
+                                        <input wire:model.defer="cleanupForm.activity_type" 
+                                               wire:key="cleanup-activity-type-input"
+                                               type="text" placeholder="留空表示所有類型"
                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">模組</label>
-                                        <input wire:model="cleanupForm.module" type="text" placeholder="留空表示所有模組"
+                                        <input wire:model.defer="cleanupForm.module" 
+                                               wire:key="cleanup-module-input"
+                                               type="text" placeholder="留空表示所有模組"
                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     </div>
                                 </div>
@@ -531,7 +559,9 @@
                                 <div class="grid grid-cols-3 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">處理動作 *</label>
-                                        <select wire:model="cleanupForm.action" required
+                                        <select wire:model.defer="cleanupForm.action" 
+                                                wire:key="cleanup-action-select"
+                                                required
                                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                             <option value="archive">歸檔</option>
                                             <option value="delete">刪除</option>
@@ -539,12 +569,16 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">最低風險等級</label>
-                                        <input wire:model="cleanupForm.risk_level_min" type="number" min="0" max="10"
+                                        <input wire:model.defer="cleanupForm.risk_level_min" 
+                                               wire:key="cleanup-risk-level-min-input"
+                                               type="number" min="0" max="10"
                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">最高風險等級</label>
-                                        <input wire:model="cleanupForm.risk_level_max" type="number" min="0" max="10"
+                                        <input wire:model.defer="cleanupForm.risk_level_max" 
+                                               wire:key="cleanup-risk-level-max-input"
+                                               type="number" min="0" max="10"
                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     </div>
                                 </div>
@@ -669,3 +703,48 @@
         </div>
     @endif
 </div>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        // 監聽保留政策表單重置事件
+        Livewire.on('retention-policy-form-reset', () => {
+            console.log('🔄 收到 retention-policy-form-reset 事件，手動更新前端...');
+            
+            setTimeout(() => {
+                // 清除政策表單欄位
+                const policyForm = document.querySelector('form[wire\\:submit="savePolicy"]');
+                if (policyForm) {
+                    const inputs = policyForm.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        if (input.type === 'checkbox') {
+                            input.checked = false;
+                        } else if (input.type === 'radio') {
+                            input.checked = false;
+                        } else {
+                            input.value = '';
+                        }
+                        // 觸發 blur 事件確保 Livewire 同步
+                        input.dispatchEvent(new Event('blur', { bubbles: true }));
+                    });
+                }
+
+                // 清除手動清理表單欄位
+                const cleanupForm = document.querySelector('form[wire\\:submit="executeManualCleanup"]');
+                if (cleanupForm) {
+                    const inputs = cleanupForm.querySelectorAll('input, select');
+                    inputs.forEach(input => {
+                        if (input.type === 'checkbox') {
+                            input.checked = false;
+                        } else if (input.type === 'radio') {
+                            input.checked = false;
+                        } else {
+                            input.value = '';
+                        }
+                        // 觸發 blur 事件確保 Livewire 同步
+                        input.dispatchEvent(new Event('blur', { bubbles: true }));
+                    });
+                }
+            }, 100);
+        });
+    });
+</script>

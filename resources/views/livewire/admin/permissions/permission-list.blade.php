@@ -396,3 +396,229 @@
     {{-- 權限刪除確認對話框 --}}
     <livewire:admin.permissions.permission-delete-modal />
 </div>
+
+<script>
+document.addEventListener('livewire:init', () => {
+    // 權限管理頁面鍵盤導航支援
+    let currentRowIndex = -1;
+    let isNavigating = false;
+    
+    // 取得所有可導航的行
+    function getNavigableRows() {
+        return document.querySelectorAll('tbody tr:not(.hidden)');
+    }
+    
+    // 取得行內的可操作按鈕
+    function getRowButtons(row) {
+        return row.querySelectorAll('button:not([disabled])');
+    }
+    
+    // 高亮顯示當前行
+    function highlightRow(index) {
+        const rows = getNavigableRows();
+        
+        // 移除所有高亮
+        rows.forEach(row => {
+            row.classList.remove('bg-blue-50', 'dark:bg-blue-900/20', 'ring-2', 'ring-blue-500');
+        });
+        
+        // 高亮當前行
+        if (index >= 0 && index < rows.length) {
+            const currentRow = rows[index];
+            currentRow.classList.add('bg-blue-50', 'dark:bg-blue-900/20', 'ring-2', 'ring-blue-500');
+            currentRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+    
+    // 鍵盤事件處理
+    document.addEventListener('keydown', function(e) {
+        const rows = getNavigableRows();
+        if (rows.length === 0) return;
+        
+        // 檢查是否在輸入框中
+        const activeElement = document.activeElement;
+        if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT')) {
+            return;
+        }
+        
+        switch(e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                isNavigating = true;
+                currentRowIndex = Math.min(currentRowIndex + 1, rows.length - 1);
+                highlightRow(currentRowIndex);
+                break;
+                
+            case 'ArrowUp':
+                e.preventDefault();
+                isNavigating = true;
+                currentRowIndex = Math.max(currentRowIndex - 1, 0);
+                highlightRow(currentRowIndex);
+                break;
+                
+            case 'Home':
+                e.preventDefault();
+                isNavigating = true;
+                currentRowIndex = 0;
+                highlightRow(currentRowIndex);
+                break;
+                
+            case 'End':
+                e.preventDefault();
+                isNavigating = true;
+                currentRowIndex = rows.length - 1;
+                highlightRow(currentRowIndex);
+                break;
+                
+            case 'Enter':
+                if (isNavigating && currentRowIndex >= 0) {
+                    e.preventDefault();
+                    const currentRow = rows[currentRowIndex];
+                    const editButton = currentRow.querySelector('button[wire\\:click*="editPermission"]');
+                    if (editButton) {
+                        editButton.click();
+                    }
+                }
+                break;
+                
+            case 'Delete':
+                if (isNavigating && currentRowIndex >= 0) {
+                    e.preventDefault();
+                    const currentRow = rows[currentRowIndex];
+                    const deleteButton = currentRow.querySelector('button[wire\\:click*="deletePermission"]:not([disabled])');
+                    if (deleteButton) {
+                        deleteButton.click();
+                    }
+                }
+                break;
+                
+            case 'Escape':
+                if (isNavigating) {
+                    e.preventDefault();
+                    isNavigating = false;
+                    currentRowIndex = -1;
+                    highlightRow(-1);
+                }
+                break;
+                
+            case 'Tab':
+                if (isNavigating && currentRowIndex >= 0) {
+                    e.preventDefault();
+                    const currentRow = rows[currentRowIndex];
+                    const buttons = getRowButtons(currentRow);
+                    if (buttons.length > 0) {
+                        buttons[0].focus();
+                        isNavigating = false;
+                        highlightRow(-1);
+                    }
+                }
+                break;
+                
+            // 快捷鍵
+            case 'n':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const createButton = document.querySelector('button[wire\\:click="createPermission"]');
+                    if (createButton) {
+                        createButton.click();
+                    }
+                }
+                break;
+                
+            case 'f':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const searchInput = document.querySelector('input[wire\\:model*="search"]');
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                }
+                break;
+                
+            case 'r':
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const resetButton = document.querySelector('button[wire\\:click="resetFilters"]');
+                    if (resetButton) {
+                        resetButton.click();
+                    }
+                }
+                break;
+        }
+    });
+    
+    // 滑鼠點擊時取消鍵盤導航模式
+    document.addEventListener('click', function() {
+        if (isNavigating) {
+            isNavigating = false;
+            currentRowIndex = -1;
+            highlightRow(-1);
+        }
+    });
+    
+    // 顯示鍵盤快捷鍵幫助
+    function showKeyboardHelp() {
+        const helpModal = document.createElement('div');
+        helpModal.className = 'fixed inset-0 z-50 overflow-y-auto';
+        helpModal.innerHTML = `
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="this.parentElement.parentElement.remove()"></div>
+                <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
+                                鍵盤快捷鍵
+                            </h3>
+                            <div class="space-y-3 text-sm">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">導航</h4>
+                                        <div class="space-y-1 text-gray-600 dark:text-gray-400">
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">↑↓</kbd> 上下移動</div>
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Home</kbd> 第一行</div>
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">End</kbd> 最後一行</div>
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Enter</kbd> 編輯</div>
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Delete</kbd> 刪除</div>
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Tab</kbd> 聚焦按鈕</div>
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Esc</kbd> 取消導航</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">快捷鍵</h4>
+                                        <div class="space-y-1 text-gray-600 dark:text-gray-400">
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Ctrl+N</kbd> 新增權限</div>
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Ctrl+F</kbd> 搜尋</div>
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Ctrl+R</kbd> 重設篩選</div>
+                                            <div><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">?</kbd> 顯示幫助</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                        <button type="button" onclick="this.closest('.fixed').remove()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            關閉
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(helpModal);
+    }
+    
+    // ? 鍵顯示幫助
+    document.addEventListener('keydown', function(e) {
+        if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            const activeElement = document.activeElement;
+            if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA')) {
+                e.preventDefault();
+                showKeyboardHelp();
+            }
+        }
+    });
+    
+    console.log('🎹 權限管理鍵盤導航已啟用');
+    console.log('💡 按 ? 鍵查看快捷鍵幫助');
+});
+</script>

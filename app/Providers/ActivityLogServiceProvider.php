@@ -73,29 +73,12 @@ class ActivityLogServiceProvider extends ServiceProvider
      */
     protected function registerSystemEventListeners(): void
     {
-        // 註冊應用程式啟動事件
-        Event::listen('bootstrapped: Illuminate\Foundation\Bootstrap\BootProviders', function () {
-            if (app()->runningInConsole()) {
-                return;
-            }
-            
-            $systemEventListener = app(\App\Listeners\SystemEventListener::class);
-            $systemEventListener->logSystemStartup();
-        });
-
-        // 註冊應用程式關閉事件
-        register_shutdown_function(function () {
-            if (app()->runningInConsole()) {
-                return;
-            }
-            
-            try {
-                $systemEventListener = app(\App\Listeners\SystemEventListener::class);
-                $systemEventListener->logSystemShutdown();
-            } catch (\Exception $e) {
-                // 忽略關閉時的錯誤，避免影響正常關閉流程
-            }
-        });
+        // 移除不當的系統啟動和關閉事件監聽器
+        // 這些事件應該只在真正的系統啟動和關閉時觸發，而不是每次 HTTP 請求
+        // 如果需要記錄系統啟動，應該在部署腳本或系統初始化時手動記錄
+        
+        // 註冊真正重要的系統事件監聽器
+        // 例如：維護模式切換、重要配置變更等
 
         // 註冊快取事件監聽器
         if (config('app.debug')) {

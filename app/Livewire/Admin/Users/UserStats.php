@@ -27,16 +27,20 @@ class UserStats extends Component
     // 是否正在載入
     public bool $isLoading = true;
 
-    protected UserRepository $userRepository;
-    protected UserCacheService $cacheService;
+    /**
+     * 取得 UserRepository 實例
+     */
+    protected function getUserRepository(): UserRepository
+    {
+        return app(UserRepository::class);
+    }
 
     /**
-     * 元件初始化
+     * 取得 UserCacheService 實例
      */
-    public function boot(UserRepository $userRepository, UserCacheService $cacheService): void
+    protected function getCacheService(): UserCacheService
     {
-        $this->userRepository = $userRepository;
-        $this->cacheService = $cacheService;
+        return app(UserCacheService::class);
     }
 
     /**
@@ -55,7 +59,7 @@ class UserStats extends Component
         $this->isLoading = true;
         
         $this->safeExecute(function () {
-            $this->stats = $this->userRepository->getUserStats();
+            $this->stats = $this->getUserRepository()->getUserStats();
             $this->isLoading = false;
         }, 'load_user_stats', [
             'component' => 'UserStats',
@@ -77,7 +81,7 @@ class UserStats extends Component
     public function refreshStats(): void
     {
         // 清除快取
-        $this->cacheService->clearStats();
+        $this->getCacheService()->clearStats();
         
         // 重新載入統計資料
         $this->loadStats();

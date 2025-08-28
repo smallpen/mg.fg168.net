@@ -365,7 +365,7 @@ class SettingsSecurityService
                 'setting_key' => $settingKey,
                 'old_value' => $this->sanitizeValueForLog($settingKey, $oldValue),
                 'new_value' => $this->sanitizeValueForLog($settingKey, $newValue),
-                'changed_by' => auth()->id(),
+                'changed_by' => auth()->user() ? auth()->user()->id : null,
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
                 'reason' => $reason,

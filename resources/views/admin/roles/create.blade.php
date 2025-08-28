@@ -187,6 +187,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1500);
         });
         
+        // 處理重定向事件
+        Livewire.on('redirect-to-url', (event) => {
+            showNotification('角色建立成功，正在跳轉...', 'success');
+            setTimeout(() => {
+                window.location.href = event.url;
+            }, 1000);
+        });
+        
+        // 角色建立成功事件
+        Livewire.on('role-created-success', (event) => {
+            showNotification(event.message, 'success');
+        });
+        
         // 錯誤訊息
         Livewire.on('role-creation-failed', (event) => {
             showNotification(event.message, 'error');

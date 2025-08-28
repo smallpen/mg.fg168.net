@@ -104,7 +104,59 @@
     {{-- 搜尋和篩選區域 --}}
     <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+            {{-- 手機版佈局 --}}
+            <div class="block sm:hidden space-y-4">
+                {{-- 搜尋框 --}}
+                <div class="relative">
+                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input 
+                        type="text" 
+                        wire:model.live.debounce.300ms="search"
+                        placeholder="{{ __('admin.roles.search.placeholder') }}"
+                        class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                    />
+                    @if($search)
+                        <button 
+                            wire:click="$set('search', '')"
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    @endif
+                </div>
+
+                {{-- 篩選器和重置按鈕 --}}
+                <div class="flex items-center justify-between">
+                    <button 
+                        wire:click="toggleFilters"
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+                    >
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                        {{ __('admin.roles.filters.toggle') }}
+                    </button>
+
+                    @if($search || $permissionCountFilter !== 'all' || $userCountFilter !== 'all' || $systemRoleFilter !== 'all' || $statusFilter !== 'all')
+                        <button 
+                            wire:click="resetFilters"
+                            class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+                        >
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            {{ __('admin.roles.filters.reset') }}
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            {{-- 桌面版佈局 --}}
+            <div class="hidden sm:flex flex-col sm:flex-row sm:items-center gap-4">
                 {{-- 搜尋框 --}}
                 <div class="flex-1">
                     <div class="relative">
@@ -272,7 +324,19 @@
     @endif
 
     {{-- 角色列表 --}}
-    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden relative">
+        {{-- 載入狀態覆蓋層 --}}
+        <div wire:loading wire:target="search,permissionCountFilter,userCountFilter,systemRoleFilter,statusFilter,sortBy,resetFilters" 
+             class="absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 z-10 flex items-center justify-center">
+            <div class="flex items-center space-x-3">
+                <svg class="animate-spin h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-sm text-gray-600 dark:text-gray-400">{{ __('admin.common.loading') }}</span>
+            </div>
+        </div>
+
         @if($this->roles->count() > 0)
             {{-- 表格標題 --}}
             <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
@@ -450,7 +514,7 @@
                                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
                                         </svg>
-                                        {{ $role->permissions_count }}
+                                        {{ $role->permissions_count ?? 0 }}
                                     </button>
                                 </td>
                                 
@@ -478,8 +542,8 @@
                                 
                                 {{-- 建立時間 --}}
                                 <td class="px-4 py-4">
-                                    <span class="text-sm text-gray-600 dark:text-gray-400">
-                                        {{ $role->formatted_created_at }}
+                                    <span class="text-sm text-gray-600 dark:text-gray-400" title="{{ $role->created_at->format('Y-m-d H:i:s') }}">
+                                        {{ $role->created_at->diffForHumans() }}
                                     </span>
                                 </td>
                                 

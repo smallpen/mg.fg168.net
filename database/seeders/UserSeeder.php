@@ -10,7 +10,8 @@ use App\Models\Role;
 /**
  * 使用者種子檔案
  * 
- * 建立預設管理員帳號和測試使用者
+ * 建立系統必要的預設管理員帳號
+ * 確保系統部署後可以立即使用
  */
 class UserSeeder extends Seeder
 {
@@ -19,54 +20,27 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // 定義預設使用者
+        // 定義系統必要的預設使用者
         $users = [
-            [
-                'username' => 'superadmin',
-                'name' => '超級管理員',
-                'email' => 'superadmin@example.com',
-                'password' => Hash::make('password123'),
-                'theme_preference' => 'light',
-                'locale' => 'zh_TW',
-                'is_active' => true,
-                'roles' => ['super_admin']
-            ],
             [
                 'username' => 'admin',
                 'name' => '系統管理員',
-                'email' => 'admin@example.com',
-                'password' => Hash::make('password123'),
+                'email' => 'admin@system.local',
+                'password' => Hash::make('admin123'),
                 'theme_preference' => 'light',
                 'locale' => 'zh_TW',
                 'is_active' => true,
-                'roles' => ['admin']
-            ],
-            [
-                'username' => 'testuser',
-                'name' => '測試使用者',
-                'email' => 'testuser@example.com',
-                'password' => Hash::make('password123'),
-                'theme_preference' => 'light',
-                'locale' => 'zh_TW',
-                'is_active' => true,
-                'roles' => ['user']
-            ],
-            [
-                'username' => 'demo',
-                'name' => '示範帳號',
-                'email' => 'demo@example.com',
-                'password' => Hash::make('demo123'),
-                'theme_preference' => 'dark',
-                'locale' => 'en',
-                'is_active' => true,
-                'roles' => ['user']
+                'email_verified_at' => now(),
+                'roles' => ['admin'],
+                'description' => '系統預設管理員帳號，擁有完整管理權限'
             ],
         ];
 
         // 建立使用者並指派角色
         foreach ($users as $userData) {
             $roles = $userData['roles'];
-            unset($userData['roles']);
+            $description = $userData['description'] ?? '';
+            unset($userData['roles'], $userData['description']);
 
             // 建立使用者
             $user = User::firstOrCreate(
@@ -82,17 +56,32 @@ class UserSeeder extends Seeder
                 }
             }
 
-            $this->command->info("已建立使用者: {$user->username} ({$user->name})");
+            $this->command->info("✓ 已建立使用者: {$user->username} ({$user->name})");
+            if ($description) {
+                $this->command->line("  說明: {$description}");
+            }
         }
 
-        // 顯示預設帳號資訊
+        // 顯示系統部署資訊
+        $this->displayDeploymentInfo();
+    }
+
+    /**
+     * 顯示系統部署資訊
+     */
+    private function displayDeploymentInfo(): void
+    {
         $this->command->info('');
-        $this->command->info('=== 預設帳號資訊 ===');
-        $this->command->info('超級管理員: superadmin / password123');
-        $this->command->info('系統管理員: admin / password123');
-        $this->command->info('測試使用者: testuser / password123');
-        $this->command->info('示範帳號: demo / demo123');
+        $this->command->info('=== 系統部署完成 ===');
+        $this->command->info('預設管理員帳號: admin');
+        $this->command->info('預設密碼: admin123');
+        $this->command->info('登入網址: /admin/login');
         $this->command->info('');
-        $this->command->warn('請在生產環境中修改預設密碼！');
+        $this->command->warn('⚠️  重要提醒:');
+        $this->command->warn('   1. 請立即登入系統並修改預設密碼');
+        $this->command->warn('   2. 建議建立專屬的管理員帳號');
+        $this->command->warn('   3. 在生產環境中請停用或刪除預設帳號');
+        $this->command->info('');
+        $this->command->info('系統現在可以正常使用了！');
     }
 }
