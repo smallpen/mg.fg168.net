@@ -24,10 +24,11 @@ class PermissionRepository implements PermissionRepositoryInterface
      */
     public function getPaginatedPermissions(array $filters = [], int $perPage = 25): LengthAwarePaginator
     {
-        // 使用快取鍵包含篩選條件和分頁資訊
-        $cacheKey = 'paginated_permissions_' . md5(serialize($filters) . "_{$perPage}");
+        // 修正快取鍵，包含當前頁面資訊
+        $currentPage = request()->get('page', 1);
+        $cacheKey = 'paginated_permissions_' . md5(serialize($filters) . "_{$perPage}_page_{$currentPage}");
         
-        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 900, function () use ($filters, $perPage) {
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($filters, $perPage) {
             $query = Permission::select([
                 'id', 'name', 'display_name', 'description', 'module', 'type', 
                 'created_at', 'updated_at'
@@ -1149,27 +1150,25 @@ class PermissionRepository implements PermissionRepositoryInterface
     /**
      * 取得所有可用的模組
      * 
-     * @return Collection
+     * @return \Illuminate\Support\Collection
      */
-    public function getAvailableModules(): Collection
+    public function getAvailableModules(): \Illuminate\Support\Collection
     {
         return Permission::distinct()
-                        ->select('module')
                         ->orderBy('module')
-                        ->get();
+                        ->pluck('module');
     }
 
     /**
      * 取得所有可用的權限類型
      * 
-     * @return Collection
+     * @return \Illuminate\Support\Collection
      */
-    public function getAvailableTypes(): Collection
+    public function getAvailableTypes(): \Illuminate\Support\Collection
     {
         return Permission::distinct()
-                        ->select('type')
                         ->orderBy('type')
-                        ->get();
+                        ->pluck('type');
     }
 
     // Interface methods implementation

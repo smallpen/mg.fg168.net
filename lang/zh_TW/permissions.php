@@ -36,6 +36,14 @@ return [
         'unused' => '未使用',
     ],
 
+    'filters' => [
+        'module' => '模組篩選',
+        'type' => '類型篩選',
+        'usage' => '使用狀態篩選',
+        'toggle' => '篩選器',
+        'reset' => '重置篩選',
+    ],
+
     'filter_by_module' => '模組篩選',
     'filter_by_type' => '類型篩選',
     'filter_by_usage' => '使用狀態篩選',
@@ -80,7 +88,25 @@ return [
         'manage' => '管理',
         'export' => '匯出',
         'import' => '匯入',
-        'test' => '測試',
+        'assign' => '指派',
+        'send' => '發送',
+        'backup' => '備份',
+        'reset' => '重置',
+        'monitor' => '監控',
+        'security' => '安全',
+    ],
+
+    // 模組翻譯
+    'modules' => [
+        'dashboard' => '儀表板',
+        'users' => '使用者管理',
+        'roles' => '角色管理',
+        'permissions' => '權限管理',
+        'profile' => '個人資料',
+        'activity_logs' => '活動日誌',
+        'notifications' => '通知管理',
+        'settings' => '系統設定',
+        'system' => '系統管理',
     ],
 
     // 統計資訊

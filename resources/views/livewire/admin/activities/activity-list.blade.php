@@ -219,7 +219,7 @@
                             <x-heroicon-o-magnifying-glass class="h-5 w-5 text-gray-400" />
                         </div>
                         <input 
-                            wire:model.live.debounce.300ms="search"
+                            wire:model.live="search"
                             type="text" 
                             class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                             placeholder="{{ __('搜尋活動記錄...') }}"
@@ -242,14 +242,16 @@
                         @endif
                     </button>
 
-                    {{-- 清除篩選 --}}
-                    <button 
-                        wire:click="clearFilters"
-                        class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                        <x-heroicon-o-x-mark class="w-4 h-4 mr-2" />
-                        {{ __('清除') }}
-                    </button>
+                    {{-- 重置篩選按鈕 --}}
+                    @if($search || $dateFrom || $dateTo || $userFilter || $typeFilter || $moduleFilter || $resultFilter || $ipFilter || $riskLevelFilter)
+                        <button 
+                            wire:click="resetFilters"
+                            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            <x-heroicon-o-x-mark class="w-4 h-4 mr-2" />
+                            {{ __('重置') }}
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -366,7 +368,7 @@
                                 {{ __('IP 位址') }}
                             </label>
                             <input 
-                                wire:model.live.debounce.300ms="ipFilter"
+                                wire:model.live="ipFilter"
                                 type="text" 
                                 class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="{{ __('輸入 IP 位址...') }}"
@@ -910,3 +912,117 @@
         </div>
     @endif
 </div>
+
+<script>
+// Alpine.js 重置按鈕控制器
+function resetButtonController() {
+    return {
+        showResetButton: @js(!empty($search) || !empty($dateFrom) || !empty($dateTo) || !empty($userFilter) || !empty($typeFilter) || !empty($moduleFilter) || !empty($resultFilter) || !empty($ipFilter) || !empty($riskLevelFilter)),
+        
+        init() {
+            console.log('🔧 活動記錄重置按鈕控制器初始化');
+            
+            // 監聽重置表單元素事件
+            Livewire.on('reset-form-elements', () => {
+                console.log('🔄 收到重置表單元素事件');
+                this.resetFormElements();
+            });
+            
+            this.checkFilters();
+            
+            // 監聽輸入變化
+            document.addEventListener('input', () => {
+                setTimeout(() => this.checkFilters(), 100);
+            });
+            
+            document.addEventListener('change', () => {
+                setTimeout(() => this.checkFilters(), 100);
+            });
+            
+            // 監聽 Livewire 更新
+            Livewire.on('force-ui-update', () => {
+                setTimeout(() => {
+                    this.showResetButton = false;
+                    console.log('🔄 強制隱藏重置按鈕');
+                }, 100);
+            });
+        },
+        
+        checkFilters() {
+            const searchInput = document.querySelector('input[wire\\\\:model\\\\.live="search"]');
+            const dateFromInput = document.querySelector('input[wire\\\\:model\\\\.live="dateFrom"]');
+            const dateToInput = document.querySelector('input[wire\\\\:model\\\\.live="dateTo"]');
+            const userSelect = document.querySelector('select[wire\\\\:model\\\\.live="userFilter"]');
+            const typeSelect = document.querySelector('select[wire\\\\:model\\\\.live="typeFilter"]');
+            const moduleSelect = document.querySelector('select[wire\\\\:model\\\\.live="moduleFilter"]');
+            const resultSelect = document.querySelector('select[wire\\\\:model\\\\.live="resultFilter"]');
+            const riskSelect = document.querySelector('select[wire\\\\:model\\\\.live="riskLevelFilter"]');
+            const ipInput = document.querySelector('input[wire\\\\:model\\\\.live="ipFilter"]');
+            
+            const hasSearch = searchInput && searchInput.value.trim() !== '';
+            const hasDateFrom = dateFromInput && dateFromInput.value.trim() !== '';
+            const hasDateTo = dateToInput && dateToInput.value.trim() !== '';
+            const hasUserFilter = userSelect && userSelect.value !== '';
+            const hasTypeFilter = typeSelect && typeSelect.value !== '';
+            const hasModuleFilter = moduleSelect && moduleSelect.value !== '';
+            const hasResultFilter = resultSelect && resultSelect.value !== '';
+            const hasRiskFilter = riskSelect && riskSelect.value !== '';
+            const hasIpFilter = ipInput && ipInput.value.trim() !== '';
+            
+            this.showResetButton = hasSearch || hasDateFrom || hasDateTo || hasUserFilter || hasTypeFilter || hasModuleFilter || hasResultFilter || hasRiskFilter || hasIpFilter;
+            
+            console.log('🔍 檢查篩選狀態:', {
+                hasSearch,
+                hasDateFrom,
+                hasDateTo,
+                hasUserFilter,
+                hasTypeFilter,
+                hasModuleFilter,
+                hasResultFilter,
+                hasRiskFilter,
+                hasIpFilter,
+                showResetButton: this.showResetButton
+            });
+        },
+        
+        resetFormElements() {
+            console.log('🔄 開始重置表單元素');
+            
+            // 重置搜尋框
+            const searchInputs = document.querySelectorAll('input[wire\\\\:model\\\\.live="search"]');
+            searchInputs.forEach(input => {
+                input.value = '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.blur();
+            });
+            
+            // 重置日期輸入框
+            const dateInputs = document.querySelectorAll('input[wire\\\\:model\\\\.live="dateFrom"], input[wire\\\\:model\\\\.live="dateTo"]');
+            dateInputs.forEach(input => {
+                input.value = '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+            
+            // 重置 IP 輸入框
+            const ipInputs = document.querySelectorAll('input[wire\\\\:model\\\\.live="ipFilter"]');
+            ipInputs.forEach(input => {
+                input.value = '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+            
+            // 重置所有篩選下拉選單
+            const selects = document.querySelectorAll('select[wire\\\\:model\\\\.live*="Filter"]');
+            selects.forEach(select => {
+                select.value = '';
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            
+            // 更新重置按鈕狀態
+            setTimeout(() => {
+                this.checkFilters();
+                console.log('✅ 表單元素重置完成');
+            }, 100);
+        }
+    }
+}
+</script>

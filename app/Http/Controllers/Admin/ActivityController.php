@@ -69,7 +69,7 @@ class ActivityController extends Controller
      */
     public function security(): View
     {
-        $this->authorize('system.logs');
+        $this->authorize('system.security');
 
         // 記錄存取安全監控頁面
         $this->activityLogger->logSecurityEvent('security_monitor_access', '管理員存取安全事件監控頁面', [
@@ -87,7 +87,7 @@ class ActivityController extends Controller
      */
     public function stats(): View
     {
-        $this->authorize('system.logs');
+        $this->authorize('system.monitor');
 
         // 記錄存取統計頁面
         $this->activityLogger->logUserAction('view_activity_stats', null, [
@@ -104,7 +104,7 @@ class ActivityController extends Controller
      */
     public function monitor(): View
     {
-        $this->authorize('system.logs');
+        $this->authorize('system.monitor');
 
         // 記錄存取即時監控頁面
         $this->activityLogger->logUserAction('view_activity_monitor', null, [

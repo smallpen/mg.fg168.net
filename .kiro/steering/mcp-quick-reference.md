@@ -111,7 +111,7 @@ mcp_playwright_playwright_navigate({ url: "http://localhost/admin/login" })
 
 // 2. 填寫登入表單
 mcp_playwright_playwright_fill({ selector: 'input[name="username"]', value: 'admin' })
-mcp_playwright_playwright_fill({ selector: 'input[name="password"]', value: 'password123' })
+mcp_playwright_playwright_fill({ selector: 'input[name="password"]', value: 'admin123' })
 
 // 3. 提交表單
 mcp_playwright_playwright_click({ selector: 'button[type="submit"]' })

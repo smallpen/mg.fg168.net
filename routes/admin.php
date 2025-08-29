@@ -155,99 +155,99 @@ Route::middleware('admin')
         // 主要設定頁面路由
         Route::get('/', [App\Http\Controllers\Admin\SettingsController::class, 'index'])
              ->name('index')
-             ->middleware('can:system.settings');
+             ->middleware('can:settings.view');
         
         // 系統設定管理路由
         Route::get('/system', [App\Http\Controllers\Admin\SettingsController::class, 'system'])
              ->name('system')
-             ->middleware('can:system.settings');
+             ->middleware('can:settings.view');
         
         // 基本設定管理路由
         Route::get('/basic', [App\Http\Controllers\Admin\SettingsController::class, 'basic'])
              ->name('basic')
-             ->middleware('can:system.settings');
+             ->middleware('can:settings.view');
         
         // 安全設定路由
         Route::get('/security', [App\Http\Controllers\Admin\SettingsController::class, 'security'])
              ->name('security')
-             ->middleware('can:settings.security');
+             ->middleware('can:system.security');
         
         // 外觀設定路由
         Route::get('/appearance', [App\Http\Controllers\Admin\SettingsController::class, 'appearance'])
              ->name('appearance')
-             ->middleware('can:system.settings');
+             ->middleware('can:settings.view');
         
         // 通知設定路由
         Route::get('/notifications', [App\Http\Controllers\Admin\SettingsController::class, 'notifications'])
              ->name('notifications')
-             ->middleware('can:system.settings');
+             ->middleware('can:settings.view');
 
         // 整合設定路由
         Route::get('/integration', [App\Http\Controllers\Admin\SettingsController::class, 'integration'])
              ->name('integration')
-             ->middleware('can:system.settings');
+             ->middleware('can:settings.view');
 
         // 維護設定路由
         Route::get('/maintenance', [App\Http\Controllers\Admin\SettingsController::class, 'maintenance'])
              ->name('maintenance')
-             ->middleware('can:system.settings');
+             ->middleware('can:system.maintenance');
         
         // 設定備份管理路由
         Route::get('/backups', [App\Http\Controllers\Admin\SettingsController::class, 'backups'])
              ->name('backups')
-             ->middleware('can:system.settings');
+             ->middleware('can:settings.backup');
         
         // 設定變更歷史路由
         Route::get('/history', [App\Http\Controllers\Admin\SettingsController::class, 'history'])
              ->name('history')
-             ->middleware('can:system.settings');
+             ->middleware('can:settings.view');
 
         // API 路由群組
         Route::prefix('api')->name('api.')->group(function () {
             // 設定查詢 API
             Route::get('/all', [App\Http\Controllers\Admin\SettingsController::class, 'getAllSettings'])
                  ->name('all')
-                 ->middleware('can:system.settings');
+                 ->middleware('can:settings.view');
             
             Route::get('/{key}', [App\Http\Controllers\Admin\SettingsController::class, 'getSetting'])
                  ->name('get')
-                 ->middleware('can:system.settings')
+                 ->middleware('can:settings.view')
                  ->where('key', '.*');
             
             // 設定更新 API
             Route::put('/{key}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSetting'])
                  ->name('update')
-                 ->middleware('can:system.settings')
+                 ->middleware('can:settings.edit')
                  ->where('key', '.*');
             
             Route::post('/batch-update', [App\Http\Controllers\Admin\SettingsController::class, 'batchUpdate'])
                  ->name('batch-update')
-                 ->middleware('can:system.settings');
+                 ->middleware('can:settings.edit');
             
             // 設定重設 API
             Route::post('/{key}/reset', [App\Http\Controllers\Admin\SettingsController::class, 'resetSetting'])
                  ->name('reset')
-                 ->middleware('can:system.settings')
+                 ->middleware('can:settings.reset')
                  ->where('key', '.*');
             
             // 連線測試 API
             Route::post('/test-connection', [App\Http\Controllers\Admin\SettingsController::class, 'testConnection'])
                  ->name('test-connection')
-                 ->middleware('can:system.settings');
+                 ->middleware('can:settings.view');
             
             // 匯入匯出 API
             Route::post('/export', [App\Http\Controllers\Admin\SettingsController::class, 'exportSettings'])
                  ->name('export')
-                 ->middleware('can:system.settings');
+                 ->middleware('can:settings.backup');
             
             Route::post('/import', [App\Http\Controllers\Admin\SettingsController::class, 'importSettings'])
                  ->name('import')
-                 ->middleware('can:system.settings');
+                 ->middleware('can:settings.backup');
             
             // 快取管理 API
             Route::post('/clear-cache', [App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])
                  ->name('clear-cache')
-                 ->middleware('can:system.settings');
+                 ->middleware('can:system.maintenance');
         });
     });
     
@@ -266,15 +266,15 @@ Route::middleware('admin')
         // 功能頁面路由
         Route::get('/security', [App\Http\Controllers\Admin\ActivityController::class, 'security'])
              ->name('security')
-             ->middleware('can:system.logs');
+             ->middleware('can:system.security');
         
         Route::get('/stats', [App\Http\Controllers\Admin\ActivityController::class, 'stats'])
              ->name('stats')
-             ->middleware('can:system.logs');
+             ->middleware('can:system.monitor');
         
         Route::get('/monitor', [App\Http\Controllers\Admin\ActivityController::class, 'monitor'])
              ->name('monitor')
-             ->middleware('can:system.logs');
+             ->middleware('can:system.monitor');
         
         Route::get('/export', [App\Http\Controllers\Admin\ActivityController::class, 'export'])
              ->name('export')

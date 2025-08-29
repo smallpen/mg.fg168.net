@@ -283,56 +283,92 @@ class RoleList extends AdminComponent
     }
 
     /**
-     * 重置所有篩選
+     * 重置所有篩選條件
      */
     public function resetFilters(): void
     {
         try {
-        // 記錄篩選重置操作
-        \Log::info('🔄 resetFilters - 篩選重置開始', [
-            'timestamp' => now()->toISOString(),
-            'user' => auth()->user()->username ?? 'unknown',
-            'before_reset' => [
-                'search' => $this->search ?? '',
-                'filters' => array_filter([
-                    'status' => $this->statusFilter ?? null,
-                    'role' => $this->roleFilter ?? null,
-                ]),
-            ]
-        ]);
-        
-        // 重置所有篩選條件
-        $this->search = '';
-        $this->permissionCountFilter = 'all';
-        $this->userCountFilter = 'all';
-        $this->systemRoleFilter = 'all';
-        $this->statusFilter = 'all';
-        $this->selectedRoles = [];
-        $this->selectAll = false;
-        $this->bulkAction = '';
-        $this->showFilters = 'all';
-        $this->showBulkActions = false;
-        $this->resetPage();
-        $this->resetValidation();
-        
-        // 強制重新渲染以確保前端同步
-        $this->dispatch('$refresh');
-        
-        // 發送篩選重置完成事件
-        $this->dispatch('resetFilters-completed');
-        
-        // 顯示成功訊息
-        $this->dispatch('show-toast', [
-            'type' => 'success',
-            'message' => '篩選條件已清除'
-        ]);
-        
-        // 記錄重置完成
-        \Log::info('✅ resetFilters - 篩選重置完成');
-
-        
-        $this->resetValidation();
-    } catch (\Exception $e) {
+            // 記錄篩選重置操作
+            \Log::info('🔄 resetFilters - 篩選重置開始', [
+                'timestamp' => now()->toISOString(),
+                'user' => auth()->user()->username ?? 'unknown',
+                'before_reset' => [
+                    'search' => $this->search ?? '',
+                    'permissionCountFilter' => $this->permissionCountFilter ?? 'all',
+                    'userCountFilter' => $this->userCountFilter ?? 'all',
+                    'systemRoleFilter' => $this->systemRoleFilter ?? 'all',
+                    'statusFilter' => $this->statusFilter ?? 'all',
+                ]
+            ]);
+            
+            // 重置所有篩選條件
+            $this->search = '';
+            $this->permissionCountFilter = 'all';
+            $this->userCountFilter = 'all';
+            $this->systemRoleFilter = 'all';
+            $this->statusFilter = 'all';
+            $this->selectedRoles = [];
+            $this->selectAll = false;
+            $this->bulkAction = '';
+            $this->showFilters = 'all';
+            $this->showBulkActions = false;
+            
+            // 清除快取
+            if (method_exists($this, 'clearCache')) {
+                $this->clearCache();
+            }
+            
+            // 重置分頁和驗證
+            $this->resetPage();
+            $this->resetValidation();
+            
+            // 強制重新渲染整個元件
+            $this->skipRender = false;
+            
+            // 強制 Livewire 同步狀態到前端
+            $this->js('
+                // 強制更新所有表單元素的值
+                setTimeout(() => {
+                    const searchInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="search"]\');
+                    searchInputs.forEach(input => {
+                        input.value = "";
+                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    });
+                    
+                    const filterSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live*="Filter"]\');
+                    filterSelects.forEach(select => {
+                        select.value = "all";
+                        select.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                    
+                    console.log("✅ 角色管理表單元素已強制同步");
+                }, 100);
+            ');
+            
+            // 發送強制 UI 更新事件
+            $this->dispatch('force-ui-update');
+            
+            // 發送前端重置事件，讓 Alpine.js 處理
+            $this->dispatch('reset-form-elements');
+            
+            // 顯示成功訊息
+            $this->dispatch('show-toast', [
+                'type' => 'success',
+                'message' => '篩選條件已清除'
+            ]);
+            
+            // 記錄重置完成
+            \Log::info('✅ resetFilters - 篩選重置完成', [
+                'after_reset' => [
+                    'search' => $this->search,
+                    'permissionCountFilter' => $this->permissionCountFilter,
+                    'userCountFilter' => $this->userCountFilter,
+                    'systemRoleFilter' => $this->systemRoleFilter,
+                    'statusFilter' => $this->statusFilter,
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
             \Log::error('重置方法執行失敗', [
                 'method' => 'resetFilters',
                 'error' => $e->getMessage(),

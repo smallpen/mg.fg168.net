@@ -337,57 +337,84 @@ class SettingsList extends AdminComponent
     }
 
     /**
-     * 清除搜尋和篩選 - 修復版本
+     * 重置所有篩選條件
      */
-    public function clearFilters(): void
+    public function resetFilters(): void
     {
         try {
-        \Log::info('🔥 SettingsList clearFilters - 方法被呼叫了！', [
-            'timestamp' => now()->toISOString(),
-            'user' => auth()->user()->username ?? 'unknown',
-            'before_reset' => [
-                'search' => $this->search,
-                'categoryFilter' => $this->categoryFilter,
-                'changedFilter' => $this->changedFilter,
-                'typeFilter' => $this->typeFilter,
-            ]
-        ]);
-        
-        // 重置所有篩選條件
-        $this->search = '';
-        $this->categoryFilter = 'all';
-        $this->changedFilter = 'all';
-        $this->typeFilter = 'all';
-        
-        // 清除選中的設定
-        $this->selectedSettings = [];
-        $this->bulkAction = '';
-        
-        // 強制重新渲染元件以確保前端同步
-        $this->dispatch('$refresh');
-        
-        // 發送前端刷新事件
-        $this->dispatch('settings-list-reset');
-        
-        \Log::info('🔥 SettingsList clearFilters - 屬性已重置', [
-            'after_reset' => [
-                'search' => $this->search,
-                'categoryFilter' => $this->categoryFilter,
-                'changedFilter' => $this->changedFilter,
-                'typeFilter' => $this->typeFilter,
-            ]
-        ]);
-        
-        // 顯示成功訊息
-        $this->addFlash('success', '篩選條件已清除');
-        
-        \Log::info('🔥 SettingsList clearFilters - 修復版本執行完成');
-    
-        
-        $this->resetValidation();
-    } catch (\Exception $e) {
+            // 記錄篩選重置操作
+            \Log::info('🔄 resetFilters - 篩選重置開始', [
+                'timestamp' => now()->toISOString(),
+                'user' => auth()->user()->username ?? 'unknown',
+                'before_reset' => [
+                    'search' => $this->search ?? '',
+                    'categoryFilter' => $this->categoryFilter ?? 'all',
+                    'changedFilter' => $this->changedFilter ?? 'all',
+                    'typeFilter' => $this->typeFilter ?? 'all',
+                ]
+            ]);
+            
+            // 重置所有篩選條件
+            $this->search = '';
+            $this->categoryFilter = 'all';
+            $this->changedFilter = 'all';
+            $this->typeFilter = 'all';
+            
+            // 清除選中的設定
+            $this->selectedSettings = [];
+            $this->bulkAction = '';
+            
+            // 清除快取
+            $this->resetValidation();
+            
+            // 強制重新渲染整個元件
+            $this->skipRender = false;
+            
+            // 強制 Livewire 同步狀態到前端
+            $this->js('
+                // 強制更新所有表單元素的值
+                setTimeout(() => {
+                    const searchInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="search"]\');
+                    searchInputs.forEach(input => {
+                        input.value = "";
+                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    });
+                    
+                    const filterSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live*="Filter"]\');
+                    filterSelects.forEach(select => {
+                        select.value = "all";
+                        select.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                    
+                    console.log("✅ 設定列表表單元素已強制同步");
+                }, 100);
+            ');
+            
+            // 發送強制 UI 更新事件
+            $this->dispatch('force-ui-update');
+            
+            // 發送前端重置事件，讓 Alpine.js 處理
+            $this->dispatch('reset-form-elements');
+            
+            // 顯示成功訊息
+            $this->dispatch('show-toast', [
+                'type' => 'success',
+                'message' => '篩選條件已清除'
+            ]);
+            
+            // 記錄重置完成
+            \Log::info('✅ resetFilters - 篩選重置完成', [
+                'after_reset' => [
+                    'search' => $this->search,
+                    'categoryFilter' => $this->categoryFilter,
+                    'changedFilter' => $this->changedFilter,
+                    'typeFilter' => $this->typeFilter,
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
             \Log::error('重置方法執行失敗', [
-                'method' => 'clearFilters',
+                'method' => 'resetFilters',
                 'error' => $e->getMessage(),
                 'component' => static::class,
             ]);
@@ -396,7 +423,16 @@ class SettingsList extends AdminComponent
                 'type' => 'error',
                 'message' => '重置操作失敗，請重試'
             ]);
-        }}
+        }
+    }
+
+    /**
+     * 清除搜尋和篩選（向後相容）
+     */
+    public function clearFilters(): void
+    {
+        $this->resetFilters();
+    }
 
     /**
      * 監聽設定更新事件

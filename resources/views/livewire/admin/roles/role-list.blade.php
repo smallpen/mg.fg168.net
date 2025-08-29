@@ -113,7 +113,7 @@
                     </svg>
                     <input 
                         type="text" 
-                        wire:model.live.debounce.300ms="search"
+                        wire:model.live="search"
                         placeholder="{{ __('admin.roles.search.placeholder') }}"
                         class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                     />
@@ -165,7 +165,7 @@
                         </svg>
                         <input 
                             type="text" 
-                            wire:model.live.debounce.300ms="search"
+                            wire:model.live="search"
                             placeholder="{{ __('admin.roles.search.placeholder') }}"
                             class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
@@ -738,4 +738,90 @@ document.addEventListener('livewire:init', () => {
         console.log(event.message);
     });
 });
+
+// Alpine.js 重置按鈕控制器
+function resetButtonController() {
+    return {
+        showResetButton: @js(!empty($search) || $permissionCountFilter !== 'all' || $userCountFilter !== 'all' || $systemRoleFilter !== 'all' || $statusFilter !== 'all'),
+        
+        init() {
+            console.log('🔧 角色列表重置按鈕控制器初始化');
+            
+            // 監聽重置表單元素事件
+            Livewire.on('reset-form-elements', () => {
+                console.log('🔄 收到重置表單元素事件');
+                this.resetFormElements();
+            });
+            
+            this.checkFilters();
+            
+            // 監聽輸入變化
+            document.addEventListener('input', () => {
+                setTimeout(() => this.checkFilters(), 100);
+            });
+            
+            document.addEventListener('change', () => {
+                setTimeout(() => this.checkFilters(), 100);
+            });
+            
+            // 監聽 Livewire 更新
+            Livewire.on('force-ui-update', () => {
+                setTimeout(() => {
+                    this.showResetButton = false;
+                    console.log('🔄 強制隱藏重置按鈕');
+                }, 100);
+            });
+        },
+        
+        checkFilters() {
+            const searchInput = document.querySelector('input[wire\\:model\\.live="search"]');
+            const permissionCountSelect = document.querySelector('select[wire\\:model\\.live="permissionCountFilter"]');
+            const userCountSelect = document.querySelector('select[wire\\:model\\.live="userCountFilter"]');
+            const systemRoleSelect = document.querySelector('select[wire\\:model\\.live="systemRoleFilter"]');
+            const statusSelect = document.querySelector('select[wire\\:model\\.live="statusFilter"]');
+            
+            const hasSearch = searchInput && searchInput.value.trim() !== '';
+            const hasPermissionCountFilter = permissionCountSelect && permissionCountSelect.value !== 'all';
+            const hasUserCountFilter = userCountSelect && userCountSelect.value !== 'all';
+            const hasSystemRoleFilter = systemRoleSelect && systemRoleSelect.value !== 'all';
+            const hasStatusFilter = statusSelect && statusSelect.value !== 'all';
+            
+            this.showResetButton = hasSearch || hasPermissionCountFilter || hasUserCountFilter || hasSystemRoleFilter || hasStatusFilter;
+            
+            console.log('🔍 檢查篩選狀態:', {
+                hasSearch,
+                hasPermissionCountFilter,
+                hasUserCountFilter,
+                hasSystemRoleFilter,
+                hasStatusFilter,
+                showResetButton: this.showResetButton
+            });
+        },
+        
+        resetFormElements() {
+            console.log('🔄 開始重置表單元素');
+            
+            // 重置所有搜尋框（包括手機版和桌面版）
+            const searchInputs = document.querySelectorAll('input[wire\\:model\\.live="search"]');
+            searchInputs.forEach(input => {
+                input.value = '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.blur();
+            });
+            
+            // 重置所有篩選下拉選單
+            const selects = document.querySelectorAll('select[wire\\:model\\.live*="Filter"]');
+            selects.forEach(select => {
+                select.value = 'all';
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            
+            // 更新重置按鈕狀態
+            setTimeout(() => {
+                this.checkFilters();
+                console.log('✅ 表單元素重置完成');
+            }, 100);
+        }
+    }
+}
 </script>

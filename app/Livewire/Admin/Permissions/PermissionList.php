@@ -10,6 +10,7 @@ use App\Traits\HandlesLivewireErrors;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Computed;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -24,6 +25,11 @@ class PermissionList extends Component
 {
     use WithPagination, HandlesLivewireErrors;
 
+    /**
+     * 設定分頁主題
+     */
+    protected $paginationTheme = 'tailwind';
+
     // 搜尋相關屬性
     public string $search = '';
     
@@ -31,6 +37,7 @@ class PermissionList extends Component
     public string $moduleFilter = 'all';
     public string $typeFilter = 'all';
     public string $usageFilter = 'all';
+    public bool $showFilters = false;
     
     // 檢視模式相關屬性
     public string $viewMode = 'list'; // list, grouped, tree
@@ -85,7 +92,7 @@ class PermissionList extends Component
     public function getPermissionsProperty(): LengthAwarePaginator
     {
         try {
-            // 使用快取避免重複查詢
+            // 使用修正的快取鍵，包含分頁資訊
             $cacheKey = $this->generateCacheKey('permissions');
             
             return Cache::remember($cacheKey, 300, function () {
@@ -694,58 +701,99 @@ class PermissionList extends Component
     }
 
     /**
+     * 切換篩選器顯示狀態
+     */
+    public function toggleFilters(): void
+    {
+        $this->showFilters = !$this->showFilters;
+    }
+
+    /**
      * 重置所有篩選條件
      */
     public function resetFilters(): void
     {
         try {
-        // 記錄篩選重置操作
-        \Log::info('🔄 resetFilters - 篩選重置開始', [
-            'timestamp' => now()->toISOString(),
-            'user' => auth()->user()->username ?? 'unknown',
-            'before_reset' => [
-                'search' => $this->search ?? '',
-                'filters' => array_filter([
-                    'status' => $this->statusFilter ?? null,
-                    'role' => $this->roleFilter ?? null,
-                ]),
-            ]
-        ]);
-        
-        // 重置所有篩選條件
-        $this->search = '';
-        $this->moduleFilter = 'all';
-        $this->typeFilter = 'all';
-        $this->usageFilter = 'all';
-        $this->viewMode = '';
-        $this->expandedGroups = '';
-        $this->selectedPermissions = [];
-        $this->selectAll = false;
-        $this->bulkAction = '';
-        $this->resetPage();
-        $this->resetValidation();
-        
-        // 強制重新渲染以確保前端同步
-        $this->dispatch('$refresh');
-        
-        // 發送篩選重置完成事件
-        $this->dispatch('resetFilters-completed');
-        
-        // 顯示成功訊息
-        $this->dispatch('show-toast', [
-            'type' => 'success',
-            'message' => '篩選條件已清除'
-        ]);
-        
-        // 記錄重置完成
-        \Log::info('✅ resetFilters - 篩選重置完成');
-
-        
-        $this->resetValidation();
-    } catch (\Exception $e) {
+            // 記錄篩選重置操作
+            \Log::info('🔄 resetFilters - 篩選重置開始', [
+                'timestamp' => now()->toISOString(),
+                'user' => auth()->user()->username ?? 'unknown',
+                'before_reset' => [
+                    'search' => $this->search ?? '',
+                    'moduleFilter' => $this->moduleFilter ?? 'all',
+                    'typeFilter' => $this->typeFilter ?? 'all',
+                    'usageFilter' => $this->usageFilter ?? 'all',
+                ]
+            ]);
+            
+            // 重置所有篩選條件
+            $this->search = '';
+            $this->moduleFilter = 'all';
+            $this->typeFilter = 'all';
+            $this->usageFilter = 'all';
+            $this->viewMode = 'list';
+            $this->expandedGroups = [];
+            $this->selectedPermissions = [];
+            $this->selectAll = false;
+            $this->bulkAction = '';
+            
+            // 清除快取
+            $this->clearCache();
+            
+            // 重置分頁和驗證
+            $this->resetPage();
+            $this->resetValidation();
+            
+            // 強制重新渲染整個元件
+            $this->skipRender = false;
+            
+            // 強制 Livewire 同步狀態到前端
+            $this->js('
+                // 強制更新所有表單元素的值
+                setTimeout(() => {
+                    const searchInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="search"]\');
+                    searchInputs.forEach(input => {
+                        input.value = "";
+                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    });
+                    
+                    const filterSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live*="Filter"]\');
+                    filterSelects.forEach(select => {
+                        select.value = "all";
+                        select.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                    
+                    console.log("✅ 權限管理表單元素已強制同步");
+                }, 100);
+            ');
+            
+            // 發送強制 UI 更新事件
+            $this->dispatch('force-ui-update');
+            
+            // 發送前端重置事件，讓 Alpine.js 處理
+            $this->dispatch('reset-form-elements');
+            
+            // 顯示成功訊息
+            $this->dispatch('show-toast', [
+                'type' => 'success',
+                'message' => '篩選條件已清除'
+            ]);
+            
+            // 記錄重置完成
+            \Log::info('✅ resetFilters - 篩選重置完成', [
+                'after_reset' => [
+                    'search' => $this->search,
+                    'moduleFilter' => $this->moduleFilter,
+                    'typeFilter' => $this->typeFilter,
+                    'usageFilter' => $this->usageFilter,
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
             \Log::error('重置方法執行失敗', [
                 'method' => 'resetFilters',
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'component' => static::class,
             ]);
             
@@ -753,7 +801,33 @@ class PermissionList extends Component
                 'type' => 'error',
                 'message' => '重置操作失敗，請重試'
             ]);
-        }}
+        }
+    }
+
+    /**
+     * 檢查是否有活動的篩選條件
+     */
+    public function hasActiveFilters(): bool
+    {
+        return !empty(trim($this->search)) || 
+               $this->moduleFilter !== 'all' || 
+               $this->typeFilter !== 'all' || 
+               $this->usageFilter !== 'all';
+    }
+
+    /**
+     * 取得篩選狀態（用於前端檢查）
+     */
+    public function getFilterStatus(): array
+    {
+        return [
+            'search' => $this->search,
+            'moduleFilter' => $this->moduleFilter,
+            'typeFilter' => $this->typeFilter,
+            'usageFilter' => $this->usageFilter,
+            'hasActiveFilters' => $this->hasActiveFilters()
+        ];
+    }
 
     /**
      * 取得權限的本地化顯示名稱
@@ -792,15 +866,31 @@ class PermissionList extends Component
      */
     public function getLocalizedType(string $type): string
     {
-        $types = [
-            'view' => __('permissions.types.view'),
-            'create' => __('permissions.types.create'),
-            'edit' => __('permissions.types.edit'),
-            'delete' => __('permissions.types.delete'),
-            'manage' => __('permissions.types.manage'),
-        ];
+        $key = "permissions.types.{$type}";
+        $translation = __($key);
+        
+        // 如果翻譯不存在，返回預設值
+        if ($translation === $key) {
+            return ucfirst($type);
+        }
+        
+        return $translation;
+    }
 
-        return $types[$type] ?? $type;
+    /**
+     * 取得模組的本地化顯示
+     */
+    public function getLocalizedModule(string $module): string
+    {
+        $key = "permissions.modules.{$module}";
+        $translation = __($key);
+        
+        // 如果翻譯不存在，返回格式化的預設值
+        if ($translation === $key) {
+            return ucfirst(str_replace('_', ' ', $module));
+        }
+        
+        return $translation;
     }
 
     /**

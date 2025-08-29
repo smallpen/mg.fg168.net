@@ -35,6 +35,18 @@ return [
         'statistics' => '統計資訊',
     ],
 
+    // 篩選器翻譯
+    'filters' => [
+        'toggle' => '篩選器',
+        'reset' => '重置篩選',
+        'role' => '角色',
+        'status' => '狀態',
+        'module' => '模組',
+        'type' => '類型',
+        'usage' => '使用狀態',
+        'view_mode' => '檢視模式',
+    ],
+
     // 動作翻譯
     'actions' => [
         'back' => '返回',
@@ -80,8 +92,6 @@ return [
         'export_current_filter' => '當前篩選',
         'statistics_analysis' => '統計分析',
     ],
-
-
 
     // 設定選單
     'settings' => [
@@ -369,6 +379,14 @@ return [
         'users_count' => ':count 個使用者',
         'users_without_roles_warning' => '發現無角色使用者',
         'users_without_roles_count' => '有 :count 個使用者尚未分配角色',
+
+        // 篩選器
+        'filters' => [
+            'toggle' => '篩選器',
+            'reset' => '重置篩選',
+            'role' => '角色',
+            'status' => '狀態',
+        ],
     ],
 
     // 麵包屑導航
@@ -762,6 +780,16 @@ return [
             'import' => '匯入',
             'test' => '測試',
         ],
+
+        // 篩選器
+        'filters' => [
+            'toggle' => '篩選器',
+            'reset' => '重置篩選',
+            'module' => '模組',
+            'type' => '類型',
+            'usage' => '使用狀態',
+            'view_mode' => '檢視模式',
+        ],
     ],
 
     // 通用操作
@@ -777,6 +805,9 @@ return [
         'duplicate' => '複製',
         'activate' => '啟用',
         'deactivate' => '停用',
+        'back' => '返回',
+        'delete' => '刪除',
+        'update' => '更新',
     ],
 
     // 通用訊息

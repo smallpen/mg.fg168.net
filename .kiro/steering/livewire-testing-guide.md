@@ -61,7 +61,7 @@ await playwright.evaluate(`
     
     // 填寫密碼
     const passwordField = document.getElementById('password');
-    passwordField.value = 'password123';
+    passwordField.value = 'admin123';
     passwordField.dispatchEvent(new Event('input', { bubbles: true }));
     passwordField.blur();
 `);
@@ -111,7 +111,7 @@ const loginResult = await playwright.evaluate(`
  * @param {string} password - 密碼
  * @returns {Promise<boolean>} - 登入是否成功
  */
-async function livewireLogin(username = 'admin', password = 'password123') {
+async function livewireLogin(username = 'admin', password = 'admin123') {
     console.log(`🔐 開始 Livewire 登入: ${username}`);
     
     try {
@@ -266,7 +266,7 @@ await playwright.evaluate(`
 await playwright.evaluate(`
     const fields = [
         { id: 'username', value: 'admin' },
-        { id: 'password', value: 'password123' },
+        { id: 'password', value: 'admin123' },
         { id: 'email', value: 'admin@example.com' }
     ];
     

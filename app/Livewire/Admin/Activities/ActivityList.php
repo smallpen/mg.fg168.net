@@ -319,66 +319,113 @@ class ActivityList extends AdminComponent
     }
 
     /**
-     * 清除所有篩選條件
+     * 重置所有篩選條件
      */
-    public function clearFilters(): void
+    public function resetFilters(): void
     {
         try {
-        // 記錄篩選重置操作
-        \Log::info('🔄 clearFilters - 篩選重置開始', [
-            'timestamp' => now()->toISOString(),
-            'user' => auth()->user()->username ?? 'unknown',
-            'before_reset' => [
-                'search' => $this->search ?? '',
-                'filters' => array_filter([
-                    'status' => $this->statusFilter ?? null,
-                    'role' => $this->roleFilter ?? null,
-                ]),
-            ]
-        ]);
-        
-        // 重置所有篩選條件
-        $this->search = '';
-        $this->dateFrom = '';
-        $this->dateTo = '';
-        $this->userFilter = 'all';
-        $this->typeFilter = 'all';
-        $this->moduleFilter = 'all';
-        $this->resultFilter = 'all';
-        $this->ipFilter = 'all';
-        $this->riskLevelFilter = 'all';
-        $this->realTimeMode = '';
-        $this->selectedActivities = [];
-        $this->bulkAction = '';
-        $this->selectAll = false;
-        $this->showFilters = 'all';
-        $this->showExportModal = false;
-        $this->exportFormat = '';
-        $this->infiniteScroll = '';
-        $this->loadedPages = '';
-        $this->resetPage();
-        $this->resetValidation();
-        
-        // 強制重新渲染以確保前端同步
-        $this->dispatch('$refresh');
-        
-        // 發送篩選重置完成事件
-        $this->dispatch('clearFilters-completed');
-        
-        // 顯示成功訊息
-        $this->dispatch('show-toast', [
-            'type' => 'success',
-            'message' => '篩選條件已清除'
-        ]);
-        
-        // 記錄重置完成
-        \Log::info('✅ clearFilters - 篩選重置完成');
-
-        
-        $this->resetValidation();
-    } catch (\Exception $e) {
+            // 記錄篩選重置操作
+            \Log::info('🔄 resetFilters - 篩選重置開始', [
+                'timestamp' => now()->toISOString(),
+                'user' => auth()->user()->username ?? 'unknown',
+                'before_reset' => [
+                    'search' => $this->search ?? '',
+                    'dateFrom' => $this->dateFrom ?? '',
+                    'dateTo' => $this->dateTo ?? '',
+                    'userFilter' => $this->userFilter ?? '',
+                    'typeFilter' => $this->typeFilter ?? '',
+                    'moduleFilter' => $this->moduleFilter ?? '',
+                    'resultFilter' => $this->resultFilter ?? '',
+                    'ipFilter' => $this->ipFilter ?? '',
+                    'riskLevelFilter' => $this->riskLevelFilter ?? '',
+                ]
+            ]);
+            
+            // 重置所有篩選條件
+            $this->search = '';
+            $this->dateFrom = '';
+            $this->dateTo = '';
+            $this->userFilter = '';
+            $this->typeFilter = '';
+            $this->moduleFilter = '';
+            $this->resultFilter = '';
+            $this->ipFilter = '';
+            $this->riskLevelFilter = '';
+            
+            // 重置其他相關屬性
+            $this->selectedActivities = [];
+            $this->bulkAction = '';
+            $this->selectAll = false;
+            
+            // 清除快取
+            $this->resetPage();
+            $this->resetValidation();
+            
+            // 強制重新渲染整個元件
+            $this->skipRender = false;
+            
+            // 強制 Livewire 同步狀態到前端
+            $this->js('
+                // 強制更新所有表單元素的值
+                setTimeout(() => {
+                    const searchInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="search"]\');
+                    searchInputs.forEach(input => {
+                        input.value = "";
+                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    });
+                    
+                    const dateInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="dateFrom"], input[wire\\\\:model\\\\.live="dateTo"]\');
+                    dateInputs.forEach(input => {
+                        input.value = "";
+                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    });
+                    
+                    const filterSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live*="Filter"]\');
+                    filterSelects.forEach(select => {
+                        select.value = "";
+                        select.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                    
+                    const ipInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="ipFilter"]\');
+                    ipInputs.forEach(input => {
+                        input.value = "";
+                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    });
+                    
+                    console.log("✅ 活動記錄表單元素已強制同步");
+                }, 100);
+            ');
+            
+            // 發送強制 UI 更新事件
+            $this->dispatch('force-ui-update');
+            
+            // 發送前端重置事件，讓 Alpine.js 處理
+            $this->dispatch('reset-form-elements');
+            
+            // 顯示成功訊息
+            $this->dispatch('show-toast', [
+                'type' => 'success',
+                'message' => '篩選條件已清除'
+            ]);
+            
+            // 記錄重置完成
+            \Log::info('✅ resetFilters - 篩選重置完成', [
+                'after_reset' => [
+                    'search' => $this->search,
+                    'dateFrom' => $this->dateFrom,
+                    'dateTo' => $this->dateTo,
+                    'userFilter' => $this->userFilter,
+                    'typeFilter' => $this->typeFilter,
+                    'moduleFilter' => $this->moduleFilter,
+                    'resultFilter' => $this->resultFilter,
+                    'ipFilter' => $this->ipFilter,
+                    'riskLevelFilter' => $this->riskLevelFilter,
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
             \Log::error('重置方法執行失敗', [
-                'method' => 'clearFilters',
+                'method' => 'resetFilters',
                 'error' => $e->getMessage(),
                 'component' => static::class,
             ]);
@@ -387,7 +434,16 @@ class ActivityList extends AdminComponent
                 'type' => 'error',
                 'message' => '重置操作失敗，請重試'
             ]);
-        }}
+        }
+    }
+
+    /**
+     * 清除所有篩選條件（向後相容）
+     */
+    public function clearFilters(): void
+    {
+        $this->resetFilters();
+    }
 
     /**
      * 切換篩選面板顯示

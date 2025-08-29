@@ -46,7 +46,7 @@ class SettingsController extends Controller
      */
     public function index(): View
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.view');
 
         $categories = $this->configurationService->getCategories();
         $stats = $this->getSettingsStats();
@@ -59,7 +59,7 @@ class SettingsController extends Controller
      */
     public function system(): View
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.view');
 
         return view('admin.settings.system');
     }
@@ -69,7 +69,7 @@ class SettingsController extends Controller
      */
     public function basic(): View
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.view');
 
         return view('admin.settings.basic');
     }
@@ -79,7 +79,7 @@ class SettingsController extends Controller
      */
     public function security(): View
     {
-        $this->authorize('settings.security');
+        $this->authorize('system.security');
 
         return view('admin.settings.security');
     }
@@ -89,7 +89,7 @@ class SettingsController extends Controller
      */
     public function appearance(): View
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.view');
 
         return view('admin.settings.appearance');
     }
@@ -99,7 +99,7 @@ class SettingsController extends Controller
      */
     public function notifications(): View
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.view');
 
         return view('admin.settings.notifications');
     }
@@ -109,7 +109,7 @@ class SettingsController extends Controller
      */
     public function integration(): View
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.view');
 
         return view('admin.settings.integration');
     }
@@ -119,7 +119,7 @@ class SettingsController extends Controller
      */
     public function maintenance(): View
     {
-        $this->authorize('system.settings');
+        $this->authorize('system.maintenance');
 
         return view('admin.settings.maintenance');
     }
@@ -129,7 +129,7 @@ class SettingsController extends Controller
      */
     public function backups(): View
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.backup');
 
         return view('admin.settings.backups');
     }
@@ -139,7 +139,7 @@ class SettingsController extends Controller
      */
     public function history(): View
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.view');
 
         return view('admin.settings.history');
     }
@@ -149,7 +149,7 @@ class SettingsController extends Controller
      */
     public function getAllSettings(Request $request): JsonResponse
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.view');
 
         try {
             $category = $request->get('category');
@@ -206,7 +206,7 @@ class SettingsController extends Controller
      */
     public function getSetting(string $key): JsonResponse
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.view');
 
         try {
             $setting = $this->settingsRepository->getSetting($key);
@@ -246,7 +246,7 @@ class SettingsController extends Controller
      */
     public function updateSetting(Request $request, string $key): JsonResponse
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.edit');
 
         try {
             $value = $request->input('value');
@@ -302,7 +302,7 @@ class SettingsController extends Controller
      */
     public function batchUpdate(Request $request): JsonResponse
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.edit');
 
         $validator = Validator::make($request->all(), [
             'settings' => 'required|array',
@@ -377,7 +377,7 @@ class SettingsController extends Controller
      */
     public function resetSetting(string $key): JsonResponse
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.reset');
 
         try {
             $result = $this->settingsRepository->resetSetting($key);
@@ -421,7 +421,7 @@ class SettingsController extends Controller
      */
     public function testConnection(Request $request): JsonResponse
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.view');
 
         $validator = Validator::make($request->all(), [
             'type' => 'required|string|in:smtp,database,redis,api',
@@ -467,7 +467,7 @@ class SettingsController extends Controller
      */
     public function exportSettings(Request $request): JsonResponse
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.backup');
 
         try {
             $categories = $request->input('categories', []);
@@ -505,7 +505,7 @@ class SettingsController extends Controller
      */
     public function importSettings(Request $request): JsonResponse
     {
-        $this->authorize('system.settings');
+        $this->authorize('settings.backup');
 
         $validator = Validator::make($request->all(), [
             'data' => 'required|array',
@@ -559,7 +559,7 @@ class SettingsController extends Controller
      */
     public function clearCache(): JsonResponse
     {
-        $this->authorize('system.settings');
+        $this->authorize('system.maintenance');
 
         try {
             Cache::tags(['settings'])->flush();

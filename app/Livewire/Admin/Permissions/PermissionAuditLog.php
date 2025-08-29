@@ -69,47 +69,95 @@ class PermissionAuditLog extends Component
     }
 
     /**
-     * 重設篩選條件 - 修復版本
+     * 重置所有篩選條件
      */
     public function resetFilters(): void
     {
         try {
-        \Log::info('🔥 PermissionAuditLog resetFilters - 方法被呼叫了！', [
-            'timestamp' => now()->toISOString(),
-            'user' => auth()->user()->username ?? 'unknown',
-            'before_reset' => [
-                'search' => $this->search,
-                'actionFilter' => $this->actionFilter,
-                'userFilter' => $this->userFilter,
-                'permissionFilter' => $this->permissionFilter,
-                'moduleFilter' => $this->moduleFilter,
-                'startDate' => $this->startDate,
-                'endDate' => $this->endDate,
-                'ipFilter' => $this->ipFilter,
-            ]
-        ]);
-        
-        // 重置所有篩選條件
-        $this->search = '';
-        $this->actionFilter = 'all';
-        $this->userFilter = '';
-        $this->permissionFilter = '';
-        $this->moduleFilter = 'all';
-        $this->startDate = Carbon::now()->subDays(30)->format('Y-m-d');
-        $this->endDate = Carbon::now()->format('Y-m-d');
-        $this->ipFilter = '';
-        
-        // 重置分頁
-        $this->resetPage();
-        
-        // 重新載入統計資料
-        $this->loadStats();
-        
-        // 強制重新渲染元件以確保前端同步
-        $this->dispatch('$refresh');
-        
-        // 發送前端刷新事件
-        $this->dispatch('permission-audit-reset');
+            // 記錄篩選重置操作
+            \Log::info('🔄 resetFilters - 篩選重置開始', [
+                'timestamp' => now()->toISOString(),
+                'user' => auth()->user()->username ?? 'unknown',
+                'before_reset' => [
+                    'search' => $this->search ?? '',
+                    'actionFilter' => $this->actionFilter ?? 'all',
+                    'userFilter' => $this->userFilter ?? '',
+                    'permissionFilter' => $this->permissionFilter ?? '',
+                    'moduleFilter' => $this->moduleFilter ?? 'all',
+                    'startDate' => $this->startDate ?? '',
+                    'endDate' => $this->endDate ?? '',
+                    'ipFilter' => $this->ipFilter ?? '',
+                ]
+            ]);
+            
+            // 重置所有篩選條件
+            $this->search = '';
+            $this->actionFilter = 'all';
+            $this->userFilter = '';
+            $this->permissionFilter = '';
+            $this->moduleFilter = 'all';
+            $this->startDate = Carbon::now()->subDays(30)->format('Y-m-d');
+            $this->endDate = Carbon::now()->format('Y-m-d');
+            $this->ipFilter = '';
+            
+            // 清除快取
+            if (method_exists($this, 'clearCache')) {
+                $this->clearCache();
+            }
+            
+            // 重置分頁和驗證
+            $this->resetPage();
+            $this->resetValidation();
+            
+            // 重新載入統計資料
+            if (method_exists($this, 'loadStats')) {
+                $this->loadStats();
+            }
+            
+            // 強制重新渲染整個元件
+            $this->skipRender = false;
+            
+            // 強制 Livewire 同步狀態到前端
+            $this->js('
+                // 強制更新所有表單元素的值
+                setTimeout(() => {
+                    const searchInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="search"]\');
+                    searchInputs.forEach(input => {
+                        input.value = "";
+                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    });
+                    
+                    const filterInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live*="Filter"]\');
+                    filterInputs.forEach(input => {
+                        input.value = "";
+                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    });
+                    
+                    const dateInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="startDate"], input[wire\\\\:model\\\\.live="endDate"]\');
+                    dateInputs.forEach(input => {
+                        if (input.getAttribute("wire:model.live") === "startDate") {
+                            input.value = "' . Carbon::now()->subDays(30)->format('Y-m-d') . '";
+                        } else if (input.getAttribute("wire:model.live") === "endDate") {
+                            input.value = "' . Carbon::now()->format('Y-m-d') . '";
+                        }
+                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    });
+                    
+                    const filterSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live*="Filter"]\');
+                    filterSelects.forEach(select => {
+                        select.value = "all";
+                        select.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                    
+                    console.log("✅ 權限審計日誌表單元素已強制同步");
+                }, 100);
+            ');
+            
+            // 發送強制 UI 更新事件
+            $this->dispatch('force-ui-update');
+            
+            // 發送前端重置事件，讓 Alpine.js 處理
+            $this->dispatch('reset-form-elements');
         
         \Log::info('🔥 PermissionAuditLog resetFilters - 屬性已重置', [
             'after_reset' => [

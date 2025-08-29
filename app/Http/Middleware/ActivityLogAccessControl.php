@@ -64,10 +64,13 @@ class ActivityLogAccessControl
         return match (true) {
             str_contains($routeName, 'activity') && str_contains($routeName, 'export') => 'activity_logs.export',
             str_contains($routeName, 'activity') && in_array($method, ['DELETE']) => 'activity_logs.delete',
+            str_contains($routeName, 'activity') && str_contains($routeName, 'security') => 'system.security',
+            str_contains($routeName, 'activity') && str_contains($routeName, 'stats') => 'system.monitor',
+            str_contains($routeName, 'activity') && str_contains($routeName, 'monitor') => 'system.monitor',
             str_contains($routeName, 'activity') => 'activity_logs.view',
-            str_contains($routeName, 'security') && str_contains($routeName, 'audit') => 'security.audit',
-            str_contains($routeName, 'security') && str_contains($routeName, 'incident') => 'security.incidents',
-            str_contains($routeName, 'security') => 'security.view',
+            str_contains($routeName, 'security') && str_contains($routeName, 'audit') => 'system.security',
+            str_contains($routeName, 'security') && str_contains($routeName, 'incident') => 'system.security',
+            str_contains($routeName, 'security') => 'system.security',
             default => 'activity_logs.view'
         };
     }

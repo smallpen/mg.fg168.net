@@ -36,6 +36,7 @@ class UserList extends Component
     // 篩選相關屬性
     public string $statusFilter = 'all';
     public string $roleFilter = 'all';
+    public bool $showFilters = false;
     
     // 分頁相關屬性
     public int $perPage = 15;
@@ -756,44 +757,80 @@ class UserList extends Component
     }
 
     /**
-     * 重置所有篩選條件 - 修復版本
+     * 切換篩選器顯示狀態
+     */
+    public function toggleFilters(): void
+    {
+        $this->showFilters = !$this->showFilters;
+    }
+
+    /**
+     * 重置所有篩選條件
      */
     public function resetFilters(): void
     {
         try {
-            \Log::info('🔥 resetFilters - 方法被呼叫了！', [
+            // 記錄篩選重置操作
+            \Log::info('🔄 resetFilters - 篩選重置開始', [
                 'timestamp' => now()->toISOString(),
                 'user' => auth()->user()->username ?? 'unknown',
                 'before_reset' => [
-                    'search' => $this->search,
-                    'statusFilter' => $this->statusFilter,
-                    'roleFilter' => $this->roleFilter,
+                    'search' => $this->search ?? '',
+                    'statusFilter' => $this->statusFilter ?? 'all',
+                    'roleFilter' => $this->roleFilter ?? 'all',
                 ]
             ]);
             
-            // 重置篩選條件
+            // 重置所有篩選條件
             $this->search = '';
             $this->statusFilter = 'all';
             $this->roleFilter = 'all';
             $this->selectedUsers = [];
             $this->selectAll = false;
             
-            // 重置分頁
-            $this->resetPage();
+            // 清除快取
+            if (method_exists($this, 'clearCache')) {
+                $this->clearCache();
+            }
             
-            // 清除驗證錯誤
+            // 重置分頁和驗證
+            $this->resetPage();
             $this->resetValidation();
             
-            \Log::info('🔥 resetFilters - 屬性已重置', [
-                'after_reset' => [
-                    'search' => $this->search,
-                    'statusFilter' => $this->statusFilter,
-                    'roleFilter' => $this->roleFilter,
-                ]
-            ]);
+            // 強制重新渲染整個元件
+            $this->skipRender = false;
             
-            // 發送前端重置事件
-            $this->dispatch('user-list-reset');
+            // 強制 Livewire 同步狀態到前端
+            $this->js('
+                // 強制更新所有表單元素的值
+                setTimeout(() => {
+                    const searchInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="search"]\');
+                    searchInputs.forEach(input => {
+                        input.value = "";
+                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    });
+                    
+                    const statusSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live="statusFilter"]\');
+                    statusSelects.forEach(select => {
+                        select.value = "all";
+                        select.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                    
+                    const roleSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live="roleFilter"]\');
+                    roleSelects.forEach(select => {
+                        select.value = "all";
+                        select.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                    
+                    console.log("✅ 表單元素已強制同步");
+                }, 100);
+            ');
+            
+            // 發送強制 UI 更新事件
+            $this->dispatch('force-ui-update');
+            
+            // 發送前端重置事件，讓 Alpine.js 處理
+            $this->dispatch('reset-form-elements');
             
             // 顯示成功訊息
             $this->dispatch('show-toast', [
@@ -801,7 +838,14 @@ class UserList extends Component
                 'message' => '篩選條件已清除'
             ]);
             
-            \Log::info('🔥 resetFilters - 修復版本執行完成');
+            // 記錄重置完成
+            \Log::info('✅ resetFilters - 篩選重置完成', [
+                'after_reset' => [
+                    'search' => $this->search,
+                    'statusFilter' => $this->statusFilter,
+                    'roleFilter' => $this->roleFilter,
+                ]
+            ]);
             
         } catch (\Exception $e) {
             \Log::error('重置方法執行失敗', [
@@ -960,8 +1004,8 @@ class UserList extends Component
     public function render()
     {
         try {
-            // 暫時使用簡化版本來避免 DOM 操作問題
-            return view('livewire.admin.users.user-list-simple', [
+            // 使用新的響應式設計版本
+            return view('livewire.admin.users.user-list', [
                 'users' => $this->users,
                 'availableRoles' => $this->availableRoles,
                 'statusOptions' => $this->statusOptions,
@@ -979,7 +1023,7 @@ class UserList extends Component
             // 嘗試重置狀態並重新渲染
             $this->fixDomState();
             
-            return view('livewire.admin.users.user-list-simple', [
+            return view('livewire.admin.users.user-list', [
                 'users' => collect(),
                 'availableRoles' => collect(),
                 'statusOptions' => $this->statusOptions,

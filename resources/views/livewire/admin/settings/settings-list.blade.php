@@ -54,7 +54,7 @@
                     <x-heroicon-o-magnifying-glass class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input 
                         type="text" 
-                        wire:model.defer="search"
+                        wire:model.live="search"
                         wire:key="settings-search-input"
                         placeholder="搜尋設定項目..."
                         class="input input-bordered w-full pl-10"
@@ -73,7 +73,7 @@
             {{-- 篩選器 --}}
             <div class="flex flex-wrap gap-2">
                 {{-- 分類篩選 --}}
-                <select wire:model.defer="categoryFilter" wire:key="category-filter-select" class="select select-bordered select-sm">
+                <select wire:model.live="categoryFilter" wire:key="category-filter-select" class="select select-bordered select-sm">
                     <option value="all">所有分類</option>
                     @foreach($this->categories as $key => $category)
                         <option value="{{ $key }}">{{ $category['name'] }}</option>
@@ -81,7 +81,7 @@
                 </select>
 
                 {{-- 類型篩選 --}}
-                <select wire:model.defer="typeFilter" wire:key="type-filter-select" class="select select-bordered select-sm">
+                <select wire:model.live="typeFilter" wire:key="type-filter-select" class="select select-bordered select-sm">
                     <option value="all">所有類型</option>
                     @foreach($this->availableTypes as $type)
                         <option value="{{ $type }}">{{ ucfirst($type) }}</option>
@@ -89,25 +89,25 @@
                 </select>
 
                 {{-- 變更狀態篩選 --}}
-                <select wire:model.defer="changedFilter" wire:key="changed-filter-select" class="select select-bordered select-sm">
+                <select wire:model.live="changedFilter" wire:key="changed-filter-select" class="select select-bordered select-sm">
                     <option value="all">所有狀態</option>
                     <option value="changed">已變更</option>
                     <option value="unchanged">未變更</option>
                 </select>
 
                 {{-- 檢視模式 --}}
-                <select wire:model.defer="viewMode" wire:key="view-mode-select" class="select select-bordered select-sm">
+                <select wire:model.live="viewMode" wire:key="view-mode-select" class="select select-bordered select-sm">
                     <option value="category">分類檢視</option>
                     <option value="list">列表檢視</option>
                     <option value="tree">樹狀檢視</option>
                 </select>
 
-                {{-- 清除篩選 --}}
+                {{-- 重置篩選 --}}
                 @if($search || $categoryFilter !== 'all' || $typeFilter !== 'all' || $changedFilter !== 'all')
                     <button 
-                        wire:click="clearFilters"
+                        wire:click="resetFilters"
                         class="btn btn-ghost btn-sm"
-                        title="清除篩選"
+                        title="重置篩選"
                     >
                         <x-heroicon-o-x-mark class="w-4 h-4" />
                     </button>
@@ -340,10 +340,10 @@
                         <p>沒有找到符合條件的設定項目</p>
                         @if($search || $categoryFilter !== 'all' || $typeFilter !== 'all' || $changedFilter !== 'all')
                             <button 
-                                wire:click="clearFilters"
+                                wire:click="resetFilters"
                                 class="mt-2 btn btn-ghost btn-sm"
                             >
-                                清除篩選條件
+                                重置篩選條件
                             </button>
                         @endif
                     </div>
@@ -577,30 +577,87 @@
         }, 500);
     });
 
-    // 為表單元素添加手動觸發事件
-    document.addEventListener('DOMContentLoaded', function() {
-        // 為所有 select 元素添加 change 事件監聽
-        const selects = document.querySelectorAll('select[wire\\:model\\.defer]');
-        selects.forEach(select => {
-            select.addEventListener('change', function() {
-                this.blur();
-                setTimeout(() => $wire.$refresh(), 100);
-            });
-        });
-        
-        // 為搜尋輸入框添加事件監聽
-        const searchInput = document.querySelector('input[wire\\:key="settings-search-input"]');
-        if (searchInput) {
-            searchInput.addEventListener('keyup', function(e) {
-                if (e.key === 'Enter') {
-                    this.blur();
-                    $wire.$refresh();
-                }
-            });
-            searchInput.addEventListener('blur', function() {
-                setTimeout(() => $wire.$refresh(), 100);
-            });
+    // Alpine.js 重置按鈕控制器
+    function resetButtonController() {
+        return {
+            showResetButton: @js(!empty($search) || $categoryFilter !== 'all' || $typeFilter !== 'all' || $changedFilter !== 'all'),
+            
+            init() {
+                console.log('🔧 設定列表重置按鈕控制器初始化');
+                
+                // 監聽重置表單元素事件
+                Livewire.on('reset-form-elements', () => {
+                    console.log('🔄 收到重置表單元素事件');
+                    this.resetFormElements();
+                });
+                
+                this.checkFilters();
+                
+                // 監聽輸入變化
+                document.addEventListener('input', () => {
+                    setTimeout(() => this.checkFilters(), 100);
+                });
+                
+                document.addEventListener('change', () => {
+                    setTimeout(() => this.checkFilters(), 100);
+                });
+                
+                // 監聽 Livewire 更新
+                Livewire.on('force-ui-update', () => {
+                    setTimeout(() => {
+                        this.showResetButton = false;
+                        console.log('🔄 強制隱藏重置按鈕');
+                    }, 100);
+                });
+            },
+            
+            checkFilters() {
+                const searchInput = document.querySelector('input[wire\\\\:model\\\\.live="search"]');
+                const categorySelect = document.querySelector('select[wire\\\\:model\\\\.live="categoryFilter"]');
+                const typeSelect = document.querySelector('select[wire\\\\:model\\\\.live="typeFilter"]');
+                const changedSelect = document.querySelector('select[wire\\\\:model\\\\.live="changedFilter"]');
+                
+                const hasSearch = searchInput && searchInput.value.trim() !== '';
+                const hasCategoryFilter = categorySelect && categorySelect.value !== 'all';
+                const hasTypeFilter = typeSelect && typeSelect.value !== 'all';
+                const hasChangedFilter = changedSelect && changedSelect.value !== 'all';
+                
+                this.showResetButton = hasSearch || hasCategoryFilter || hasTypeFilter || hasChangedFilter;
+                
+                console.log('🔍 檢查篩選狀態:', {
+                    hasSearch,
+                    hasCategoryFilter,
+                    hasTypeFilter,
+                    hasChangedFilter,
+                    showResetButton: this.showResetButton
+                });
+            },
+            
+            resetFormElements() {
+                console.log('🔄 開始重置表單元素');
+                
+                // 重置搜尋框
+                const searchInputs = document.querySelectorAll('input[wire\\\\:model\\\\.live="search"]');
+                searchInputs.forEach(input => {
+                    input.value = '';
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.blur();
+                });
+                
+                // 重置所有篩選下拉選單
+                const selects = document.querySelectorAll('select[wire\\\\:model\\\\.live*="Filter"]');
+                selects.forEach(select => {
+                    select.value = 'all';
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                
+                // 更新重置按鈕狀態
+                setTimeout(() => {
+                    this.checkFilters();
+                    console.log('✅ 表單元素重置完成');
+                }, 100);
+            }
         }
-    });
+    }
 </script>
 @endscript

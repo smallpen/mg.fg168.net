@@ -49,7 +49,7 @@ Permission::count();
 ```php
 // 預設管理員帳號
 username: 'admin'
-password: 'password123'
+password: 'admin123'
 email: 'admin@example.com'
 is_active: true
 ```
@@ -167,7 +167,7 @@ if (userCheck.results[0].count === 0) {
 // 確保有測試資料後再進行登入測試
 await playwright.navigate('http://localhost/admin/login');
 await playwright.fill('input[name="username"]', 'admin');
-await playwright.fill('input[name="password"]', 'password123');
+await playwright.fill('input[name="password"]', 'admin123');
 await playwright.click('button[type="submit"]');
 ```
 
