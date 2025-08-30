@@ -127,8 +127,18 @@ document.addEventListener('DOMContentLoaded', function() {
         node.on("click", function(event, d) {
             if (!d.is_center) {
                 // 觸發 Livewire 方法選擇權限
-                window.Livewire.find(container.closest('[wire\\:id]').getAttribute('wire:id'))
-                    .call('selectPermission', d.id);
+                const livewireContainer = container.closest('[wire\\:id]');
+                const componentId = livewireContainer ? livewireContainer.getAttribute('wire:id') : null;
+                const component = componentId ? window.Livewire.find(componentId) : null;
+                
+                // 確保元件存在且有 selectPermission 方法
+                if (component && typeof component.call === 'function') {
+                    try {
+                        component.call('selectPermission', d.id);
+                    } catch (error) {
+                        console.warn('無法調用 selectPermission 方法:', error);
+                    }
+                }
             }
         });
         

@@ -127,6 +127,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const notificationArea = document.getElementById('notification-area');
     
     function showNotification(message, type = 'success') {
+        // 如果通知區域不存在，則建立一個
+        let targetArea = notificationArea;
+        if (!targetArea) {
+            targetArea = document.createElement('div');
+            targetArea.id = 'notification-area';
+            targetArea.className = 'fixed top-4 right-4 z-50 space-y-2';
+            document.body.appendChild(targetArea);
+        }
+        
         const notification = document.createElement('div');
         notification.className = `
             max-w-sm w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg pointer-events-auto 
@@ -165,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        notificationArea.appendChild(notification);
+        targetArea.appendChild(notification);
         
         // 自動移除通知
         setTimeout(() => {
@@ -187,6 +196,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentConfirmAction = null;
     
     function showConfirmDialog(message, confirmAction) {
+        // 如果對話框元素不存在，使用瀏覽器原生確認對話框
+        if (!confirmationModal || !modalMessage || !confirmButton || !cancelButton) {
+            if (confirm(message)) {
+                confirmAction();
+            }
+            return;
+        }
+        
         modalMessage.textContent = message;
         currentConfirmAction = confirmAction;
         confirmationModal.classList.remove('hidden');
@@ -194,30 +211,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function hideConfirmDialog() {
-        confirmationModal.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
+        if (confirmationModal) {
+            confirmationModal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
         currentConfirmAction = null;
     }
     
-    confirmButton.addEventListener('click', function() {
-        if (currentConfirmAction) {
-            currentConfirmAction();
-        }
-        hideConfirmDialog();
-    });
+    // 只有在元素存在時才添加事件監聽器
+    if (confirmButton) {
+        confirmButton.addEventListener('click', function() {
+            if (currentConfirmAction) {
+                currentConfirmAction();
+            }
+            hideConfirmDialog();
+        });
+    }
     
-    cancelButton.addEventListener('click', hideConfirmDialog);
+    if (cancelButton) {
+        cancelButton.addEventListener('click', hideConfirmDialog);
+    }
     
     // 點擊背景關閉對話框
-    confirmationModal.addEventListener('click', function(e) {
-        if (e.target === confirmationModal) {
-            hideConfirmDialog();
-        }
-    });
+    if (confirmationModal) {
+        confirmationModal.addEventListener('click', function(e) {
+            if (e.target === confirmationModal) {
+                hideConfirmDialog();
+            }
+        });
+    }
     
     // ESC 鍵關閉對話框
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && !confirmationModal.classList.contains('hidden')) {
+        if (e.key === 'Escape' && confirmationModal && !confirmationModal.classList.contains('hidden')) {
             hideConfirmDialog();
         }
     });
@@ -320,7 +346,7 @@ document.addEventListener('keydown', function(e) {
     // Ctrl/Cmd + K 開啟搜尋
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        const searchInput = document.querySelector('input[wire\\:model\\.live\\.debounce\\.300ms="search"]');
+        const searchInput = document.querySelector('input[wire\\:model\\.live="search"]');
         if (searchInput) {
             searchInput.focus();
         }

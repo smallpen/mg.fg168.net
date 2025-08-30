@@ -88,6 +88,23 @@ class DependencyGraph extends Component
     }
 
     /**
+     * 當 selectedPermissionId 更新時觸發
+     */
+    public function updatedSelectedPermissionId($value): void
+    {
+        if ($value) {
+            $this->selectPermission((int) $value);
+        } else {
+            $this->selectedPermission = null;
+            $this->graphData = [];
+            $this->dependencyTree = [];
+            $this->dependentTree = [];
+            $this->dependencyPaths = [];
+            $this->dependentPaths = [];
+        }
+    }
+
+    /**
      * 選擇權限
      */
     #[On('select-permission-for-dependencies')]
@@ -452,6 +469,27 @@ class DependencyGraph extends Component
         $this->selectedDependencies = [];
         $this->showAddDependency = true;
         $this->loadAvailablePermissions();
+        
+        // 發送對話框顯示事件
+        $this->dispatch('show-add-dependency-modal');
+        
+        // 發送成功訊息
+        $this->dispatch('show-toast', [
+            'type' => 'info',
+            'message' => '新增依賴關係對話框已開啟'
+        ]);
+    }
+
+    /**
+     * 關閉新增依賴對話框
+     */
+    public function closeAddDependency(): void
+    {
+        $this->showAddDependency = false;
+        $this->selectedDependencies = [];
+        
+        // 發送對話框隱藏事件
+        $this->dispatch('hide-add-dependency-modal');
     }
 
     /**
@@ -498,7 +536,8 @@ class DependencyGraph extends Component
                 'message' => '依賴關係新增成功'
             ]);
 
-            $this->showAddDependency = false;
+            // 關閉對話框
+            $this->closeAddDependency();
             
         } catch (ValidationException $e) {
             $this->dispatch('show-toast', [

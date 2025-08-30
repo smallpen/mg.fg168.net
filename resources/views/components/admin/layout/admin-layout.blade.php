@@ -434,4 +434,97 @@
         
     </div>
     
+    <!-- Toast 通知系統 -->
+    <div x-data="{ 
+        show: false, 
+        message: '', 
+        type: 'success',
+        showToast(data) {
+            this.message = data.message;
+            this.type = data.type;
+            this.show = true;
+            setTimeout(() => this.show = false, 4000);
+        }
+    }"
+    x-on:show-toast.window="showToast(Array.isArray($event.detail) ? $event.detail[0] : $event.detail)"
+    x-show="show"
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 transform translate-y-2"
+    x-transition:enter-end="opacity-100 transform translate-y-0"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 transform translate-y-0"
+    x-transition:leave-end="opacity-0 transform translate-y-2"
+    class="fixed top-4 right-4 z-50 max-w-sm"
+    style="display: none;">
+        <div class="rounded-lg shadow-lg p-4 border"
+             :class="{
+                'bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-800': type === 'success',
+                'bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-800': type === 'error',
+                'bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-200 dark:border-yellow-800': type === 'warning',
+                'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:border-blue-800': type === 'info'
+             }">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-3">
+                    <svg x-show="type === 'success'" class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <svg x-show="type === 'error'" class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <svg x-show="type === 'warning'" class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <svg x-show="type === 'info'" class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <span x-text="message" class="flex-1"></span>
+                <button @click="show = false" class="ml-4 flex-shrink-0 hover:opacity-75">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast 事件監聽器修復 -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 確保 toast 事件監聽器正確工作
+        const toastElement = document.querySelector('[x-data*="showToast"]');
+        if (toastElement) {
+            // 添加全域事件監聽器
+            window.addEventListener('show-toast', function(event) {
+                console.log('Toast event received:', event.detail);
+                
+                if (toastElement._x_dataStack && toastElement._x_dataStack[0]) {
+                    const alpineData = toastElement._x_dataStack[0];
+                    if (alpineData.showToast) {
+                        const data = Array.isArray(event.detail) ? event.detail[0] : event.detail;
+                        alpineData.showToast(data);
+                        console.log('Toast shown with data:', data);
+                    }
+                }
+            });
+            
+            // 也監聽 Livewire 事件
+            if (window.Livewire) {
+                window.Livewire.on('show-toast', function(data) {
+                    console.log('Livewire toast event received:', data);
+                    
+                    if (toastElement._x_dataStack && toastElement._x_dataStack[0]) {
+                        const alpineData = toastElement._x_dataStack[0];
+                        if (alpineData.showToast) {
+                            const toastData = Array.isArray(data) ? data[0] : data;
+                            alpineData.showToast(toastData);
+                            console.log('Toast shown from Livewire with data:', toastData);
+                        }
+                    }
+                });
+            }
+        }
+    });
+    </script>
+    
 </div>

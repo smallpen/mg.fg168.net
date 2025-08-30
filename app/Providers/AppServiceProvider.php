@@ -19,10 +19,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\InputValidationService::class);
         $this->app->singleton(\App\Services\AuditLogService::class);
         $this->app->singleton(\App\Services\PermissionAuditService::class);
+        $this->app->singleton(\App\Services\PermissionValidationService::class);
         
         // 註冊 Repository 介面綁定
         $this->app->bind(
-            \App\Repositories\PermissionRepositoryInterface::class,
+            \App\Repositories\Contracts\PermissionRepositoryInterface::class,
             \App\Repositories\PermissionRepository::class
         );
         

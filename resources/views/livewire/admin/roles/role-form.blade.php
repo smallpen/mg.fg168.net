@@ -1,55 +1,4 @@
-<div class="max-w-4xl mx-auto">
-    <!-- 表單標題 -->
-    <div class="mb-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                    {{ $this->formTitle }}
-                </h2>
-                @if($isEditing && $role)
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                        建立時間：{{ $role->formatted_created_at }}
-                        @if($role->updated_at != $role->created_at)
-                            | 最後更新：{{ $role->formatted_updated_at }}
-                        @endif
-                    </p>
-                @endif
-            </div>
-            
-            <!-- 自動儲存狀態 -->
-            @if($isEditing)
-                <div class="flex items-center space-x-3">
-                    <div class="flex items-center space-x-2">
-                        <div class="flex items-center">
-                            @if($hasUnsavedChanges)
-                                <div class="h-2 w-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                            @elseif($lastAutoSaveTime)
-                                <div class="h-2 w-2 bg-green-400 rounded-full"></div>
-                            @else
-                                <div class="h-2 w-2 bg-gray-300 rounded-full"></div>
-                            @endif
-                            <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                                {{ $this->autoSaveStatus }}
-                            </span>
-                        </div>
-                        
-                        <button 
-                            type="button"
-                            wire:click="toggleAutoSave"
-                            @class([
-                                'text-xs px-2 py-1 rounded border',
-                                'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300' => $autoSaveEnabled,
-                                'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 dark:bg-gray-900/20 dark:border-gray-600 dark:text-gray-400' => !$autoSaveEnabled
-                            ])
-                            title="{{ $autoSaveEnabled ? '點擊停用自動儲存' : '點擊啟用自動儲存' }}"
-                        >
-                            {{ $autoSaveEnabled ? '自動儲存' : '手動儲存' }}
-                        </button>
-                    </div>
-                </div>
-            @endif
-        </div>
-    </div>
+<div class="space-y-6">
 
     <!-- 系統角色警告 -->
     @if($isSystemRole)
@@ -74,12 +23,12 @@
 
     <!-- 表單 -->
     <form wire:submit="save" class="space-y-6">
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white">基本資訊</h3>
             </div>
             
-            <div class="px-6 py-4 space-y-6">
+            <div class="p-6 space-y-6">
                 <!-- 角色名稱 -->
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -357,148 +306,24 @@
         @endif
 
         <!-- 操作按鈕 -->
-        <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div class="flex space-x-3">
-                <!-- 取消按鈕 -->
-                <button 
-                    type="button"
-                    wire:click="cancel"
-                    class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
-                >
-                    取消
-                </button>
-
-                <!-- 重置按鈕 -->
-                @if(!$isEditing || $hasUnsavedChanges)
-                    <button 
-                        type="button"
-                        wire:click="confirmResetForm"
-                        class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
-                        title="重置表單到初始狀態"
-                    >
-                        重置
-                    </button>
-                @endif
-
-                <!-- 複製按鈕（僅編輯模式） -->
-                @if($isEditing && $this->can('roles.create'))
-                    <button 
-                        type="button"
-                        wire:click="duplicateRole"
-                        class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
-                    >
-                        複製角色
-                    </button>
-                @endif
-            </div>
-
-            <div class="flex items-center space-x-3">
-                <!-- 快捷鍵提示 -->
-                <span class="text-xs text-gray-500 dark:text-gray-400">
-                    Ctrl+S 快速儲存
-                </span>
-                
-                <!-- 儲存按鈕 -->
-                <button 
-                    type="submit"
-                    wire:loading.attr="disabled"
-                    wire:target="save"
-                    @class([
-                        'px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed',
-                        'bg-indigo-600 hover:bg-indigo-700' => !$hasUnsavedChanges,
-                        'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500' => $hasUnsavedChanges
-                    ])
-                >
-                    <span wire:loading.remove wire:target="save">
-                        {{ $hasUnsavedChanges ? '儲存變更' : $this->saveButtonText }}
-                    </span>
-                    <span wire:loading wire:target="save" class="flex items-center">
-                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        儲存中...
-                    </span>
-                </button>
-            </div>
+        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <button 
+                type="button"
+                wire:click="cancel"
+                class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+                取消
+            </button>
+            
+            <button type="submit" 
+                    class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                {{ $isEditing ? '更新角色' : '建立角色' }}
+            </button>
         </div>
     </form>
 
-    <!-- 自動儲存 JavaScript -->
-    @if($isEditing)
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                let autoSaveTimeout;
-                let isAutoSaving = false;
-                
-                // 監聽自動儲存排程事件
-                Livewire.on('schedule-auto-save', () => {
-                    if (isAutoSaving) return;
-                    
-                    // 清除之前的計時器
-                    if (autoSaveTimeout) {
-                        clearTimeout(autoSaveTimeout);
-                    }
-                    
-                    // 設定 3 秒後自動儲存
-                    autoSaveTimeout = setTimeout(() => {
-                        if (!isAutoSaving) {
-                            isAutoSaving = true;
-                            @this.call('autoSave').then(() => {
-                                isAutoSaving = false;
-                            }).catch(() => {
-                                isAutoSaving = false;
-                            });
-                        }
-                    }, 3000);
-                });
-                
-                // 監聽自動儲存完成事件
-                Livewire.on('auto-save-completed', (event) => {
-                    // 顯示自動儲存成功提示（可選）
-                    if (window.showToast) {
-                        window.showToast(event.message, 'success', 2000);
-                    }
-                });
-                
-                // 監聽自動儲存切換事件
-                Livewire.on('auto-save-toggled', (event) => {
-                    if (window.showToast) {
-                        window.showToast(event.message, 'info', 3000);
-                    }
-                });
-                
-                // 頁面離開前檢查未儲存變更
-                window.addEventListener('beforeunload', function(e) {
-                    if (@this.hasUnsavedChanges) {
-                        e.preventDefault();
-                        e.returnValue = '您有未儲存的變更，確定要離開嗎？';
-                        return '您有未儲存的變更，確定要離開嗎？';
-                    }
-                });
-                
-                // Ctrl+S 快速儲存
-                document.addEventListener('keydown', function(e) {
-                    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                        e.preventDefault();
-                        @this.call('save');
-                    }
-                });
-                
-                // 監聽表單重置確認事件
-                Livewire.on('confirm-form-reset', () => {
-                    if (confirm('您有未儲存的變更，確定要重置表單嗎？')) {
-                        @this.call('resetForm');
-                    }
-                });
-                
-                // 監聽表單重置完成事件
-                Livewire.on('form-reset', () => {
-                    if (window.showToast) {
-                        window.showToast('表單已重置', 'info', 2000);
-                    }
-                });
-            });
-        </script>
-    @endif
+
 </div>

@@ -185,7 +185,18 @@
     @endif
 
     {{-- 新增依賴對話框 --}}
-    <div x-data="{ show: @entangle('showAddDependency') }" 
+    <div x-data="{ 
+            show: false,
+            init() {
+                // 監聽 Livewire 事件
+                Livewire.on('show-add-dependency-modal', () => {
+                    this.show = true;
+                });
+                Livewire.on('hide-add-dependency-modal', () => {
+                    this.show = false;
+                });
+            }
+         }" 
          x-show="show" 
          x-cloak
          class="fixed inset-0 z-50 overflow-y-auto"
@@ -220,7 +231,7 @@
                         新增依賴關係
                     </h3>
                     <button type="button" 
-                            wire:click="$set('showAddDependency', false)"
+                            wire:click="closeAddDependency"
                             class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -256,7 +267,7 @@
 
                     <div class="flex justify-end space-x-3 pt-4">
                         <button type="button"
-                                wire:click="$set('showAddDependency', false)"
+                                wire:click="closeAddDependency"
                                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
                             取消
                         </button>

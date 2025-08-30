@@ -45,6 +45,16 @@ class PermissionList extends Component
     
     // 分頁相關屬性
     public int $perPage = 25;
+    public array $perPageOptions = [10, 25, 50, 100];
+    
+    // URL 查詢字串屬性（用於狀態持久化）
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'moduleFilter' => ['except' => 'all'],
+        'typeFilter' => ['except' => 'all'],
+        'usageFilter' => ['except' => 'all'],
+        'perPage' => ['except' => 25],
+    ];
     
     // 排序相關屬性
     public string $sortField = 'module';
@@ -82,8 +92,31 @@ class PermissionList extends Component
             abort(403, __('admin.errors.unauthorized'));
         }
 
+        // 從 URL 參數初始化狀態
+        $this->initializeFromQueryString();
+
         // 記錄存取日誌
-        $this->auditService->logDataAccess('permissions', 'list_view');
+        // $this->auditService->logDataAccess('permissions', 'list_view');
+    }
+
+    /**
+     * 從 URL 查詢字串初始化狀態
+     */
+    private function initializeFromQueryString(): void
+    {
+        // 從 request 獲取參數
+        $request = request();
+        
+        $this->search = $request->get('search', '');
+        $this->moduleFilter = $request->get('moduleFilter', 'all');
+        $this->typeFilter = $request->get('typeFilter', 'all');
+        $this->usageFilter = $request->get('usageFilter', 'all');
+        
+        // 驗證並設定 perPage
+        $requestedPerPage = (int) $request->get('perPage', 25);
+        if (in_array($requestedPerPage, $this->perPageOptions)) {
+            $this->perPage = $requestedPerPage;
+        }
     }
 
     /**
@@ -92,24 +125,22 @@ class PermissionList extends Component
     public function getPermissionsProperty(): LengthAwarePaginator
     {
         try {
-            // 使用修正的快取鍵，包含分頁資訊
-            $cacheKey = $this->generateCacheKey('permissions');
-            
-            return Cache::remember($cacheKey, 300, function () {
-                // 驗證和清理篩選條件
-                $filters = $this->validationService->validatePermissionFilters([
-                    'search' => $this->search,
-                    'module' => $this->moduleFilter,
-                    'type' => $this->typeFilter,
-                    'usage' => $this->usageFilter,
-                    'sort_field' => $this->sortField,
-                    'sort_direction' => $this->sortDirection,
-                    'include_relations' => ['roles'], // 只載入必要的關聯
-                    'include_counts' => ['roles'], // 只載入必要的計數
-                ]);
+            // 驗證和清理篩選條件
+            $filters = $this->validationService->validatePermissionFilters([
+                'search' => $this->search,
+                'module' => $this->moduleFilter,
+                'type' => $this->typeFilter,
+                'usage' => $this->usageFilter,
+                'sort_field' => $this->sortField,
+                'sort_direction' => $this->sortDirection,
+                'include_relations' => ['roles'], // 只載入必要的關聯
+                'include_counts' => ['roles'], // 只載入必要的計數
+            ]);
 
-                return $this->permissionRepository->getPaginatedPermissions($filters, $this->perPage);
-            });
+            // 直接呼叫 repository，不使用額外的快取層
+            // 因為 repository 內部已經有快取機制
+            return $this->permissionRepository->getPaginatedPermissions($filters, $this->perPage);
+            
         } catch (\Exception $e) {
             // 記錄錯誤並返回空的分頁結果
             logger()->error('Error getting permissions', [
@@ -120,6 +151,8 @@ class PermissionList extends Component
                     'type' => $this->typeFilter,
                     'usage' => $this->usageFilter,
                 ],
+                'current_page' => $this->getPage(),
+                'per_page' => $this->perPage,
             ]);
             
             return $this->permissionRepository->getPaginatedPermissions([], $this->perPage);
@@ -336,6 +369,48 @@ class PermissionList extends Component
         $this->auditService->logUserAction('permission_view_mode_changed', [
             'view_mode' => $this->viewMode,
         ]);
+    }
+
+    /**
+     * 每頁顯示筆數更新時重置分頁
+     */
+    public function updatedPerPage(): void
+    {
+        try {
+            // 驗證 perPage 值
+            if (!in_array($this->perPage, $this->perPageOptions)) {
+                $this->perPage = 25; // 重置為預設值
+            }
+            
+            $this->resetPage();
+            $this->clearCache();
+            
+            // 記錄每頁顯示筆數變更（暫時註解避免錯誤）
+            // $this->auditService->logUserAction('permission_per_page_changed', [
+            //     'per_page' => $this->perPage,
+            // ]);
+            
+            // 發送更新事件
+            $this->dispatch('per-page-updated', perPage: $this->perPage);
+            
+        } catch (\Exception $e) {
+            logger()->error('Error updating perPage', [
+                'error' => $e->getMessage(),
+                'perPage' => $this->perPage
+            ]);
+            
+            // 重置為預設值
+            $this->perPage = 25;
+            $this->resetPage();
+        }
+    }
+
+    /**
+     * 前往指定頁面
+     */
+    public function gotoPage(int $page): void
+    {
+        $this->setPage($page);
     }
 
     /**

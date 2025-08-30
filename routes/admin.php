@@ -107,6 +107,11 @@ Route::middleware('admin')
         Route::get('/create', [App\Http\Controllers\Admin\PermissionController::class, 'create'])
              ->name('create');
         
+        // 權限依賴關係圖表路由 - 必須在動態路由之前
+        Route::get('/dependencies', [App\Http\Controllers\Admin\PermissionController::class, 'dependencies'])
+             ->name('dependencies')
+             ->middleware('can:permissions.view');
+        
         Route::get('/{permission}', [App\Http\Controllers\Admin\PermissionController::class, 'show'])
              ->name('show')
              ->middleware('can:permissions.view');
@@ -144,10 +149,7 @@ Route::middleware('admin')
             return view('admin.permissions.test');
         })->name('test')->middleware(['can:permissions.test', 'permission.security:test']);
 
-        // 權限依賴關係圖表路由
-        Route::get('/dependencies', [App\Http\Controllers\Admin\PermissionController::class, 'dependencies'])
-             ->name('dependencies')
-             ->middleware('can:permissions.view');
+
     });
     
     // 系統設定路由群組

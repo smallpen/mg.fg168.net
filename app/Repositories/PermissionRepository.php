@@ -24,145 +24,141 @@ class PermissionRepository implements PermissionRepositoryInterface
      */
     public function getPaginatedPermissions(array $filters = [], int $perPage = 25): LengthAwarePaginator
     {
-        // 修正快取鍵，包含當前頁面資訊
-        $currentPage = request()->get('page', 1);
-        $cacheKey = 'paginated_permissions_' . md5(serialize($filters) . "_{$perPage}_page_{$currentPage}");
-        
-        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($filters, $perPage) {
-            $query = Permission::select([
-                'id', 'name', 'display_name', 'description', 'module', 'type', 
-                'created_at', 'updated_at'
-            ]);
+        // 不使用快取，讓 Livewire 自己處理分頁狀態
+        // 這樣可以避免分頁狀態不同步的問題
+        $query = Permission::select([
+            'id', 'name', 'display_name', 'description', 'module', 'type', 
+            'created_at', 'updated_at'
+        ]);
 
-            // 只在需要時載入關聯資料
-            if (!empty($filters['include_relations'])) {
-                if (in_array('roles', $filters['include_relations'])) {
-                    $query->with('roles:id,name,display_name');
-                }
-                if (in_array('dependencies', $filters['include_relations'])) {
-                    $query->with('dependencies:id,name,display_name,module');
-                }
-                if (in_array('dependents', $filters['include_relations'])) {
-                    $query->with('dependents:id,name,display_name,module');
-                }
+        // 只在需要時載入關聯資料
+        if (!empty($filters['include_relations'])) {
+            if (in_array('roles', $filters['include_relations'])) {
+                $query->with('roles:id,name,display_name');
             }
-
-            // 只在需要時載入計數
-            if (!empty($filters['include_counts'])) {
-                $counts = [];
-                if (in_array('roles', $filters['include_counts'])) {
-                    $counts[] = 'roles';
-                }
-                if (in_array('dependencies', $filters['include_counts'])) {
-                    $counts[] = 'dependencies';
-                }
-                if (in_array('dependents', $filters['include_counts'])) {
-                    $counts[] = 'dependents';
-                }
-                if (!empty($counts)) {
-                    $query->withCount($counts);
-                }
+            if (in_array('dependencies', $filters['include_relations'])) {
+                $query->with('dependencies:id,name,display_name,module');
             }
+            if (in_array('dependents', $filters['include_relations'])) {
+                $query->with('dependents:id,name,display_name,module');
+            }
+        }
 
-            // 搜尋篩選（使用索引優化）
-            if (!empty($filters['search'])) {
-                $search = $filters['search'];
-                $query->where(function (Builder $q) use ($search) {
-                    // 優先使用有索引的欄位
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('display_name', 'like', "%{$search}%");
-                    
-                    // 描述搜尋放在最後（沒有索引）
-                    if (strlen($search) >= 3) { // 只有搜尋詞較長時才搜尋描述
-                        $q->orWhere('description', 'like', "%{$search}%");
+        // 只在需要時載入計數
+        if (!empty($filters['include_counts'])) {
+            $counts = [];
+            if (in_array('roles', $filters['include_counts'])) {
+                $counts[] = 'roles';
+            }
+            if (in_array('dependencies', $filters['include_counts'])) {
+                $counts[] = 'dependencies';
+            }
+            if (in_array('dependents', $filters['include_counts'])) {
+                $counts[] = 'dependents';
+            }
+            if (!empty($counts)) {
+                $query->withCount($counts);
+            }
+        }
+
+        // 搜尋篩選（使用索引優化）
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function (Builder $q) use ($search) {
+                // 優先使用有索引的欄位
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('display_name', 'like', "%{$search}%");
+                
+                // 描述搜尋放在最後（沒有索引）
+                if (strlen($search) >= 3) { // 只有搜尋詞較長時才搜尋描述
+                    $q->orWhere('description', 'like', "%{$search}%");
+                }
+            });
+        }
+
+        // 模組篩選（使用複合索引）
+        if (!empty($filters['module']) && $filters['module'] !== 'all') {
+            $query->where('module', $filters['module']);
+        }
+
+        // 類型篩選（使用複合索引）
+        if (!empty($filters['type']) && $filters['type'] !== 'all') {
+            $query->where('type', $filters['type']);
+        }
+
+        // 使用狀態篩選
+        if (!empty($filters['usage'])) {
+            switch ($filters['usage']) {
+                case 'used':
+                    $query->has('roles');
+                    break;
+                case 'unused':
+                    $query->doesntHave('roles');
+                    break;
+                case 'marked_unused':
+                    $markedIds = \Illuminate\Support\Facades\Cache::get('marked_unused_permissions', []);
+                    if (!empty($markedIds)) {
+                        $query->whereIn('id', $markedIds);
+                    } else {
+                        $query->whereRaw('1 = 0'); // 沒有標記的權限時返回空結果
                     }
-                });
+                    break;
+                case 'low_usage':
+                    // 使用子查詢優化效能
+                    $query->whereExists(function ($subQuery) {
+                        $subQuery->select(DB::raw(1))
+                                ->from('role_permissions')
+                                ->whereColumn('role_permissions.permission_id', 'permissions.id')
+                                ->havingRaw('COUNT(*) <= 2');
+                    });
+                    break;
+                case 'system':
+                    $query->where(function ($q) {
+                        $q->where('module', 'system')
+                          ->orWhere('module', 'auth')
+                          ->orWhere('module', 'admin')
+                          ->orWhere('name', 'like', 'system.%')
+                          ->orWhere('name', 'like', 'auth.%')
+                          ->orWhere('name', 'like', 'admin.core%');
+                    });
+                    break;
             }
+        }
 
-            // 模組篩選（使用複合索引）
-            if (!empty($filters['module']) && $filters['module'] !== 'all') {
-                $query->where('module', $filters['module']);
-            }
+        // 日期範圍篩選
+        if (!empty($filters['created_after'])) {
+            $query->where('created_at', '>=', $filters['created_after']);
+        }
+        if (!empty($filters['created_before'])) {
+            $query->where('created_at', '<=', $filters['created_before']);
+        }
 
-            // 類型篩選（使用複合索引）
-            if (!empty($filters['type']) && $filters['type'] !== 'all') {
-                $query->where('type', $filters['type']);
+        // 排序（使用複合索引優化）
+        $sortField = $filters['sort_field'] ?? 'module';
+        $sortDirection = $filters['sort_direction'] ?? 'asc';
+        
+        if ($sortField === 'role_count') {
+            // 如果沒有載入計數，則載入
+            if (empty($filters['include_counts']) || !in_array('roles', $filters['include_counts'])) {
+                $query->withCount('roles');
             }
-
-            // 使用狀態篩選
-            if (!empty($filters['usage'])) {
-                switch ($filters['usage']) {
-                    case 'used':
-                        $query->has('roles');
-                        break;
-                    case 'unused':
-                        $query->doesntHave('roles');
-                        break;
-                    case 'marked_unused':
-                        $markedIds = \Illuminate\Support\Facades\Cache::get('marked_unused_permissions', []);
-                        if (!empty($markedIds)) {
-                            $query->whereIn('id', $markedIds);
-                        } else {
-                            $query->whereRaw('1 = 0'); // 沒有標記的權限時返回空結果
-                        }
-                        break;
-                    case 'low_usage':
-                        // 使用子查詢優化效能
-                        $query->whereExists(function ($subQuery) {
-                            $subQuery->select(DB::raw(1))
-                                    ->from('role_permissions')
-                                    ->whereColumn('role_permissions.permission_id', 'permissions.id')
-                                    ->havingRaw('COUNT(*) <= 2');
-                        });
-                        break;
-                    case 'system':
-                        $query->where(function ($q) {
-                            $q->where('module', 'system')
-                              ->orWhere('module', 'auth')
-                              ->orWhere('module', 'admin')
-                              ->orWhere('name', 'like', 'system.%')
-                              ->orWhere('name', 'like', 'auth.%')
-                              ->orWhere('name', 'like', 'admin.core%');
-                        });
-                        break;
-                }
-            }
-
-            // 日期範圍篩選
-            if (!empty($filters['created_after'])) {
-                $query->where('created_at', '>=', $filters['created_after']);
-            }
-            if (!empty($filters['created_before'])) {
-                $query->where('created_at', '<=', $filters['created_before']);
-            }
-
-            // 排序（使用複合索引優化）
-            $sortField = $filters['sort_field'] ?? 'module';
-            $sortDirection = $filters['sort_direction'] ?? 'asc';
-            
-            if ($sortField === 'role_count') {
-                // 如果沒有載入計數，則載入
-                if (empty($filters['include_counts']) || !in_array('roles', $filters['include_counts'])) {
-                    $query->withCount('roles');
-                }
-                $query->orderBy('roles_count', $sortDirection);
+            $query->orderBy('roles_count', $sortDirection);
+        } else {
+            // 使用複合索引進行排序
+            if ($sortField === 'module') {
+                $query->orderBy('module', $sortDirection)
+                      ->orderBy('type', 'asc')
+                      ->orderBy('name', 'asc');
+            } elseif ($sortField === 'type') {
+                $query->orderBy('type', $sortDirection)
+                      ->orderBy('module', 'asc')
+                      ->orderBy('name', 'asc');
             } else {
-                // 使用複合索引進行排序
-                if ($sortField === 'module') {
-                    $query->orderBy('module', $sortDirection)
-                          ->orderBy('type', 'asc')
-                          ->orderBy('name', 'asc');
-                } elseif ($sortField === 'type') {
-                    $query->orderBy('type', $sortDirection)
-                          ->orderBy('module', 'asc')
-                          ->orderBy('name', 'asc');
-                } else {
-                    $query->orderBy($sortField, $sortDirection);
-                }
+                $query->orderBy($sortField, $sortDirection);
             }
+        }
 
-            return $query->paginate($perPage);
-        });
+        return $query->paginate($perPage);
     }
 
     /**

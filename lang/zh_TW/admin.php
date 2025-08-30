@@ -400,6 +400,7 @@ return [
         'description' => '管理系統角色和權限設定',
         'list' => '角色列表',
         'create' => '建立角色',
+        'create_description' => '建立新的系統角色，定義使用者權限組合',
         'edit' => '編輯角色',
         'delete' => '刪除角色',
         'name' => '角色名稱',

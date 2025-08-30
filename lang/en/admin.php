@@ -217,6 +217,7 @@ return [
         'title' => 'Role Management',
         'list' => 'Role List',
         'create' => 'Create Role',
+        'create_description' => 'Create a new system role to define user permission combinations',
         'edit' => 'Edit Role',
         'delete' => 'Delete Role',
         'name' => 'Role Name',

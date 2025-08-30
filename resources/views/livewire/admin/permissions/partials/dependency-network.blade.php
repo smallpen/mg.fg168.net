@@ -293,8 +293,17 @@
                         // 觸發 Livewire 方法選擇權限
                         const livewireComponent = container.closest('[wire\\:id]');
                         if (livewireComponent) {
-                            window.Livewire.find(livewireComponent.getAttribute('wire:id'))
-                                .call('selectPermission', d.id);
+                            const componentId = livewireComponent.getAttribute('wire:id');
+                            const component = componentId ? window.Livewire.find(componentId) : null;
+                            
+                            // 確保元件存在且有 selectPermission 方法
+                            if (component && typeof component.call === 'function') {
+                                try {
+                                    component.call('selectPermission', d.id);
+                                } catch (error) {
+                                    console.warn('無法調用 selectPermission 方法:', error);
+                                }
+                            }
                         }
                     }
                 });
