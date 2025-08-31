@@ -243,15 +243,17 @@
                     </button>
 
                     {{-- 重置篩選按鈕 --}}
-                    @if($search || $dateFrom || $dateTo || $userFilter || $typeFilter || $moduleFilter || $resultFilter || $ipFilter || $riskLevelFilter)
+                    <div x-data="resetButtonController()" x-init="init()">
                         <button 
+                            x-show="showResetButton"
                             wire:click="resetFilters"
                             class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            x-transition
                         >
                             <x-heroicon-o-x-mark class="w-4 h-4 mr-2" />
                             {{ __('重置') }}
                         </button>
-                    @endif
+                    </div>
                 </div>
             </div>
 
@@ -621,12 +623,29 @@
                             </td>
                             
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button 
-                                    wire:click="viewDetail({{ $activity->id }})"
-                                    class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
-                                >
-                                    {{ __('詳情') }}
-                                </button>
+                                <div class="flex items-center justify-end space-x-2">
+                                    {{-- 標記可疑按鈕 --}}
+                                    <button 
+                                        wire:click="flagAsSuspicious({{ $activity->id }})"
+                                        class="@if($activity->risk_level >= 7) text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 @else text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 @endif p-1 rounded-md hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                                        title="@if($activity->risk_level >= 7) 取消可疑標記 @else 標記為可疑 @endif"
+                                    >
+                                        @if($activity->risk_level >= 7)
+                                            <x-heroicon-o-shield-exclamation class="w-5 h-5" />
+                                        @else
+                                            <x-heroicon-o-flag class="w-5 h-5" />
+                                        @endif
+                                    </button>
+                                    
+                                    {{-- 檢視詳情按鈕 --}}
+                                    <button 
+                                        onclick="confirmViewDetail({{ $activity->id }})"
+                                        class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 p-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                        title="檢視詳情"
+                                    >
+                                        <x-heroicon-o-eye class="w-5 h-5" />
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -748,12 +767,29 @@
                         </div>
                         
                         {{-- 操作按鈕 --}}
-                        <button 
-                            wire:click="viewDetail({{ $activity->id }})"
-                            class="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 text-sm font-medium"
-                        >
-                            詳情
-                        </button>
+                        <div class="flex items-center space-x-2 ml-2">
+                            {{-- 標記可疑按鈕 --}}
+                            <button 
+                                wire:click="flagAsSuspicious({{ $activity->id }})"
+                                class="@if($activity->risk_level >= 7) text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 @else text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 @endif p-1 rounded-md hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                                title="@if($activity->risk_level >= 7) 取消可疑標記 @else 標記為可疑 @endif"
+                            >
+                                @if($activity->risk_level >= 7)
+                                    <x-heroicon-o-shield-exclamation class="w-5 h-5" />
+                                @else
+                                    <x-heroicon-o-flag class="w-5 h-5" />
+                                @endif
+                            </button>
+                            
+                            {{-- 檢視詳情按鈕 --}}
+                            <button 
+                                onclick="confirmViewDetail({{ $activity->id }})"
+                                class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 p-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                title="檢視詳情"
+                            >
+                                <x-heroicon-o-eye class="w-5 h-5" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             @empty
@@ -949,15 +985,15 @@ function resetButtonController() {
         },
         
         checkFilters() {
-            const searchInput = document.querySelector('input[wire\\\\:model\\\\.live="search"]');
-            const dateFromInput = document.querySelector('input[wire\\\\:model\\\\.live="dateFrom"]');
-            const dateToInput = document.querySelector('input[wire\\\\:model\\\\.live="dateTo"]');
-            const userSelect = document.querySelector('select[wire\\\\:model\\\\.live="userFilter"]');
-            const typeSelect = document.querySelector('select[wire\\\\:model\\\\.live="typeFilter"]');
-            const moduleSelect = document.querySelector('select[wire\\\\:model\\\\.live="moduleFilter"]');
-            const resultSelect = document.querySelector('select[wire\\\\:model\\\\.live="resultFilter"]');
-            const riskSelect = document.querySelector('select[wire\\\\:model\\\\.live="riskLevelFilter"]');
-            const ipInput = document.querySelector('input[wire\\\\:model\\\\.live="ipFilter"]');
+            const searchInput = document.querySelector('input[wire\\:model\\.live="search"]');
+            const dateFromInput = document.querySelector('input[wire\\:model\\.live="dateFrom"]');
+            const dateToInput = document.querySelector('input[wire\\:model\\.live="dateTo"]');
+            const userSelect = document.querySelector('select[wire\\:model\\.live="userFilter"]');
+            const typeSelect = document.querySelector('select[wire\\:model\\.live="typeFilter"]');
+            const moduleSelect = document.querySelector('select[wire\\:model\\.live="moduleFilter"]');
+            const resultSelect = document.querySelector('select[wire\\:model\\.live="resultFilter"]');
+            const riskSelect = document.querySelector('select[wire\\:model\\.live="riskLevelFilter"]');
+            const ipInput = document.querySelector('input[wire\\:model\\.live="ipFilter"]');
             
             const hasSearch = searchInput && searchInput.value.trim() !== '';
             const hasDateFrom = dateFromInput && dateFromInput.value.trim() !== '';
@@ -989,7 +1025,7 @@ function resetButtonController() {
             console.log('🔄 開始重置表單元素');
             
             // 重置搜尋框
-            const searchInputs = document.querySelectorAll('input[wire\\\\:model\\\\.live="search"]');
+            const searchInputs = document.querySelectorAll('input[wire\\:model\\.live="search"]');
             searchInputs.forEach(input => {
                 input.value = '';
                 input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -997,21 +1033,21 @@ function resetButtonController() {
             });
             
             // 重置日期輸入框
-            const dateInputs = document.querySelectorAll('input[wire\\\\:model\\\\.live="dateFrom"], input[wire\\\\:model\\\\.live="dateTo"]');
+            const dateInputs = document.querySelectorAll('input[wire\\:model\\.live="dateFrom"], input[wire\\:model\\.live="dateTo"]');
             dateInputs.forEach(input => {
                 input.value = '';
                 input.dispatchEvent(new Event('input', { bubbles: true }));
             });
             
             // 重置 IP 輸入框
-            const ipInputs = document.querySelectorAll('input[wire\\\\:model\\\\.live="ipFilter"]');
+            const ipInputs = document.querySelectorAll('input[wire\\:model\\.live="ipFilter"]');
             ipInputs.forEach(input => {
                 input.value = '';
                 input.dispatchEvent(new Event('input', { bubbles: true }));
             });
             
             // 重置所有篩選下拉選單
-            const selects = document.querySelectorAll('select[wire\\\\:model\\\\.live*="Filter"]');
+            const selects = document.querySelectorAll('select[wire\\:model\\.live*="Filter"]');
             selects.forEach(select => {
                 select.value = '';
                 select.dispatchEvent(new Event('change', { bubbles: true }));
@@ -1025,4 +1061,20 @@ function resetButtonController() {
         }
     }
 }
+
+// 確認檢視詳情函數
+function confirmViewDetail(activityId) {
+    console.log('🔍 準備檢視活動詳情:', activityId);
+    
+    // 顯示確認對話框
+    if (confirm('確定要檢視此活動的詳細資訊嗎？')) {
+        console.log('✅ 使用者確認檢視詳情');
+        
+        // 調用 Livewire 方法顯示詳情
+        Livewire.dispatchTo('admin.activities.activity-detail', 'viewDetail', { activityId: activityId });
+    } else {
+        console.log('❌ 使用者取消檢視詳情');
+    }
+}
 </script>
+</div>

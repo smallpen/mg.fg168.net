@@ -56,6 +56,12 @@ class LanguageSelector extends Component
     public function mount(): void
     {
         $this->currentLocale = App::getLocale();
+        
+        // 記錄元件初始化
+        \Log::info('LanguageSelector mounted', [
+            'currentLocale' => $this->currentLocale,
+            'supportedLocales' => $this->supportedLocales
+        ]);
     }
     
     /**
@@ -65,13 +71,23 @@ class LanguageSelector extends Component
      */
     public function initiateLanguageSwitch(string $locale)
     {
+        // 記錄方法被調用
+        \Log::info('initiateLanguageSwitch called', [
+            'locale' => $locale,
+            'current' => $this->currentLocale,
+            'request_method' => request()->method(),
+            'request_url' => request()->url()
+        ]);
+        
         // 如果是相同語言，不需要切換
         if ($locale === $this->currentLocale) {
+            \Log::info('Same locale requested, skipping', ['locale' => $locale]);
             return;
         }
         
         // 驗證語言代碼是否支援
         if (!array_key_exists($locale, $this->supportedLocales)) {
+            \Log::warning('Unsupported locale requested', ['locale' => $locale]);
             $this->dispatch('language-error', [
                 'message' => __('admin.language.unsupported')
             ]);
@@ -82,12 +98,29 @@ class LanguageSelector extends Component
         $this->pendingLocale = $locale;
         $this->showConfirmation = true;
         
+        \Log::info('Confirmation dialog should show', [
+            'pendingLocale' => $this->pendingLocale,
+            'showConfirmation' => $this->showConfirmation
+        ]);
+        
         // 發送確認事件到前端
         $this->dispatch('language-switch-confirmation', [
             'from' => $this->supportedLocales[$this->currentLocale],
             'to' => $this->supportedLocales[$locale],
             'locale' => $locale
         ]);
+        
+        // 使用 JavaScript 強制顯示對話框
+        $this->js('
+            setTimeout(() => {
+                const confirmDialog = document.querySelector(\'[x-show="showConfirm"]\');
+                if (confirmDialog) {
+                    confirmDialog.style.display = "block";
+                    confirmDialog.style.opacity = "1";
+                    console.log("強制顯示確認對話框");
+                }
+            }, 100);
+        ');
     }
     
     /**
@@ -136,6 +169,11 @@ class LanguageSelector extends Component
             App::setLocale($locale);
             $this->currentLocale = $locale;
             
+            \Log::info('Locale updated in component', [
+                'new_locale' => $locale,
+                'component_locale' => $this->currentLocale
+            ]);
+            
             // 設定 Carbon 本地化
             \Carbon\Carbon::setLocale($locale);
             
@@ -147,12 +185,16 @@ class LanguageSelector extends Component
             if (auth()->check()) {
                 $user = auth()->user();
                 $user->update([
-                    'locale' => $locale,
-                    'locale_updated_at' => now()
+                    'locale' => $locale
                 ]);
                 
                 // 快取使用者語言偏好
                 Cache::put("user_locale_{$user->id}", $locale, 3600);
+                
+                \Log::info('User locale updated in database', [
+                    'user_id' => $user->id,
+                    'locale' => $locale
+                ]);
             }
             
             // 設定成功狀態
@@ -173,6 +215,9 @@ class LanguageSelector extends Component
                 'locale' => $locale,
                 'success' => true
             ]);
+            
+            // 重定向到儀表板頁面以應用新語言
+            return redirect()->to('/admin/dashboard?locale=' . $locale);
             
         } catch (\Exception $e) {
             $this->isChanging = false;

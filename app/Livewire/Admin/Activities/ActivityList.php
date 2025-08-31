@@ -80,13 +80,8 @@ class ActivityList extends AdminComponent
         // TODO: Fix authorization issue
         // $this->authorize('system.logs');
         
-        // 設定預設日期範圍（最近7天）
-        if (empty($this->dateFrom)) {
-            $this->dateFrom = Carbon::now()->subDays(7)->format('Y-m-d');
-        }
-        if (empty($this->dateTo)) {
-            $this->dateTo = Carbon::now()->format('Y-m-d');
-        }
+        // 不再預設設定日期範圍，讓使用者自行選擇
+        // 這樣可以避免重置按鈕一進入就顯示
     }
 
     /**
@@ -257,7 +252,70 @@ class ActivityList extends AdminComponent
      */
     public function viewDetail(int $activityId): void
     {
-        $this->dispatch('open-activity-detail', activityId: $activityId);
+        // 觸發 ActivityDetail 元件的 viewDetail 事件
+        $this->dispatch('viewDetail', activityId: $activityId);
+    }
+
+    /**
+     * 標記活動為可疑
+     */
+    public function flagAsSuspicious(int $activityId): void
+    {
+        try {
+            $activity = Activity::find($activityId);
+            
+            if (!$activity) {
+                $this->dispatch('notify', [
+                    'type' => 'error',
+                    'message' => '找不到指定的活動記錄'
+                ]);
+                return;
+            }
+
+            // 檢查當前標記狀態
+            $isSuspicious = $activity->risk_level >= 7;
+            $newSuspiciousState = !$isSuspicious;
+            
+            // 更新風險等級
+            $newRiskLevel = $newSuspiciousState ? 
+                max($activity->risk_level, 7) : 
+                min($activity->risk_level, 6);
+
+            // 由於活動記錄不允許修改，我們建立一個新的標記記錄
+            Activity::log('activity_flagged', 
+                ($newSuspiciousState ? '標記' : '取消標記') . "活動為可疑 #{$activity->id}", [
+                'module' => 'security',
+                'properties' => [
+                    'flagged_activity_id' => $activity->id,
+                    'flagged_as_suspicious' => $newSuspiciousState,
+                    'original_risk_level' => $activity->risk_level,
+                    'new_risk_level' => $newRiskLevel,
+                    'reason' => 'manual_review',
+                ],
+                'risk_level' => 5,
+            ]);
+
+            $message = $newSuspiciousState ? '已標記為可疑活動' : '已取消可疑標記';
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => $message
+            ]);
+
+            // 重新載入活動列表以反映變更
+            $this->resetPage();
+
+        } catch (\Exception $e) {
+            logger()->error('標記可疑活動失敗', [
+                'activity_id' => $activityId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => '標記操作失敗：' . $e->getMessage()
+            ]);
+        }
     }
 
     /**

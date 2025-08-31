@@ -549,11 +549,19 @@ class Activity extends Model
      */
     public static function log(string $type, string $description, array $options = []): static
     {
+        // 取得正確的使用者 ID
+        $userId = $options['user_id'] ?? null;
+        if ($userId === null && auth()->check()) {
+            // 如果認證系統使用 username 作為識別符，我們需要取得實際的 ID
+            $user = auth()->user();
+            $userId = $user ? $user->getKey() : null;
+        }
+
         $data = [
             'type' => $type,
             'description' => $description,
             'module' => $options['module'] ?? null,
-            'user_id' => $options['user_id'] ?? auth()->id(),
+            'user_id' => $userId,
             'subject_id' => $options['subject_id'] ?? null,
             'subject_type' => $options['subject_type'] ?? null,
             'properties' => $options['properties'] ?? null,

@@ -116,6 +116,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | This array contains all the locales that are supported by the application.
+    | These locales will be used by the SetLocale middleware to validate
+    | incoming locale requests.
+    |
+    */
+
+    'supported_locales' => ['zh_TW', 'en'],
+
+    /*
+    |--------------------------------------------------------------------------
     | Faker Locale
     |--------------------------------------------------------------------------
     |

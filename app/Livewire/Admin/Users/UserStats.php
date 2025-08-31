@@ -58,12 +58,48 @@ class UserStats extends Component
     {
         $this->isLoading = true;
         
-        $this->safeExecute(function () {
+        $result = $this->safeExecute(function () {
             $this->stats = $this->getUserRepository()->getUserStats();
             $this->isLoading = false;
+            return true;
         }, 'load_user_stats', [
             'component' => 'UserStats',
             'action' => 'loadStats',
+        ]);
+        
+        // 如果執行失敗，載入預設統計資料
+        if (!$result) {
+            $this->loadDefaultStats();
+        }
+    }
+
+    /**
+     * 載入預設統計資料（當正常載入失敗時使用）
+     */
+    protected function loadDefaultStats(): void
+    {
+        $this->stats = [
+            'total_users' => 0,
+            'active_users' => 0,
+            'inactive_users' => 0,
+            'recent_users' => 0,
+            'activity_rate' => 0,
+            'users_by_role' => [],
+            'users_by_status' => [
+                'active' => 0,
+                'inactive' => 0,
+            ],
+            'growth_rate' => 0,
+            'last_updated' => now()->toISOString(),
+        ];
+        
+        $this->isLoading = false;
+        
+        // 記錄載入預設資料的事件
+        logger()->warning('UserStats: 載入預設統計資料', [
+            'component' => 'UserStats',
+            'reason' => '正常統計資料載入失敗',
+            'timestamp' => now()->toISOString(),
         ]);
     }
 

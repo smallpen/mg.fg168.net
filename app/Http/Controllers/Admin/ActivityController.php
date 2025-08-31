@@ -31,11 +31,19 @@ class ActivityController extends Controller
      */
     public function index(): View
     {
-        // 記錄管理員存取活動記錄頁面
-        $this->activityLogger->logUserAction('view_activity_logs', null, [
-            'page' => 'index',
-            'ip' => request()->ip()
-        ]);
+        // 防重複記錄：同一使用者在 5 分鐘內只記錄一次訪問
+        $cacheKey = 'activity_log_view_' . (auth()->id() ?? 'guest') . '_' . request()->ip();
+        
+        if (!cache()->has($cacheKey)) {
+            // 記錄管理員存取活動記錄頁面
+            $this->activityLogger->logUserAction('view_activity_logs', null, [
+                'page' => 'index',
+                'ip' => request()->ip()
+            ]);
+            
+            // 設定 5 分鐘快取，避免重複記錄
+            cache()->put($cacheKey, true, now()->addMinutes(5));
+        }
 
         return view('admin.activities.index');
     }

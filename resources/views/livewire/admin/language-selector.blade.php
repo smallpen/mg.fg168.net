@@ -3,10 +3,10 @@
     <div class="relative inline-block text-left" 
          x-data="{ 
              open: false, 
-             switching: @entangle('isChanging'),
-             showConfirm: @entangle('showConfirmation'),
-             success: @entangle('switchSuccess'),
-             pendingLocale: @entangle('pendingLocale'),
+             switching: @entangle('isChanging').live,
+             showConfirm: @entangle('showConfirmation').live,
+             success: @entangle('switchSuccess').live,
+             pendingLocale: @entangle('pendingLocale').live,
              init() {
                  // 監聽語言切換事件
                  this.$wire.on('language-switched', (event) => {

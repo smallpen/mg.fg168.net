@@ -64,6 +64,15 @@ class ActivityDetail extends AdminComponent
     }
 
     /**
+     * 監聽檢視詳情事件
+     */
+    #[On('viewDetail')]
+    public function viewDetail(int $activityId): void
+    {
+        $this->loadActivity($activityId);
+    }
+
+    /**
      * 載入活動記錄
      */
     public function loadActivity(int $activityId): void
@@ -276,9 +285,13 @@ class ActivityDetail extends AdminComponent
     /**
      * 新增註記
      */
-    public function addNote(string $note): void
+    public function addNote(): void
     {
-        if (!$this->activity || empty(trim($note))) {
+        if (!$this->activity || empty(trim($this->note))) {
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'message' => '請輸入註記內容'
+            ]);
             return;
         }
 
@@ -289,8 +302,8 @@ class ActivityDetail extends AdminComponent
                 'module' => 'activities',
                 'properties' => [
                     'noted_activity_id' => $this->activity->id,
-                    'note' => trim($note),
-                    'note_length' => strlen(trim($note)),
+                    'note' => trim($this->note),
+                    'note_length' => strlen(trim($this->note)),
                 ],
                 'risk_level' => 2,
             ]);

@@ -18,6 +18,9 @@
 
         <!-- 活動記錄列表 -->
         <livewire:admin.activities.activity-list />
+        
+        <!-- 活動詳情元件 -->
+        <livewire:admin.activities.activity-detail />
     </div>
 @endsection
 
@@ -40,9 +43,8 @@
 
         // 處理活動詳情對話框
         Livewire.on('open-activity-detail', (event) => {
-            // 這裡可以開啟活動詳情模態框
-            // 暫時使用 alert 作為示範
-            alert('開啟活動詳情 ID: ' + event.activityId);
+            // 活動詳情對話框會自動開啟，這裡不需要額外處理
+            console.log('開啟活動詳情 ID: ' + event.activityId);
         });
 
         // 處理通知
@@ -231,5 +233,72 @@
             }
         }
     });
+
+    // 確認檢視詳情對話框
+    function confirmViewDetail(activityId) {
+        // 建立自定義確認對話框
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 z-50 overflow-y-auto';
+        modal.innerHTML = `
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+                <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">檢視活動詳情</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">確定要檢視此活動記錄的詳細資訊嗎？</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="button" class="confirm-btn w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            確定檢視
+                        </button>
+                        <button type="button" class="cancel-btn mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // 綁定事件
+        const confirmBtn = modal.querySelector('.confirm-btn');
+        const cancelBtn = modal.querySelector('.cancel-btn');
+        const backdrop = modal.querySelector('.fixed.inset-0');
+        
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        confirmBtn.addEventListener('click', () => {
+            closeModal();
+            // 使用事件分發而不是直接方法調用
+            Livewire.dispatchTo('admin.activities.activity-detail', 'viewDetail', { activityId: activityId });
+        });
+        
+        cancelBtn.addEventListener('click', closeModal);
+        backdrop.addEventListener('click', closeModal);
+        
+        // ESC 鍵關閉
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    }
 </script>
 @endpush

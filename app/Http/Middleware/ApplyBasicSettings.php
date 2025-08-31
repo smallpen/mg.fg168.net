@@ -103,7 +103,14 @@ class ApplyBasicSettings
                 break;
                 
             case 'app.locale':
-                if ($value && $value !== app()->getLocale()) {
+                // 只有在沒有明確語言偏好時才應用資料庫設定
+                // 檢查是否有 URL 參數或 session 中的語言設定
+                $request = request();
+                $hasExplicitLocale = $request->has('locale') || 
+                                   session()->has('locale') || 
+                                   ($request->user() && $request->user()->locale);
+                
+                if ($value && $value !== app()->getLocale() && !$hasExplicitLocale) {
                     Config::set('app.locale', $value);
                     app()->setLocale($value);
                     
