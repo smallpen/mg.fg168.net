@@ -199,6 +199,15 @@ Route::middleware('admin')
              ->name('backups')
              ->middleware('can:settings.backup');
         
+        // 備份下載路由
+        Route::get('/backups/download/{backup}', [App\Http\Controllers\Admin\SettingsController::class, 'downloadBackup'])
+             ->name('backups.download')
+             ->middleware('can:settings.backup');
+        
+        Route::get('/backups/export-all', [App\Http\Controllers\Admin\SettingsController::class, 'exportAllBackups'])
+             ->name('backups.export-all')
+             ->middleware('can:settings.backup');
+        
         // 設定變更歷史路由
         Route::get('/history', [App\Http\Controllers\Admin\SettingsController::class, 'history'])
              ->name('history')

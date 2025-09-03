@@ -77,7 +77,7 @@ class ActivityController extends Controller
      */
     public function security(): View
     {
-        $this->authorize('system.security');
+        $this->authorize('system.logs');
 
         // 記錄存取安全監控頁面
         $this->activityLogger->logSecurityEvent('security_monitor_access', '管理員存取安全事件監控頁面', [

@@ -85,6 +85,16 @@ class SettingBackupManager extends AdminComponent
     public int $perPage = 10;
 
     /**
+     * URL 查詢字串屬性（用於狀態持久化）
+     */
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'sortBy' => ['except' => 'created_at'],
+        'sortDirection' => ['except' => 'desc'],
+        'perPage' => ['except' => 10],
+    ];
+
+    /**
      * 取得設定資料庫
      */
     protected function getSettingsRepository(): SettingsRepositoryInterface
@@ -143,6 +153,12 @@ class SettingBackupManager extends AdminComponent
      */
     public function createBackup(): void
     {
+        // 檢查使用者認證
+        if (!auth()->check()) {
+            $this->addFlash('error', '請先登入系統');
+            return;
+        }
+
         $this->validate([
             'backupName' => 'required|string|max:255',
             'backupDescription' => 'nullable|string|max:1000',
@@ -153,10 +169,23 @@ class SettingBackupManager extends AdminComponent
         ]);
 
         try {
+            \Log::info('開始建立備份', [
+                'user_id' => auth()->user()->id,
+                'username' => auth()->user()->username,
+                'backup_name' => $this->backupName,
+                'backup_description' => $this->backupDescription
+            ]);
+
             $backup = $this->getSettingsRepository()->createBackup(
                 $this->backupName,
                 $this->backupDescription
             );
+
+            \Log::info('備份建立成功', [
+                'backup_id' => $backup->id,
+                'user_id' => auth()->user()->id,
+                'username' => auth()->user()->username
+            ]);
 
             $this->addFlash('success', "備份 '{$backup->name}' 建立成功");
             $this->closeCreateModal();
@@ -167,6 +196,14 @@ class SettingBackupManager extends AdminComponent
             unset($this->backups);
 
         } catch (\Exception $e) {
+            \Log::error('建立備份失敗', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->user()->id ?? 'unknown',
+                'username' => auth()->user()->username ?? 'unknown',
+                'backup_name' => $this->backupName,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             $this->addFlash('error', "建立備份時發生錯誤：{$e->getMessage()}");
         }
     }
@@ -320,6 +357,41 @@ class SettingBackupManager extends AdminComponent
     }
 
     /**
+     * 匯出所有備份
+     */
+    public function exportAllBackups(): void
+    {
+        try {
+            $backups = SettingBackup::with('creator')->get();
+            
+            if ($backups->isEmpty()) {
+                $this->addFlash('warning', '目前沒有備份可以匯出');
+                return;
+            }
+
+            // 記錄匯出操作
+            \Log::info('開始匯出所有備份', [
+                'user_id' => auth()->id(),
+                'backup_count' => $backups->count(),
+            ]);
+
+            $this->addFlash('success', "正在匯出 {$backups->count()} 個備份...");
+
+            // 使用 JavaScript 重定向到下載路由
+            $downloadUrl = route('admin.settings.backups.export-all');
+            $this->js("window.location.href = '{$downloadUrl}';");
+
+        } catch (\Exception $e) {
+            \Log::error('匯出備份失敗', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            $this->addFlash('error', "匯出備份時發生錯誤：{$e->getMessage()}");
+        }
+    }
+
+    /**
      * 下載備份
      */
     public function downloadBackup(int $backupId): void
@@ -332,31 +404,26 @@ class SettingBackupManager extends AdminComponent
         }
 
         try {
-            $filename = "settings_backup_{$backup->id}_{$backup->created_at->format('Y-m-d_H-i-s')}.json";
-            
-            $data = [
-                'backup_info' => [
-                    'id' => $backup->id,
-                    'name' => $backup->name,
-                    'description' => $backup->description,
-                    'created_at' => $backup->created_at->toISOString(),
-                    'created_by' => $backup->creator->name ?? 'Unknown',
-                    'settings_count' => count($backup->settings_data),
-                ],
-                'settings' => $backup->settings_data,
-            ];
-
-            $content = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            
-            $this->dispatch('download-file', [
-                'content' => $content,
-                'filename' => $filename,
-                'contentType' => 'application/json'
+            // 記錄下載操作
+            \Log::info('開始下載備份', [
+                'user_id' => auth()->id(),
+                'backup_id' => $backup->id,
+                'backup_name' => $backup->name,
             ]);
 
-            $this->addFlash('success', "備份 '{$backup->name}' 下載完成");
+            $this->addFlash('success', "正在下載備份 '{$backup->name}'...");
+
+            // 使用 JavaScript 重定向到下載路由
+            $downloadUrl = route('admin.settings.backups.download', $backup->id);
+            $this->js("window.location.href = '{$downloadUrl}';");
 
         } catch (\Exception $e) {
+            \Log::error('下載備份失敗', [
+                'error' => $e->getMessage(),
+                'backup_id' => $backupId,
+                'user_id' => auth()->id(),
+            ]);
+            
             $this->addFlash('error', "下載備份時發生錯誤：{$e->getMessage()}");
         }
     }
@@ -385,6 +452,40 @@ class SettingBackupManager extends AdminComponent
         $this->search = '';
         $this->resetPage();
         unset($this->backups);
+    }
+
+    /**
+     * 前往指定頁面
+     */
+    public function gotoPage(int $page): void
+    {
+        $this->setPage($page);
+    }
+
+    /**
+     * 每頁顯示筆數更新時重置分頁
+     */
+    public function updatedPerPage(): void
+    {
+        try {
+            // 驗證 perPage 值
+            if (!in_array($this->perPage, [10, 25, 50])) {
+                $this->perPage = 10; // 重置為預設值
+            }
+            
+            $this->resetPage();
+            unset($this->backups);
+            
+        } catch (\Exception $e) {
+            logger()->error('Error updating perPage in backup manager', [
+                'error' => $e->getMessage(),
+                'perPage' => $this->perPage
+            ]);
+            
+            // 重置為預設值
+            $this->perPage = 10;
+            $this->resetPage();
+        }
     }
 
     /**

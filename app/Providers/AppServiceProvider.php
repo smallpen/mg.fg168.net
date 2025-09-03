@@ -48,6 +48,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\ActivityLogger::class);
         $this->app->singleton(\App\Services\SensitiveDataFilter::class);
         $this->app->singleton(\App\Services\ActivitySecurityService::class);
+        
+        // 註冊設定相關服務
+        $this->app->singleton(\App\Services\EncryptionService::class);
+        $this->app->singleton(\App\Services\ConfigurationService::class);
     }
 
     /**

@@ -6,7 +6,7 @@
     <title>活動記錄匯出報告</title>
     <style>
         body {
-            font-family: 'DejaVu Sans', sans-serif;
+            font-family: 'DejaVu Sans', 'SimSun', 'Microsoft YaHei', sans-serif;
             font-size: 10px;
             line-height: 1.4;
             color: #333;

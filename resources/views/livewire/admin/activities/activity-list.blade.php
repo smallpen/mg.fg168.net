@@ -4,7 +4,7 @@
         <div class="flex items-center justify-center min-h-screen">
             <div class="flex flex-col items-center space-y-4">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p class="text-sm text-gray-600 dark:text-gray-400">載入活動記錄中...</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ __('activity_logs.activity_list.loading') }}</p>
             </div>
         </div>
     </div>
@@ -22,10 +22,10 @@
                 <span wire:loading.remove wire:target="toggleRealTime">
                     @if($realTimeMode)
                         <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                        {{ __('監控中') }}
+                        {{ __('activity_logs.monitoring.active') }}
                     @else
                         <div class="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
-                        {{ __('即時監控') }}
+                        {{ __('activity_logs.monitoring.title') }}
                     @endif
                 </span>
                 <span wire:loading wire:target="toggleRealTime" class="flex items-center">
@@ -33,7 +33,7 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    {{ __('處理中...') }}
+                    {{ __('admin.common.processing') }}
                 </span>
             </button>
 
@@ -45,7 +45,7 @@
                     onclick="document.getElementById('export-dropdown').classList.toggle('hidden')"
                 >
                     <x-heroicon-o-arrow-down-tray class="w-4 h-4 mr-2" />
-                    {{ __('匯出') }}
+                    {{ __('activity_logs.export.title') }}
                     <svg class="-mr-1 ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
@@ -57,18 +57,18 @@
                             <svg class="mr-3 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            進階匯出
-                            <span class="ml-auto text-xs text-gray-500">多格式、批量</span>
+                            {{ __('admin.activities.export_advanced') }}
+                            <span class="ml-auto text-xs text-gray-500">{{ __('admin.activities.export_multi_format') }}</span>
                         </a>
                         <button 
-                            wire:click="$set('showExportModal', true)"
+                            wire:click="showExportModal"
                             class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                             <svg class="mr-3 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                             </svg>
-                            快速匯出
-                            <span class="ml-auto text-xs text-gray-500">當前篩選</span>
+                            {{ __('admin.activities.export_quick') }}
+                            <span class="ml-auto text-xs text-gray-500">{{ __('admin.activities.export_current_filter') }}</span>
                         </button>
                     </div>
                 </div>
@@ -80,7 +80,7 @@
                 class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
             >
                 <x-heroicon-o-chart-bar class="w-4 h-4 mr-2" />
-                {{ __('統計分析') }}
+                {{ __('admin.activities.statistics_analysis') }}
             </button>
         </div>
     </div>
@@ -96,7 +96,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                                {{ __('總記錄數') }}
+                                {{ __('activity_logs.stats.total_activities') }}
                             </dt>
                             <dd class="text-lg font-medium text-gray-900 dark:text-white">
                                 {{ number_format($stats['total']) }}
@@ -116,7 +116,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                                {{ __('安全事件') }}
+                                {{ __('activity_logs.stats.security_events') }}
                             </dt>
                             <dd class="text-lg font-medium text-red-600 dark:text-red-400">
                                 {{ number_format($stats['security_events']) }}
@@ -136,7 +136,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                                {{ __('高風險') }}
+                                {{ __('activity_logs.risk_levels.high') }}
                             </dt>
                             <dd class="text-lg font-medium text-orange-600 dark:text-orange-400">
                                 {{ number_format($stats['high_risk']) }}
@@ -156,7 +156,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                                {{ __('失敗操作') }}
+                                {{ __('activity_logs.stats.failed_activities') }}
                             </dt>
                             <dd class="text-lg font-medium text-red-600 dark:text-red-400">
                                 {{ number_format($stats['failed']) }}
@@ -176,7 +176,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                                {{ __('活躍使用者') }}
+                                {{ __('activity_logs.stats.unique_users') }}
                             </dt>
                             <dd class="text-lg font-medium text-blue-600 dark:text-blue-400">
                                 {{ number_format($stats['unique_users']) }}
@@ -196,7 +196,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                                {{ __('不同 IP') }}
+                                {{ __('activity_logs.stats.top_ips') }}
                             </dt>
                             <dd class="text-lg font-medium text-green-600 dark:text-green-400">
                                 {{ number_format($stats['unique_ips']) }}
@@ -222,7 +222,7 @@
                             wire:model.live="search"
                             type="text" 
                             class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                            placeholder="{{ __('搜尋活動記錄...') }}"
+                            placeholder="{{ __('activity_logs.search.placeholder') }}"
                         >
                     </div>
                 </div>
@@ -234,7 +234,7 @@
                         class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         <x-heroicon-o-funnel class="w-4 h-4 mr-2" />
-                        {{ __('篩選') }}
+                        {{ __('activity_logs.filters.title') }}
                         @if($showFilters)
                             <x-heroicon-o-chevron-up class="w-4 h-4 ml-2" />
                         @else
@@ -251,7 +251,7 @@
                             x-transition
                         >
                             <x-heroicon-o-x-mark class="w-4 h-4 mr-2" />
-                            {{ __('重置') }}
+                            {{ __('activity_logs.filters.reset') }}
                         </button>
                     </div>
                 </div>
@@ -264,7 +264,7 @@
                         {{-- 日期範圍 --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {{ __('開始日期') }}
+                                {{ __('activity_logs.filters.date_from') }}
                             </label>
                             <input 
                                 wire:model.live="dateFrom"
@@ -275,7 +275,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {{ __('結束日期') }}
+                                {{ __('activity_logs.filters.date_to') }}
                             </label>
                             <input 
                                 wire:model.live="dateTo"
@@ -287,13 +287,13 @@
                         {{-- 使用者篩選 --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {{ __('使用者') }}
+                                {{ __('activity_logs.filters.user_filter') }}
                             </label>
                             <select 
                                 wire:model.live="userFilter"
                                 class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="">{{ __('所有使用者') }}</option>
+                                <option value="">{{ __('activity_logs.filters.all_users') }}</option>
                                 @foreach($filterOptions['users'] as $user)
                                     <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->username }})</option>
                                 @endforeach
@@ -303,13 +303,13 @@
                         {{-- 活動類型篩選 --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {{ __('活動類型') }}
+                                {{ __('activity_logs.filters.type_filter') }}
                             </label>
                             <select 
                                 wire:model.live="typeFilter"
                                 class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="">{{ __('所有類型') }}</option>
+                                <option value="">{{ __('activity_logs.filters.all_types') }}</option>
                                 @foreach($filterOptions['types'] as $type => $label)
                                     <option value="{{ $type }}">{{ $label }}</option>
                                 @endforeach
@@ -319,13 +319,13 @@
                         {{-- 模組篩選 --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {{ __('模組') }}
+                                {{ __('activity_logs.columns.module') }}
                             </label>
                             <select 
                                 wire:model.live="moduleFilter"
                                 class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="">{{ __('所有模組') }}</option>
+                                <option value="">{{ __('admin.permissions.all_modules') }}</option>
                                 @foreach($filterOptions['modules'] as $module => $label)
                                     <option value="{{ $module }}">{{ $label }}</option>
                                 @endforeach
@@ -335,13 +335,13 @@
                         {{-- 結果篩選 --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {{ __('操作結果') }}
+                                {{ __('activity_logs.filters.result_filter') }}
                             </label>
                             <select 
                                 wire:model.live="resultFilter"
                                 class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="">{{ __('所有結果') }}</option>
+                                <option value="">{{ __('activity_logs.filters.all_results') }}</option>
                                 @foreach($filterOptions['results'] as $result => $label)
                                     <option value="{{ $result }}">{{ $label }}</option>
                                 @endforeach
@@ -351,13 +351,13 @@
                         {{-- 風險等級篩選 --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {{ __('風險等級') }}
+                                {{ __('activity_logs.filters.risk_filter') }}
                             </label>
                             <select 
                                 wire:model.live="riskLevelFilter"
                                 class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="">{{ __('所有風險等級') }}</option>
+                                <option value="">{{ __('activity_logs.filters.all_risks') }}</option>
                                 @foreach($filterOptions['riskLevels'] as $level => $label)
                                     <option value="{{ $level }}">{{ $label }}</option>
                                 @endforeach
@@ -367,13 +367,13 @@
                         {{-- IP 位址篩選 --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {{ __('IP 位址') }}
+                                {{ __('activity_logs.columns.ip_address') }}
                             </label>
                             <input 
                                 wire:model.live="ipFilter"
                                 type="text" 
                                 class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="{{ __('輸入 IP 位址...') }}"
+                                placeholder="{{ __('activity_logs.filters.ip_placeholder') }}"
                             >
                         </div>
                     </div>
@@ -389,7 +389,7 @@
                 <div class="flex items-center">
                     <x-heroicon-o-information-circle class="h-5 w-5 text-blue-400 mr-2" />
                     <span class="text-sm text-blue-700 dark:text-blue-300">
-                        {{ __('已選擇 :count 筆記錄', ['count' => count($selectedActivities)]) }}
+                        {{ __('activity_logs.activity_list.selected_count', ['count' => count($selectedActivities)]) }}
                     </span>
                 </div>
                 
@@ -398,16 +398,16 @@
                         wire:model="bulkAction"
                         class="px-3 py-1 border border-blue-300 dark:border-blue-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                     >
-                        <option value="">{{ __('選擇操作') }}</option>
-                        <option value="export">{{ __('匯出選中記錄') }}</option>
-                        <option value="mark_reviewed">{{ __('標記為已審查') }}</option>
+                        <option value="">{{ __('activity_logs.activity_list.bulk_actions') }}</option>
+                        <option value="export">{{ __('activity_logs.export.selected_activities') }}</option>
+                        <option value="mark_reviewed">{{ __('activity_logs.actions.mark') }}</option>
                     </select>
                     
                     <button 
                         wire:click="executeBulkAction"
                         class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                        {{ __('執行') }}
+                        {{ __('admin.common.submit') }}
                     </button>
                 </div>
             </div>
@@ -431,7 +431,7 @@
                         
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer" wire:click="sortBy('created_at')">
                             <div class="flex items-center space-x-1">
-                                <span>{{ __('時間') }}</span>
+                                <span>{{ __('activity_logs.columns.timestamp') }}</span>
                                 @if($sortField === 'created_at')
                                     @if($sortDirection === 'asc')
                                         <x-heroicon-o-chevron-up class="w-4 h-4" />
@@ -444,7 +444,7 @@
                         
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer" wire:click="sortBy('user_id')">
                             <div class="flex items-center space-x-1">
-                                <span>{{ __('使用者') }}</span>
+                                <span>{{ __('activity_logs.columns.user') }}</span>
                                 @if($sortField === 'user_id')
                                     @if($sortDirection === 'asc')
                                         <x-heroicon-o-chevron-up class="w-4 h-4" />
@@ -457,7 +457,7 @@
                         
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer" wire:click="sortBy('type')">
                             <div class="flex items-center space-x-1">
-                                <span>{{ __('類型') }}</span>
+                                <span>{{ __('activity_logs.columns.type') }}</span>
                                 @if($sortField === 'type')
                                     @if($sortDirection === 'asc')
                                         <x-heroicon-o-chevron-up class="w-4 h-4" />
@@ -469,16 +469,16 @@
                         </th>
                         
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            {{ __('描述') }}
+                            {{ __('activity_logs.columns.description') }}
                         </th>
                         
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            {{ __('IP 位址') }}
+                            {{ __('activity_logs.columns.ip_address') }}
                         </th>
                         
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer" wire:click="sortBy('result')">
                             <div class="flex items-center space-x-1">
-                                <span>{{ __('結果') }}</span>
+                                <span>{{ __('activity_logs.columns.result') }}</span>
                                 @if($sortField === 'result')
                                     @if($sortDirection === 'asc')
                                         <x-heroicon-o-chevron-up class="w-4 h-4" />
@@ -491,7 +491,7 @@
                         
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer" wire:click="sortBy('risk_level')">
                             <div class="flex items-center space-x-1">
-                                <span>{{ __('風險') }}</span>
+                                <span>{{ __('activity_logs.columns.risk_level') }}</span>
                                 @if($sortField === 'risk_level')
                                     @if($sortDirection === 'asc')
                                         <x-heroicon-o-chevron-up class="w-4 h-4" />
@@ -501,9 +501,8 @@
                                 @endif
                             </div>
                         </th>
-                        
-                        <th scope="col" class="relative px-6 py-3">
-                            <span class="sr-only">{{ __('操作') }}</span>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            {{ __('activity_logs.columns.actions') }}
                         </th>
                     </tr>
                 </thead>
@@ -805,26 +804,28 @@
             @endforelse
         </div>
         
-        {{-- 分頁和載入更多 --}}
+        {{-- 分頁導航 --}}
         @if($activities->hasPages())
             <div class="bg-white dark:bg-gray-800 px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:px-6">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                    {{-- 左側：分頁資訊和每頁顯示筆數 --}}
                     <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                        <p class="text-sm text-gray-700 dark:text-gray-300">
-                            {{ __('顯示') }}
-                            <span class="font-medium">{{ $activities->firstItem() }}</span>
-                            {{ __('到') }}
-                            <span class="font-medium">{{ $activities->lastItem() }}</span>
-                            {{ __('筆，共') }}
-                            <span class="font-medium">{{ $activities->total() }}</span>
-                            {{ __('筆記錄') }}
-                        </p>
+                        <div class="text-sm text-gray-700 dark:text-gray-300">
+                            {{ __('admin.pagination.showing', [
+                                'first' => $activities->firstItem() ?? 0,
+                                'last' => $activities->lastItem() ?? 0,
+                                'total' => $activities->total()
+                            ]) }}
+                        </div>
                         
-                        <div class="flex items-center space-x-2">
-                            <label class="text-sm text-gray-700 dark:text-gray-300">{{ __('每頁顯示') }}:</label>
+                        <div class="flex items-center space-x-3">
+                            <label for="perPage" class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                {{ __('admin.pagination.per_page') }}：
+                            </label>
                             <select 
+                                id="perPage"
                                 wire:model.live="perPage"
-                                class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[80px]"
                             >
                                 <option value="25">25 筆</option>
                                 <option value="50">50 筆</option>
@@ -832,55 +833,83 @@
                                 <option value="200">200 筆</option>
                             </select>
                         </div>
-
-                        {{-- 無限滾動切換 --}}
-                        <div class="flex items-center space-x-2">
-                            <label class="text-sm text-gray-700 dark:text-gray-300">{{ __('載入模式') }}:</label>
-                            <button 
-                                wire:click="toggleLoadMode"
-                                class="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            >
-                                @if($infiniteScroll)
-                                    <x-heroicon-o-arrow-down class="w-4 h-4 mr-1" />
-                                    {{ __('無限滾動') }}
-                                @else
-                                    <x-heroicon-o-squares-2x2 class="w-4 h-4 mr-1" />
-                                    {{ __('分頁模式') }}
-                                @endif
-                            </button>
-                        </div>
                     </div>
                     
-                    {{-- 分頁導航 --}}
-                    @if(!$infiniteScroll)
-                        <div class="flex justify-center sm:justify-end">
-                            {{ $activities->links() }}
-                        </div>
-                    @endif
-                </div>
+                    {{-- 右側：分頁按鈕 --}}
+                    <div class="flex justify-center sm:justify-end">
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            {{-- 上一頁按鈕 --}}
+                            @if ($activities->onFirstPage())
+                                <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 cursor-default">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </span>
+                            @else
+                                <button wire:click="previousPage" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            @endif
 
-                {{-- 無限滾動載入更多按鈕 --}}
-                @if($infiniteScroll && $activities->hasMorePages())
-                    <div class="mt-4 text-center">
-                        <button 
-                            wire:click="loadMore"
-                            wire:loading.attr="disabled"
-                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <span wire:loading.remove wire:target="loadMore">
-                                <x-heroicon-o-arrow-down class="w-4 h-4 mr-2" />
-                                {{ __('載入更多') }}
-                            </span>
-                            <span wire:loading wire:target="loadMore" class="flex items-center">
-                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                {{ __('載入中...') }}
-                            </span>
-                        </button>
+                            {{-- 頁碼按鈕 --}}
+                            @php
+                                $start = max(1, $activities->currentPage() - 2);
+                                $end = min($activities->lastPage(), $activities->currentPage() + 2);
+                            @endphp
+
+                            @if($start > 1)
+                                <button wire:click="gotoPage(1)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    1
+                                </button>
+                                @if($start > 2)
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        ...
+                                    </span>
+                                @endif
+                            @endif
+
+                            @for ($page = $start; $page <= $end; $page++)
+                                @if ($page == $activities->currentPage())
+                                    <span aria-current="page" class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-sm font-medium text-blue-600 dark:text-blue-400">
+                                        {{ $page }}
+                                    </span>
+                                @else
+                                    <button wire:click="gotoPage({{ $page }})" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        {{ $page }}
+                                    </button>
+                                @endif
+                            @endfor
+
+                            @if($end < $activities->lastPage())
+                                @if($end < $activities->lastPage() - 1)
+                                    <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        ...
+                                    </span>
+                                @endif
+                                <button wire:click="gotoPage({{ $activities->lastPage() }})" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    {{ $activities->lastPage() }}
+                                </button>
+                            @endif
+
+                            {{-- 下一頁按鈕 --}}
+                            @if ($activities->hasMorePages())
+                                <button wire:click="nextPage" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            @else
+                                <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 cursor-default">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </span>
+                            @endif
+                        </nav>
                     </div>
-                @endif
+                </div>
             </div>
         @endif
     </div>
@@ -892,7 +921,7 @@
     @if($showExportModal)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="$set('showExportModal', false)"></div>
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" wire:click="hideExportModal"></div>
                 
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 
@@ -904,24 +933,24 @@
                             </div>
                             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                 <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">
-                                    {{ __('匯出活動記錄') }}
+                                    {{ __('activity_logs.export.title') }}
                                 </h3>
                                 <div class="mt-2">
                                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                                        {{ __('選擇匯出格式，將根據目前的篩選條件匯出活動記錄。') }}
+                                        {{ __('activity_logs.export.filtered_activities') }}
                                     </p>
                                 </div>
                                 <div class="mt-4">
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        {{ __('匯出格式') }}
+                                        {{ __('activity_logs.export.format') }}
                                     </label>
                                     <select 
                                         wire:model="exportFormat"
                                         class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="csv">CSV (Excel 相容)</option>
-                                        <option value="json">JSON (程式處理)</option>
-                                        <option value="pdf">PDF (報告列印)</option>
+                                        <option value="csv">{{ __('activity_logs.export.csv') }}</option>
+                                        <option value="json">{{ __('activity_logs.export.json') }}</option>
+                                        <option value="pdf">{{ __('activity_logs.export.pdf') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -933,14 +962,14 @@
                             type="button" 
                             class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
                         >
-                            {{ __('開始匯出') }}
+                            {{ __('activity_logs.export.start_export') }}
                         </button>
                         <button 
-                            wire:click="$set('showExportModal', false)"
+                            wire:click="hideExportModal"
                             type="button" 
                             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                         >
-                            {{ __('取消') }}
+                            {{ __('admin.actions.cancel') }}
                         </button>
                     </div>
                 </div>
@@ -1067,13 +1096,13 @@ function confirmViewDetail(activityId) {
     console.log('🔍 準備檢視活動詳情:', activityId);
     
     // 顯示確認對話框
-    if (confirm('確定要檢視此活動的詳細資訊嗎？')) {
-        console.log('✅ 使用者確認檢視詳情');
+    if (confirm(@js(__('activity_logs.details.confirm_view')))) {
+        console.log('✅ {{ __('activity_logs.details.view_confirmed') }}');
         
         // 調用 Livewire 方法顯示詳情
         Livewire.dispatchTo('admin.activities.activity-detail', 'viewDetail', { activityId: activityId });
     } else {
-        console.log('❌ 使用者取消檢視詳情');
+        console.log('❌ {{ __('activity_logs.details.view_cancelled') }}');
     }
 }
 </script>

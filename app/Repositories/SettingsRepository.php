@@ -729,13 +729,33 @@ class SettingsRepository implements SettingsRepositoryInterface
      */
     public function createBackup(string $name, string $description = '', array $categories = []): SettingBackup
     {
+        // 檢查使用者認證
+        $user = auth()->user();
+        if (!$user) {
+            throw new \Exception('使用者未認證，無法建立備份');
+        }
+
+        // 取得使用者的數字 ID
+        $userId = $user->id;
+        if (!is_numeric($userId)) {
+            throw new \Exception('使用者 ID 格式錯誤，無法建立備份');
+        }
+
         $settingsData = $this->exportSettings($categories);
+        
+        \Log::info('準備建立備份', [
+            'name' => $name,
+            'description' => $description,
+            'settings_count' => count($settingsData),
+            'user_id' => $userId,
+            'username' => $user->username
+        ]);
         
         return SettingBackup::create([
             'name' => $name,
             'description' => $description,
             'settings_data' => $settingsData,
-            'created_by' => auth()->id(),
+            'created_by' => (int) $userId,
         ]);
     }
 

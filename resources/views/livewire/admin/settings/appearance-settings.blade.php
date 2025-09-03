@@ -16,13 +16,19 @@
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
                     <label for="primary_color" class="block text-sm font-medium text-gray-700 dark:text-gray-300">主要顏色</label>
-                    <input type="color" id="primary_color" wire:model.defer="settings.appearance.primary_color" class="mt-1 h-10 w-full rounded-md border-gray-300 dark:bg-gray-800 dark:border-gray-600">
+                    <div class="mt-1 flex items-center space-x-3">
+                        <input type="color" id="primary_color" wire:model.defer="settings.appearance.primary_color" class="h-10 w-20 rounded-md border-2 border-gray-300 dark:border-gray-600 cursor-pointer">
+                        <input type="text" wire:model.defer="settings.appearance.primary_color" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm" placeholder="#3B82F6">
+                    </div>
                     @error('settings.appearance.primary_color') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
                 </div>
                 <div>
                     <label for="secondary_color" class="block text-sm font-medium text-gray-700 dark:text-gray-300">次要顏色</label>
-                    <input type="color" id="secondary_color" wire:model.defer="settings.appearance.secondary_color" class="mt-1 h-10 w-full rounded-md border-gray-300 dark:bg-gray-800 dark:border-gray-600">
-                     @error('settings.appearance.secondary_color') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
+                    <div class="mt-1 flex items-center space-x-3">
+                        <input type="color" id="secondary_color" wire:model.defer="settings.appearance.secondary_color" class="h-10 w-20 rounded-md border-2 border-gray-300 dark:border-gray-600 cursor-pointer">
+                        <input type="text" wire:model.defer="settings.appearance.secondary_color" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm" placeholder="#6B7280">
+                    </div>
+                    @error('settings.appearance.secondary_color') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
                 </div>
             </div>
 

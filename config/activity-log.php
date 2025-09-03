@@ -178,6 +178,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | 系統事件記錄設定
+    |--------------------------------------------------------------------------
+    */
+    'system_events' => [
+        // 是否記錄快取事件（預設關閉，因為太頻繁）
+        'log_cache_events' => env('ACTIVITY_LOG_CACHE_EVENTS', false),
+        
+        // 快取事件記錄節流時間（秒）
+        'cache_event_throttle' => env('ACTIVITY_CACHE_EVENT_THROTTLE', 300),
+        
+        // 是否記錄資料庫查詢事件
+        'log_query_events' => env('ACTIVITY_LOG_QUERY_EVENTS', false),
+        
+        // 慢查詢閾值（毫秒）
+        'slow_query_threshold' => env('ACTIVITY_SLOW_QUERY_THRESHOLD', 1000),
+        
+        // 是否記錄佇列事件
+        'log_queue_events' => env('ACTIVITY_LOG_QUEUE_EVENTS', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | 非同步記錄設定
     |--------------------------------------------------------------------------
     */

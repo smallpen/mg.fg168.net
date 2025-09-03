@@ -32,13 +32,40 @@
     // 處理檔案下載
     document.addEventListener('livewire:init', () => {
         Livewire.on('download-file', (event) => {
-            const filePath = event.filePath;
-            const link = document.createElement('a');
-            link.href = `/storage/${filePath}`;
-            link.download = filePath.split('/').pop();
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            console.log('🔥 收到 download-file 事件:', event);
+            
+            // Livewire 3.0 將事件資料包裝在陣列中
+            const eventData = Array.isArray(event) ? event[0] : event;
+            
+            console.log('📦 處理事件資料:', eventData);
+            
+            // 支援兩種格式：新格式 (url + filename) 和舊格式 (filePath)
+            if (eventData.url) {
+                // 新格式：使用 URL 直接下載
+                console.log('🔗 使用 URL 下載:', eventData.url);
+                const link = document.createElement('a');
+                link.href = eventData.url;
+                link.download = eventData.filename || '';
+                link.target = '_blank'; // 在新視窗開啟，確保下載
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // 顯示下載提示
+                console.log('✅ 下載已觸發:', eventData.filename);
+            } else if (eventData.filePath) {
+                // 舊格式：使用 storage 路徑
+                console.log('📁 使用 filePath 下載:', eventData.filePath);
+                const link = document.createElement('a');
+                link.href = `/storage/${eventData.filePath}`;
+                link.download = eventData.filePath.split('/').pop();
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                console.error('❌ 無效的下載事件資料:', eventData);
+            }
         });
 
         // 處理活動詳情對話框

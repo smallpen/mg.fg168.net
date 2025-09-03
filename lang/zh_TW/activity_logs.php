@@ -231,6 +231,9 @@ return [
         'integrity_unknown' => '未知',
         'signature' => '數位簽章',
         'verify_integrity' => '驗證完整性',
+        'confirm_view' => '確定要檢視此活動的詳細資訊嗎？',
+        'view_confirmed' => '使用者確認檢視詳情',
+        'view_cancelled' => '使用者取消檢視詳情',
     ],
 
     // 統計

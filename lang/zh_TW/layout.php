@@ -63,6 +63,13 @@ return [
         'search_menu' => '搜尋選單...',
         'collapse_menu' => '收合選單',
         'expand_menu' => '展開選單',
+        'general' => '基本設定',
+        'security' => '安全設定',
+        'appearance' => '外觀設定',
+        'notifications' => '通知設定',
+        'integration' => '整合設定',
+        'maintenance' => '維護設定',
+        'backups' => '備份管理',
     ],
 
     // 麵包屑導航
@@ -87,10 +94,16 @@ return [
         'zh_TW' => '正體中文',
         'en' => 'English',
         'current' => '當前語言',
-        'switch_to' => '切換到 :language',
+        'switch_to' => '選擇語言',
         'switched' => '語言已切換為 :language',
         'unsupported' => '不支援的語言',
         'loading' => '正在切換語言...',
+        'switching' => '正在切換語言...',
+        'please_wait' => '請稍候，頁面即將重新載入',
+        'confirm_switch_title' => '確認語言切換',
+        'confirm_switch_message' => '您確定要切換語言嗎？頁面將會重新載入以套用新的語言設定。',
+        'from' => '從',
+        'to' => '到',
     ],
 
     // 通用翻譯

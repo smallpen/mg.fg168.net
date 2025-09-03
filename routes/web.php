@@ -18,6 +18,11 @@ use App\Http\Controllers\HealthController;
 // 健康檢查路由（不需要認證）
 Route::get('/health', [HealthController::class, 'basic'])->name('health.basic');
 Route::get('/health/detailed', [HealthController::class, 'detailed'])->name('health.detailed');
+
+// 測試 PDF 匯出功能（開發用）
+if (app()->environment(['local', 'development'])) {
+    require __DIR__.'/test-pdf.php';
+}
 Route::get('/health/metrics', [HealthController::class, 'metrics'])->name('health.metrics');
 Route::get('/health/database', [HealthController::class, 'database'])->name('health.database');
 Route::get('/health/redis', [HealthController::class, 'redis'])->name('health.redis');

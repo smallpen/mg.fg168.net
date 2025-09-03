@@ -130,7 +130,9 @@ class ActivityRepository implements ActivityRepositoryInterface
         $activities = $query->get();
         
         $filename = 'activities_' . date('Y-m-d_H-i-s') . '.' . $format;
-        $path = storage_path('app/exports/' . $filename);
+        
+        // 儲存到 activities 子目錄，與 downloadExport 路由一致
+        $path = storage_path('app/exports/activities/' . $filename);
         
         // 確保目錄存在
         if (!file_exists(dirname($path))) {
@@ -149,7 +151,7 @@ class ActivityRepository implements ActivityRepositoryInterface
                 break;
         }
         
-        return 'exports/' . $filename;
+        return 'exports/activities/' . $filename;
     }
 
     /**

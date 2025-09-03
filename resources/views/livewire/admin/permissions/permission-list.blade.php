@@ -183,17 +183,19 @@
                 @endif
 
                 {{-- 重置按鈕 --}}
-                @if($search || $moduleFilter !== 'all' || $typeFilter !== 'all' || $usageFilter !== 'all')
+                <div x-data="resetButtonController()" x-init="init()">
                     <button 
+                        x-show="showResetButton"
                         wire:click="resetFilters"
                         class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+                        x-transition
                     >
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
                         {{ __('permissions.filters.reset') }}
                     </button>
-                @endif
+                </div>
             </div>
         </div>
 
@@ -619,9 +621,9 @@ function resetButtonController() {
         
         checkFilters() {
             const searchInput = document.querySelector('input[wire\\:model\\.live="search"]');
-            const moduleSelect = document.querySelector('select[wire\\:model*="moduleFilter"]');
-            const typeSelect = document.querySelector('select[wire\\:model*="typeFilter"]');
-            const usageSelect = document.querySelector('select[wire\\:model*="usageFilter"]');
+            const moduleSelect = document.querySelector('select[wire\\:model\\.live="moduleFilter"]');
+            const typeSelect = document.querySelector('select[wire\\:model\\.live="typeFilter"]');
+            const usageSelect = document.querySelector('select[wire\\:model\\.live="usageFilter"]');
             
             const hasSearch = searchInput && searchInput.value.trim() !== '';
             const hasModuleFilter = moduleSelect && moduleSelect.value !== 'all';
@@ -640,28 +642,50 @@ function resetButtonController() {
         },
         
         resetFormElements() {
-            console.log('🔄 開始重置表單元素');
+            console.log('🔄 Alpine.js 開始重置表單元素');
             
             // 重置所有搜尋框（包括手機版和桌面版）
             const searchInputs = document.querySelectorAll('input[wire\\:model\\.live="search"], input[wire\\:model\\.live\\.debounce\\.300ms="search"]');
-            searchInputs.forEach(input => {
+            searchInputs.forEach((input, index) => {
+                console.log(`Alpine.js 重置搜尋框 ${index + 1}`);
                 input.value = '';
                 input.dispatchEvent(new Event('input', { bubbles: true }));
                 input.blur();
             });
             
-            // 重置所有篩選下拉選單
-            const selects = document.querySelectorAll('select[wire\\:model\\.live*="Filter"]');
-            selects.forEach(select => {
+            // 重置模組篩選器
+            const moduleSelects = document.querySelectorAll('select[wire\\:model\\.live="moduleFilter"]');
+            moduleSelects.forEach((select, index) => {
+                console.log(`Alpine.js 重置模組篩選器 ${index + 1}:`, select.value, '→ all');
                 select.value = 'all';
+                select.selectedIndex = 0; // 強制設定選中索引
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                console.log('Alpine.js 模組篩選器重置後:', select.value, select.options[select.selectedIndex].text);
+            });
+            
+            // 重置類型篩選器
+            const typeSelects = document.querySelectorAll('select[wire\\:model\\.live="typeFilter"]');
+            typeSelects.forEach((select, index) => {
+                console.log(`Alpine.js 重置類型篩選器 ${index + 1}:`, select.value, '→ all');
+                select.value = 'all';
+                select.selectedIndex = 0;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            
+            // 重置使用狀態篩選器
+            const usageSelects = document.querySelectorAll('select[wire\\:model\\.live="usageFilter"]');
+            usageSelects.forEach((select, index) => {
+                console.log(`Alpine.js 重置使用狀態篩選器 ${index + 1}:`, select.value, '→ all');
+                select.value = 'all';
+                select.selectedIndex = 0;
                 select.dispatchEvent(new Event('change', { bubbles: true }));
             });
             
             // 更新重置按鈕狀態
             setTimeout(() => {
                 this.checkFilters();
-                console.log('✅ 表單元素重置完成');
-            }, 100);
+                console.log('✅ Alpine.js 表單元素重置完成');
+            }, 150);
         }
     }
 }

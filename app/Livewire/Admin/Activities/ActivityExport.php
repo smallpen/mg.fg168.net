@@ -24,7 +24,8 @@ class ActivityExport extends AdminComponent
     public array $availableFormats = [
         'csv' => 'CSV (Excel 相容)',
         'json' => 'JSON (程式處理)',
-        'pdf' => 'PDF (報告列印)'
+        'pdf' => 'PDF (報告列印)',
+        'html' => 'HTML (可列印)'
     ];
 
     /**

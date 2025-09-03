@@ -1,19 +1,23 @@
 <div class="px-4 py-5 sm:p-6 space-y-6">
-    {{-- 頁面標題和操作按鈕 --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">設定備份管理</h1>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                管理系統設定的備份，包含建立、還原、比較和下載功能
-            </p>
-        </div>
-        <div class="mt-4 sm:mt-0">
+    {{-- 操作按鈕區域 --}}
+    <div class="flex justify-end">
+        <div class="flex space-x-3">
             <button 
-                wire:click="openCreateModal"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                wire:click="exportAllBackups"
+                type="button" 
+                class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0L8 8m4-4v12"></path>
+                </svg>
+                匯出備份
+            </button>
+            <button 
+                wire:click="openCreateModal"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
                 建立備份
             </button>
@@ -119,15 +123,22 @@
                     </div>
                 </div>
                 
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
+                    <label for="perPage" class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                        每頁顯示：
+                    </label>
                     <select 
+                        id="perPage"
                         wire:model.live="perPage"
-                        class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[80px]"
                     >
-                        <option value="10">10 筆/頁</option>
-                        <option value="25">25 筆/頁</option>
-                        <option value="50">50 筆/頁</option>
+                        <option value="10">10 筆</option>
+                        <option value="25">25 筆</option>
+                        <option value="50">50 筆</option>
                     </select>
+                    <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        共 {{ $this->backups->total() }} 筆
+                    </span>
                 </div>
             </div>
         </div>
@@ -290,10 +301,95 @@
             </table>
         </div>
 
-        {{-- 分頁 --}}
+        {{-- 分頁導航 --}}
         @if($this->backups->hasPages())
             <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                {{ $this->backups->links() }}
+                <div class="flex items-center justify-between">
+                    {{-- 手機版分頁 --}}
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        @if ($this->backups->onFirstPage())
+                            <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 cursor-default leading-5 rounded-md">
+                                上一頁
+                            </span>
+                        @else
+                            <button wire:click="previousPage" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 leading-5 rounded-md hover:text-gray-500 dark:hover:text-gray-400 transition-colors">
+                                上一頁
+                            </button>
+                        @endif
+
+                        @if ($this->backups->hasMorePages())
+                            <button wire:click="nextPage" class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 leading-5 rounded-md hover:text-gray-500 dark:hover:text-gray-400 transition-colors">
+                                下一頁
+                            </button>
+                        @else
+                            <span class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 cursor-default leading-5 rounded-md">
+                                下一頁
+                            </span>
+                        @endif
+                    </div>
+
+                    {{-- 桌面版分頁 --}}
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700 leading-5 dark:text-gray-400">
+                                顯示第
+                                <span class="font-medium">{{ $this->backups->firstItem() ?? 0 }}</span>
+                                到
+                                <span class="font-medium">{{ $this->backups->lastItem() ?? 0 }}</span>
+                                筆，共
+                                <span class="font-medium">{{ $this->backups->total() }}</span>
+                                筆結果
+                            </p>
+                        </div>
+
+                        <div>
+                            <span class="relative z-0 inline-flex shadow-sm rounded-md">
+                                {{-- 上一頁按鈕 --}}
+                                @if ($this->backups->onFirstPage())
+                                    <span class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 cursor-default rounded-l-md leading-5">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                @else
+                                    <button wire:click="previousPage" class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-md leading-5 hover:text-gray-400 dark:hover:text-gray-300 transition-colors">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                @endif
+
+                                {{-- 頁碼按鈕 --}}
+                                @for ($page = 1; $page <= $this->backups->lastPage(); $page++)
+                                    @if ($page == $this->backups->currentPage())
+                                        <span aria-current="page">
+                                            <span class="relative inline-flex items-center px-4 py-2 -ml-px text-sm font-medium text-white bg-blue-600 border border-blue-600 cursor-default leading-5">{{ $page }}</span>
+                                        </span>
+                                    @else
+                                        <button wire:click="gotoPage({{ $page }})" class="relative inline-flex items-center px-4 py-2 -ml-px text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 leading-5 hover:text-gray-500 dark:hover:text-gray-400 transition-colors">
+                                            {{ $page }}
+                                        </button>
+                                    @endif
+                                @endfor
+
+                                {{-- 下一頁按鈕 --}}
+                                @if ($this->backups->hasMorePages())
+                                    <button wire:click="nextPage" class="relative inline-flex items-center px-2 py-2 -ml-px text-sm font-medium text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-r-md leading-5 hover:text-gray-400 dark:hover:text-gray-300 transition-colors">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                @else
+                                    <span class="relative inline-flex items-center px-2 py-2 -ml-px text-sm font-medium text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 cursor-default rounded-r-md leading-5">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                @endif
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         @endif
     </div>

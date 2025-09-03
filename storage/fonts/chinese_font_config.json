@@ -1,0 +1,8 @@
+{
+    "chinese-fallback": {
+        "normal": "DejaVuSans",
+        "bold": "DejaVuSans-Bold",
+        "italic": "DejaVuSans-Oblique",
+        "bold_italic": "DejaVuSans-BoldOblique"
+    }
+}

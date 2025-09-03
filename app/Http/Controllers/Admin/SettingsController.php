@@ -589,6 +589,120 @@ class SettingsController extends Controller
     }
 
     /**
+     * 下載單個備份
+     */
+    public function downloadBackup(int $backupId)
+    {
+        $this->authorize('settings.backup');
+
+        try {
+            $backup = \App\Models\SettingBackup::find($backupId);
+            
+            if (!$backup) {
+                abort(404, '找不到指定的備份');
+            }
+
+            $filename = "settings_backup_{$backup->id}_{$backup->created_at->format('Y-m-d_H-i-s')}.json";
+            
+            $data = [
+                'backup_info' => [
+                    'id' => $backup->id,
+                    'name' => $backup->name,
+                    'description' => $backup->description,
+                    'created_at' => $backup->created_at->toISOString(),
+                    'created_by' => $backup->creator->name ?? 'Unknown',
+                    'settings_count' => count($backup->settings_data),
+                ],
+                'settings' => $backup->settings_data,
+            ];
+
+            $content = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            
+            // 記錄下載操作
+            Log::info('下載備份', [
+                'user_id' => auth()->id(),
+                'backup_id' => $backup->id,
+                'backup_name' => $backup->name,
+                'filename' => $filename
+            ]);
+
+            return response($content)
+                ->header('Content-Type', 'application/json')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Content-Length', strlen($content));
+
+        } catch (\Exception $e) {
+            Log::error('下載備份失敗', [
+                'error' => $e->getMessage(),
+                'backup_id' => $backupId,
+                'user_id' => auth()->id(),
+            ]);
+            
+            abort(500, '下載備份時發生錯誤');
+        }
+    }
+
+    /**
+     * 匯出所有備份
+     */
+    public function exportAllBackups()
+    {
+        $this->authorize('settings.backup');
+
+        try {
+            $backups = \App\Models\SettingBackup::with('creator')->get();
+            
+            if ($backups->isEmpty()) {
+                abort(404, '目前沒有備份可以匯出');
+            }
+
+            $exportData = [
+                'export_info' => [
+                    'exported_at' => now()->toISOString(),
+                    'exported_by' => auth()->user()->name ?? 'Unknown',
+                    'total_backups' => $backups->count(),
+                    'version' => '1.0',
+                ],
+                'backups' => $backups->map(function ($backup) {
+                    return [
+                        'id' => $backup->id,
+                        'name' => $backup->name,
+                        'description' => $backup->description,
+                        'backup_type' => $backup->backup_type ?? 'manual',
+                        'created_at' => $backup->created_at->toISOString(),
+                        'created_by' => $backup->creator->name ?? 'Unknown',
+                        'settings_count' => count($backup->settings_data),
+                        'settings_data' => $backup->settings_data,
+                    ];
+                })->toArray(),
+            ];
+
+            $filename = "all_settings_backups_" . now()->format('Y-m-d_H-i-s') . ".json";
+            $content = json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            
+            // 記錄匯出操作
+            Log::info('匯出所有備份', [
+                'user_id' => auth()->id(),
+                'backup_count' => $backups->count(),
+                'filename' => $filename
+            ]);
+
+            return response($content)
+                ->header('Content-Type', 'application/json')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Content-Length', strlen($content));
+
+        } catch (\Exception $e) {
+            Log::error('匯出備份失敗', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            abort(500, '匯出備份時發生錯誤');
+        }
+    }
+
+    /**
      * 取得設定統計資訊
      */
     protected function getSettingsStats(): array

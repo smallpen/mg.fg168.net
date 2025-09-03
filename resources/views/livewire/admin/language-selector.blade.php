@@ -104,7 +104,7 @@
                         <svg class="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
                         </svg>
-                        {{ __('admin.language.select') }}
+                        {{ __('layout.language.switch_to', ['language' => '']) }}
                     </div>
                 </div>
                 
@@ -135,7 +135,7 @@
                             <div class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                                 {{ strtoupper($locale) }}
                                 @if($currentLocale === $locale)
-                                    <span class="ml-1 text-blue-500">• {{ __('admin.language.current') }}</span>
+                                    <span class="ml-1 text-blue-500">• {{ __('layout.language.current') }}</span>
                                 @endif
                             </div>
                         </div>
@@ -178,19 +178,19 @@
                             </div>
                             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                 <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                                    {{ __('admin.language.confirm_switch_title', ['default' => '確認語言切換']) }}
+                                    {{ __('layout.language.confirm_switch_title', ['default' => '確認語言切換']) }}
                                 </h3>
                                 <div class="mt-2">
                                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                                        {{ __('admin.language.confirm_switch_message', ['default' => '您確定要切換語言嗎？頁面將會重新載入以套用新的語言設定。']) }}
+                                        {{ __('layout.language.confirm_switch_message', ['default' => '您確定要切換語言嗎？頁面將會重新載入以套用新的語言設定。']) }}
                                     </p>
                                     <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
                                         <div class="flex items-center justify-between text-sm">
-                                            <span class="text-gray-600 dark:text-gray-300">{{ __('admin.language.from', ['default' => '從']) }}:</span>
+                                            <span class="text-gray-600 dark:text-gray-300">{{ __('layout.language.from', ['default' => '從']) }}:</span>
                                             <span class="font-medium text-gray-900 dark:text-white">{{ $supportedLocales[$currentLocale] ?? $currentLocale }}</span>
                                         </div>
                                         <div class="flex items-center justify-between text-sm mt-1">
-                                            <span class="text-gray-600 dark:text-gray-300">{{ __('admin.language.to', ['default' => '到']) }}:</span>
+                                            <span class="text-gray-600 dark:text-gray-300">{{ __('layout.language.to', ['default' => '到']) }}:</span>
                                             <span class="font-medium text-blue-600 dark:text-blue-400">{{ $supportedLocales[$pendingLocale] ?? $pendingLocale }}</span>
                                         </div>
                                     </div>
@@ -202,12 +202,12 @@
                         <button wire:click="confirmLanguageSwitch" 
                                 type="button" 
                                 class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-150">
-                            {{ __('admin.common.confirm') }}
+                            {{ __('layout.confirm.yes') }}
                         </button>
                         <button wire:click="cancelLanguageSwitch" 
                                 type="button" 
                                 class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-150">
-                            {{ __('admin.common.cancel') }}
+                            {{ __('layout.confirm.no') }}
                         </button>
                     </div>
                 </div>
@@ -232,10 +232,10 @@
                 
                 {{-- 載入文字 --}}
                 <div class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                    {{ __('admin.language.switching', ['default' => '正在切換語言...']) }}
+                    {{ __('layout.language.switching', ['default' => '正在切換語言...']) }}
                 </div>
                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ __('admin.language.please_wait', ['default' => '請稍候，頁面即將重新載入']) }}
+                    {{ __('layout.language.please_wait', ['default' => '請稍候，頁面即將重新載入']) }}
                 </div>
                 
                 {{-- 進度條 --}}

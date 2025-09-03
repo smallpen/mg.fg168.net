@@ -80,8 +80,9 @@ class ActivityLogServiceProvider extends ServiceProvider
         // 註冊真正重要的系統事件監聽器
         // 例如：維護模式切換、重要配置變更等
 
-        // 註冊快取事件監聽器
-        if (config('app.debug')) {
+        // 註冊快取事件監聽器（可配置）
+        // 只在除錯模式且明確啟用快取事件記錄時才註冊
+        if (config('app.debug') && config('activity-log.system_events.log_cache_events', false)) {
             Event::listen(\Illuminate\Cache\Events\CacheHit::class, function ($event) {
                 $systemEventListener = app(\App\Listeners\SystemEventListener::class);
                 $systemEventListener->handleCacheHit($event);

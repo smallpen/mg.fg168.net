@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\FontService;
 
 /**
  * 活動記錄匯出服務
@@ -18,6 +19,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
  */
 class ActivityExportService
 {
+    protected FontService $fontService;
+
+    public function __construct(FontService $fontService)
+    {
+        $this->fontService = $fontService;
+    }
     /**
      * 匯出快取前綴
      */
@@ -48,6 +55,9 @@ class ActivityExportService
                 break;
             case 'pdf':
                 $this->exportToPdf($activities, $filePath, $config['options']);
+                break;
+            case 'html':
+                $this->exportToHtml($activities, $filePath, $config['options']);
                 break;
             default:
                 throw new \InvalidArgumentException("不支援的匯出格式: {$config['format']}");
@@ -371,6 +381,74 @@ class ActivityExportService
     }
 
     /**
+     * 匯出為 HTML 格式
+     */
+    protected function exportToHtml($activities, string $filePath, array $options): void
+    {
+        $data = [
+            'activities' => $activities,
+            'options' => $options,
+            'export_info' => [
+                'exported_at' => now()->format('Y-m-d H:i:s'),
+                'total_records' => $activities->count(),
+                'format' => 'html',
+            ],
+        ];
+
+        try {
+            // 選擇 HTML 模板
+            $template = $this->selectHtmlTemplate();
+            
+            // 渲染 HTML 內容
+            $htmlContent = view($template, $data)->render();
+            
+            // 儲存 HTML 檔案
+            \Storage::disk('local')->put($filePath, $htmlContent);
+            
+            // 記錄 HTML 匯出成功
+            \Log::info('HTML 匯出完成', [
+                'file_path' => $filePath,
+                'activities_count' => $activities->count(),
+                'template' => $template,
+                'chinese_support' => true,
+                'note' => 'HTML 格式完美支援中文字符顯示',
+            ]);
+            
+        } catch (\Exception $e) {
+            // 如果 HTML 生成失敗，記錄錯誤並拋出異常
+            \Log::error('HTML 匯出失敗', [
+                'error' => $e->getMessage(),
+                'file_path' => $filePath,
+                'activities_count' => $activities->count(),
+            ]);
+            
+            throw new \Exception('HTML 匯出失敗：' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 選擇適當的 HTML 模板
+     */
+    protected function selectHtmlTemplate(): string
+    {
+        // 檢查可用的 HTML 模板
+        $templates = [
+            'exports.activities-html',          // 主要 HTML 模板
+            'exports.activities-html-modern',   // 現代化 HTML 模板
+            'exports.activities-html-simple',   // 簡單 HTML 模板
+        ];
+
+        foreach ($templates as $template) {
+            if (view()->exists($template)) {
+                return $template;
+            }
+        }
+
+        // 如果都不存在，返回預設模板
+        return 'exports.activities-html';
+    }
+
+    /**
      * 匯出為 PDF 格式
      */
     protected function exportToPdf($activities, string $filePath, array $options): void
@@ -384,15 +462,126 @@ class ActivityExportService
             ],
         ];
 
-        $pdf = Pdf::loadView('exports.activities-pdf', $data)
+        try {
+            // 初始化中文字體支援
+            $this->initializeChineseFontSupport();
+            
+            // 嘗試使用改進的中文字體支援
+            $pdf = $this->createPdfWithChineseSupport($data);
+            \Storage::disk('local')->put($filePath, $pdf->output());
+            
+            // 獲取字體狀態
+            $fontConfig = $this->fontService->getRecommendedPdfFontConfig();
+            
+            // 記錄 PDF 匯出成功
+            \Log::info('PDF 匯出完成', [
+                'file_path' => $filePath,
+                'activities_count' => $activities->count(),
+                'chinese_support' => $fontConfig['supports_chinese'],
+                'font_family' => $fontConfig['font_family'],
+                'note' => $fontConfig['supports_chinese'] 
+                    ? 'PDF 支援中文字符顯示' 
+                    : 'PDF 中的中文字符可能顯示為方框，建議使用 HTML 格式匯出',
+            ]);
+            
+        } catch (\Exception $e) {
+            // 如果 PDF 生成失敗，記錄錯誤並拋出異常
+            \Log::error('PDF 匯出失敗', [
+                'error' => $e->getMessage(),
+                'file_path' => $filePath,
+                'activities_count' => $activities->count(),
+            ]);
+            
+            throw new \Exception('PDF 匯出失敗：' . $e->getMessage() . '。建議使用 HTML 格式匯出。');
+        }
+    }
+
+    /**
+     * 創建支援中文的 PDF
+     */
+    protected function createPdfWithChineseSupport(array $data)
+    {
+        // 獲取字體配置
+        $fontConfig = $this->fontService->getRecommendedPdfFontConfig();
+        
+        // 選擇適當的模板
+        $template = $this->selectPdfTemplate($fontConfig);
+        
+        // 添加字體配置到資料中
+        $data['font_config'] = $fontConfig;
+
+        // 創建 PDF 實例
+        $pdf = Pdf::loadView($template, $data)
             ->setPaper('a4', 'landscape')
             ->setOptions([
-                'defaultFont' => 'DejaVu Sans',
+                'defaultFont' => $fontConfig['supports_chinese'] ? 'DejaVu Sans' : 'DejaVu Sans',
                 'isHtml5ParserEnabled' => true,
-                'isRemoteEnabled' => true,
+                'isRemoteEnabled' => false,
+                'chroot' => public_path(),
+                'enable_font_subsetting' => true,
+                'font_cache' => storage_path('fonts'),
+                'temp_dir' => storage_path('app/temp'),
+                'enable_css_float' => true,
+                'enable_javascript' => false,
+                'defaultMediaType' => 'print',
+                'isFontSubsettingEnabled' => true,
+                'debugKeepTemp' => false,
             ]);
 
-        \Storage::disk('local')->put($filePath, $pdf->output());
+        // 配置 DomPDF 以支援中文
+        $this->fontService->configureDompdfForChinese($pdf->getDomPDF());
+
+        return $pdf;
+    }
+
+    /**
+     * 選擇適當的 PDF 模板
+     */
+    protected function selectPdfTemplate(array $fontConfig): string
+    {
+        // 根據字體支援選擇模板
+        $templates = [
+            'exports.activities-pdf-unicode',  // Unicode 優化版本
+            'exports.activities-pdf-chinese',  // 中文優化版本
+            'exports.activities-pdf',          // 預設版本
+        ];
+
+        foreach ($templates as $template) {
+            if (view()->exists($template)) {
+                return $template;
+            }
+        }
+
+        // 如果都不存在，返回預設模板
+        return 'exports.activities-pdf';
+    }
+
+    /**
+     * 初始化中文字體支援
+     */
+    protected function initializeChineseFontSupport(): void
+    {
+        try {
+            // 確保字體目錄存在
+            $fontDir = storage_path('fonts');
+            $tempDir = storage_path('app/temp');
+            
+            if (!file_exists($fontDir)) {
+                mkdir($fontDir, 0755, true);
+            }
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            // 如果沒有中文字體支援，嘗試安裝系統字體
+            if (!$this->fontService->hasChineseFontSupport()) {
+                $this->fontService->installSystemChineseFonts();
+            }
+        } catch (\Exception $e) {
+            \Log::warning('初始化中文字體支援失敗', [
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     /**

@@ -47,19 +47,6 @@ return [
         'view_mode' => '檢視模式',
     ],
 
-    // 動作翻譯
-    'actions' => [
-        'back' => '返回',
-        'save' => '儲存',
-        'cancel' => '取消',
-        'delete' => '刪除',
-        'edit' => '編輯',
-        'view' => '檢視',
-        'create' => '建立',
-        'update' => '更新',
-        'confirm' => '確認',
-    ],
-
     // 系統標題
     'title' => '管理系統',
 

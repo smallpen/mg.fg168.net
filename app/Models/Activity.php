@@ -146,15 +146,15 @@ class Activity extends Model
     public function getIconAttribute(): string
     {
         return match ($this->type) {
-            self::TYPE_LOGIN => 'login',
-            self::TYPE_LOGOUT => 'logout',
+            self::TYPE_LOGIN => 'arrow-right-on-rectangle',
+            self::TYPE_LOGOUT => 'arrow-left-on-rectangle',
             self::TYPE_CREATE_USER, self::TYPE_CREATE_ROLE => 'plus-circle',
             self::TYPE_UPDATE_USER, self::TYPE_UPDATE_ROLE, self::TYPE_UPDATE_PERMISSIONS => 'pencil',
             self::TYPE_DELETE_USER, self::TYPE_DELETE_ROLE => 'trash',
             self::TYPE_ASSIGN_ROLE, self::TYPE_REMOVE_ROLE => 'user-group',
             self::TYPE_VIEW_DASHBOARD => 'chart-bar',
-            self::TYPE_EXPORT_DATA => 'download',
-            self::TYPE_QUICK_ACTION => 'lightning-bolt',
+            self::TYPE_EXPORT_DATA => 'arrow-down-tray',
+            self::TYPE_QUICK_ACTION => 'bolt',
             default => 'information-circle',
         };
     }

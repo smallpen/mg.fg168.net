@@ -182,8 +182,8 @@ class SystemEventListener
      */
     public function handleCacheHit(CacheHit $event): void
     {
-        // 只記錄重要的快取事件
-        if ($this->isImportantCacheKey($event->key)) {
+        // 只記錄重要的快取事件，並且限制頻率
+        if ($this->isImportantCacheKey($event->key) && $this->shouldLogCacheEvent($event->key, 'hit')) {
             $this->activityLogger->logSystemEvent(
                 'cache_hit',
                 [
@@ -202,8 +202,8 @@ class SystemEventListener
      */
     public function handleCacheMissed(CacheMissed $event): void
     {
-        // 只記錄重要的快取事件
-        if ($this->isImportantCacheKey($event->key)) {
+        // 只記錄重要的快取事件，並且限制頻率
+        if ($this->isImportantCacheKey($event->key) && $this->shouldLogCacheEvent($event->key, 'missed')) {
             $this->activityLogger->logSystemEvent(
                 'cache_missed',
                 [
@@ -318,7 +318,8 @@ class SystemEventListener
             'user_permissions_',
             'role_permissions_',
             'system_settings_',
-            'activity_log_',
+            // 移除 activity_log_ 模式，因為活動記錄查詢太頻繁
+            // 'activity_log_',
         ];
 
         foreach ($importantPatterns as $pattern) {
@@ -328,6 +329,29 @@ class SystemEventListener
         }
 
         return false;
+    }
+
+    /**
+     * 檢查是否應該記錄快取事件（限制頻率）
+     *
+     * @param string $key
+     * @param string $type
+     * @return bool
+     */
+    protected function shouldLogCacheEvent(string $key, string $type): bool
+    {
+        // 使用快取來限制同一個鍵的記錄頻率
+        $throttleKey = "cache_event_throttle:{$key}:{$type}";
+        $throttleWindow = config('activity-log.system_events.cache_event_throttle', 300); // 預設5分鐘
+        
+        if (cache()->has($throttleKey)) {
+            return false;
+        }
+        
+        // 設定節流快取
+        cache()->put($throttleKey, true, $throttleWindow);
+        
+        return true;
     }
 
     /**

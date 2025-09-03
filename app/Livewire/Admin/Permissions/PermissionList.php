@@ -819,31 +819,61 @@ class PermissionList extends Component
             $this->resetPage();
             $this->resetValidation();
             
-            // 強制重新渲染整個元件
-            $this->skipRender = false;
-            
-            // 強制 Livewire 同步狀態到前端
+            // 使用 Livewire 的 $set 方法強制同步前端狀態
             $this->js('
-                // 強制更新所有表單元素的值
+                console.log("🔄 使用 Livewire $set 方法重置篩選器狀態");
+                
+                // 使用 Livewire 的 $set 方法直接更新前端狀態
+                $wire.set("search", "");
+                $wire.set("moduleFilter", "all");
+                $wire.set("typeFilter", "all");
+                $wire.set("usageFilter", "all");
+                
+                // 延遲執行 DOM 同步，確保 Livewire 狀態更新後再同步 DOM
                 setTimeout(() => {
-                    const searchInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="search"]\');
-                    searchInputs.forEach(input => {
-                        input.value = "";
-                        input.dispatchEvent(new Event("input", { bubbles: true }));
+                    console.log("🔄 開始同步 DOM 元素狀態");
+                    
+                    // 同步搜尋框
+                    const searchInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="search"], input[wire\\\\:model\\\\.live\\\\.debounce\\\\.300ms="search"]\');
+                    searchInputs.forEach((input, index) => {
+                        if (input.value !== "") {
+                            console.log(`同步搜尋框 ${index + 1}: "${input.value}" → ""`);
+                            input.value = "";
+                            input.dispatchEvent(new Event("input", { bubbles: true }));
+                        }
                     });
                     
-                    const filterSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live*="Filter"]\');
-                    filterSelects.forEach(select => {
-                        select.value = "all";
-                        select.dispatchEvent(new Event("change", { bubbles: true }));
-                    });
+                    // 同步模組篩選器
+                    const moduleFilter = document.querySelector(\'select[wire\\\\:model\\\\.live="moduleFilter"]\');
+                    if (moduleFilter && moduleFilter.value !== "all") {
+                        console.log(`同步模組篩選器: "${moduleFilter.value}" → "all"`);
+                        moduleFilter.value = "all";
+                        moduleFilter.selectedIndex = 0;
+                        moduleFilter.dispatchEvent(new Event("change", { bubbles: true }));
+                        console.log("✅ 模組篩選器已同步:", moduleFilter.options[moduleFilter.selectedIndex].text);
+                    }
                     
-                    console.log("✅ 權限管理表單元素已強制同步");
-                }, 100);
+                    // 同步類型篩選器
+                    const typeFilter = document.querySelector(\'select[wire\\\\:model\\\\.live="typeFilter"]\');
+                    if (typeFilter && typeFilter.value !== "all") {
+                        console.log(`同步類型篩選器: "${typeFilter.value}" → "all"`);
+                        typeFilter.value = "all";
+                        typeFilter.selectedIndex = 0;
+                        typeFilter.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
+                    
+                    // 同步使用狀態篩選器
+                    const usageFilter = document.querySelector(\'select[wire\\\\:model\\\\.live="usageFilter"]\');
+                    if (usageFilter && usageFilter.value !== "all") {
+                        console.log(`同步使用狀態篩選器: "${usageFilter.value}" → "all"`);
+                        usageFilter.value = "all";
+                        usageFilter.selectedIndex = 0;
+                        usageFilter.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
+                    
+                    console.log("✅ DOM 元素狀態同步完成");
+                }, 300);
             ');
-            
-            // 發送強制 UI 更新事件
-            $this->dispatch('force-ui-update');
             
             // 發送前端重置事件，讓 Alpine.js 處理
             $this->dispatch('reset-form-elements');

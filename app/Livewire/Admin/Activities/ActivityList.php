@@ -38,6 +38,7 @@ class ActivityList extends AdminComponent
      * 顯示設定
      */
     public int $perPage = 50;
+    public array $perPageOptions = [25, 50, 100, 200];
     public string $sortField = 'created_at';
     public string $sortDirection = 'desc';
     public bool $realTimeMode = false;
@@ -111,20 +112,36 @@ class ActivityList extends AdminComponent
                 ->orderBy('name')
                 ->get(),
             'types' => [
-                Activity::TYPE_LOGIN => '登入',
-                Activity::TYPE_LOGOUT => '登出',
-                Activity::TYPE_CREATE_USER => '建立使用者',
-                Activity::TYPE_UPDATE_USER => '更新使用者',
-                Activity::TYPE_DELETE_USER => '刪除使用者',
-                Activity::TYPE_CREATE_ROLE => '建立角色',
-                Activity::TYPE_UPDATE_ROLE => '更新角色',
-                Activity::TYPE_DELETE_ROLE => '刪除角色',
-                Activity::TYPE_ASSIGN_ROLE => '指派角色',
-                Activity::TYPE_REMOVE_ROLE => '移除角色',
-                Activity::TYPE_UPDATE_PERMISSIONS => '更新權限',
-                Activity::TYPE_VIEW_DASHBOARD => '檢視儀表板',
-                Activity::TYPE_EXPORT_DATA => '匯出資料',
-                Activity::TYPE_QUICK_ACTION => '快速操作',
+                // 使用者相關活動
+                'user_login' => '使用者登入',
+                'user_logout' => '使用者登出',
+                'user_updated' => '使用者更新',
+                'login_failed' => '登入失敗',
+                
+                // 系統活動
+                'view_activity_logs' => '檢視活動記錄',
+                'view_activity_stats' => '檢視活動統計',
+                'view_activity_monitor' => '檢視活動監控',
+                'view_activity_export' => '檢視活動匯出',
+                'security_monitor_access' => '安全監控存取',
+                
+                // 資料操作
+                'export_data' => '匯出資料',
+                'download_activity_export' => '下載活動匯出',
+                'download_export' => '下載匯出',
+                
+                // 系統事件
+                'cache_hit' => '快取命中',
+                'cache_missed' => '快取未命中',
+                'slow_query' => '慢查詢',
+                'server_error' => '伺服器錯誤',
+                
+                // 存取控制
+                'forbidden_access' => '禁止存取',
+                'not_found_access' => '找不到資源',
+                
+                // 安全相關
+                'activity_flagged' => '活動標記',
             ],
             'modules' => [
                 Activity::MODULE_AUTH => '認證',
@@ -231,8 +248,36 @@ class ActivityList extends AdminComponent
      */
     public function updatedPerPage(): void
     {
-        $this->resetPage();
-        $this->loadedPages = 1; // 重置載入頁數
+        try {
+            // 驗證 perPage 值
+            if (!in_array($this->perPage, $this->perPageOptions)) {
+                $this->perPage = 50; // 重置為預設值
+            }
+            
+            $this->resetPage();
+            $this->loadedPages = 1; // 重置載入頁數
+            
+            // 發送更新事件
+            $this->dispatch('per-page-updated', perPage: $this->perPage);
+            
+        } catch (\Exception $e) {
+            logger()->error('Error updating perPage', [
+                'error' => $e->getMessage(),
+                'perPage' => $this->perPage
+            ]);
+            
+            // 重置為預設值
+            $this->perPage = 50;
+            $this->resetPage();
+        }
+    }
+
+    /**
+     * 前往指定頁面
+     */
+    public function gotoPage(int $page): void
+    {
+        $this->setPage($page);
     }
 
     /**
@@ -319,6 +364,22 @@ class ActivityList extends AdminComponent
     }
 
     /**
+     * 顯示匯出模態框
+     */
+    public function showExportModal(): void
+    {
+        $this->showExportModal = true;
+    }
+
+    /**
+     * 隱藏匯出模態框
+     */
+    public function hideExportModal(): void
+    {
+        $this->showExportModal = false;
+    }
+
+    /**
      * 匯出活動記錄
      */
     public function exportActivities(): void
@@ -327,7 +388,16 @@ class ActivityList extends AdminComponent
             $filters = $this->getFilters();
             $filePath = $this->activityRepository->exportActivities($filters, $this->exportFormat);
             
-            $this->dispatch('download-file', filePath: $filePath);
+            // 從 filePath 中提取檔案名稱
+            $filename = basename($filePath);
+            
+            // 使用正確的下載路由
+            $downloadUrl = route('admin.activities.download-export', ['filename' => $filename]);
+            
+            $this->dispatch('download-file', [
+                'url' => $downloadUrl,
+                'filename' => $filename
+            ]);
             $this->showExportModal = false;
             
             $this->dispatch('notify', [
@@ -509,6 +579,12 @@ class ActivityList extends AdminComponent
     public function toggleFilters(): void
     {
         $this->showFilters = !$this->showFilters;
+        
+        // 記錄篩選面板切換
+        \Log::info('篩選面板切換', [
+            'showFilters' => $this->showFilters,
+            'user' => auth()->user()->username ?? 'unknown'
+        ]);
     }
 
     /**
@@ -606,7 +682,17 @@ class ActivityList extends AdminComponent
         $filters['selected_ids'] = $this->selectedActivities;
         
         $filePath = $this->activityRepository->exportActivities($filters, 'csv');
-        $this->dispatch('download-file', filePath: $filePath);
+        
+        // 從 filePath 中提取檔案名稱
+        $filename = basename($filePath);
+        
+        // 使用正確的下載路由
+        $downloadUrl = route('admin.activities.download-export', ['filename' => $filename]);
+        
+        $this->dispatch('download-file', [
+            'url' => $downloadUrl,
+            'filename' => $filename
+        ]);
         
         $this->dispatch('notify', [
             'type' => 'success',

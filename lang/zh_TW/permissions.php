@@ -14,6 +14,7 @@ return [
     // 標題
     'titles' => [
         'permission_management' => '權限管理',
+        'permission_matrix' => '權限矩陣',
     ],
 
     // 基本標籤

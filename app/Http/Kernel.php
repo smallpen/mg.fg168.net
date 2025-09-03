@@ -38,7 +38,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\LanguagePerformanceMiddleware::class,
-            \App\Http\Middleware\ApplyBasicSettings::class,
+            // \App\Http\Middleware\ApplyBasicSettings::class, // 暫時禁用以測試
             \App\Http\Middleware\ActivityLoggingMiddleware::class,
         ],
 
@@ -58,7 +58,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\LanguagePerformanceMiddleware::class,
-            \App\Http\Middleware\ApplyBasicSettings::class,
+            // \App\Http\Middleware\ApplyBasicSettings::class, // 暫時禁用以測試
             \App\Http\Middleware\ApplySecuritySettings::class,
             \App\Http\Middleware\Authenticate::class,
             \App\Http\Middleware\AdminLayoutMiddleware::class,

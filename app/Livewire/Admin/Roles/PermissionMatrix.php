@@ -594,37 +594,79 @@ class PermissionMatrix extends Component
     public function clearFilters(): void
     {
         try {
-        // 記錄重置操作
-        \Log::info('🔄 clearFilters - 方法被呼叫', [
-            'timestamp' => now()->toISOString(),
-            'user' => auth()->user()->username ?? 'unknown',
-        ]);
-        
-        // 重置屬性
-        $this->search = '';
-        $this->moduleFilter = '';
-        $this->viewMode = '';
-        $this->showDescriptions = false;
-        $this->showPreview = false;
-        $this->permissionChanges = false;
-        $this->selectedRoles = [];
-        $this->selectedPermissions = [];
-        $this->bulkMode = '';
-        $this->resetValidation();
-        
-        // 強制重新渲染元件以確保前端同步
-        $this->dispatch('$refresh');
-        
-        // 發送前端刷新事件
-        $this->dispatch('clearFilters-completed');
-        
-        // 記錄重置完成
-        \Log::info('✅ clearFilters - 重置完成');
-
-        
-        $this->resetValidation();
-    } catch (\Exception $e) {
-            \Log::error('重置方法執行失敗', [
+            // 記錄重置操作
+            \Log::info('🔄 clearFilters - 權限矩陣篩選重置開始', [
+                'timestamp' => now()->toISOString(),
+                'user' => auth()->user()->username ?? 'unknown',
+                'before_reset' => [
+                    'search' => $this->search ?? '',
+                    'moduleFilter' => $this->moduleFilter ?? '',
+                ]
+            ]);
+            
+            // 重置屬性
+            $this->search = '';
+            $this->moduleFilter = '';
+            $this->viewMode = 'matrix';
+            $this->showDescriptions = false;
+            $this->showPreview = false;
+            $this->permissionChanges = [];
+            $this->selectedRoles = [];
+            $this->selectedPermissions = [];
+            $this->bulkMode = false;
+            $this->resetValidation();
+            
+            // 清除快取以確保重置生效
+            $this->clearPermissionCache();
+            
+            // 使用 Livewire 的 $set 方法強制同步前端狀態
+            $this->js('
+                console.log("🔄 權限矩陣：使用 $wire.set 方法重置篩選器狀態");
+                
+                // 使用 Livewire 的 $set 方法直接更新前端狀態
+                $wire.set("search", "");
+                $wire.set("moduleFilter", "");
+                
+                // 延遲執行 DOM 同步，確保 Livewire 狀態更新後再同步 DOM
+                setTimeout(() => {
+                    console.log("🔄 權限矩陣：開始同步 DOM 元素狀態");
+                    
+                    // 同步搜尋框
+                    const searchInput = document.querySelector(\'input[wire\\\\:model\\\\.live\\\\.debounce\\\\.300ms="search"]\');
+                    if (searchInput && searchInput.value !== "") {
+                        console.log(`權限矩陣：同步搜尋框: "${searchInput.value}" → ""`);
+                        searchInput.value = "";
+                        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+                        searchInput.blur();
+                    }
+                    
+                    // 同步模組篩選器
+                    const moduleFilter = document.querySelector(\'select[wire\\\\:model\\\\.live="moduleFilter"]\');
+                    if (moduleFilter && moduleFilter.value !== "") {
+                        console.log(`權限矩陣：同步模組篩選器: "${moduleFilter.value}" → ""`);
+                        moduleFilter.value = "";
+                        moduleFilter.selectedIndex = 0;
+                        moduleFilter.dispatchEvent(new Event("change", { bubbles: true }));
+                        console.log("✅ 權限矩陣：模組篩選器已同步:", moduleFilter.options[moduleFilter.selectedIndex].text);
+                    }
+                    
+                    console.log("✅ 權限矩陣：DOM 元素狀態同步完成");
+                }, 300);
+            ');
+            
+            // 發送前端刷新事件
+            $this->dispatch('clearFilters-completed');
+            
+            // 記錄重置完成
+            \Log::info('✅ clearFilters - 權限矩陣篩選重置完成', [
+                'after_reset' => [
+                    'search' => $this->search,
+                    'moduleFilter' => $this->moduleFilter,
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('權限矩陣重置方法執行失敗', [
                 'method' => 'clearFilters',
                 'error' => $e->getMessage(),
                 'component' => static::class,
@@ -634,7 +676,8 @@ class PermissionMatrix extends Component
                 'type' => 'error',
                 'message' => '重置操作失敗，請重試'
             ]);
-        }}
+        }
+    }
 
     /**
      * 檢查角色是否擁有特定權限 - 效能優化版本
@@ -814,6 +857,9 @@ class PermissionMatrix extends Component
      */
     public function updatedSearch(): void
     {
+        // 清除快取以確保搜尋生效
+        $this->clearPermissionCache();
+        
         $this->dispatch('search-updated', search: $this->search);
     }
 
@@ -822,6 +868,9 @@ class PermissionMatrix extends Component
      */
     public function updatedModuleFilter(): void
     {
+        // 清除快取以確保篩選生效
+        $this->clearPermissionCache();
+        
         $this->dispatch('module-filter-updated', module: $this->moduleFilter);
     }
 

@@ -1,0 +1,462 @@
+﻿時間,使用者,類型,描述,IP位址,結果,風險等級
+"2025-08-29 00:31:44",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-29 00:31:50",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 00:32:49",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-29 00:32:51",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-29 00:32:55",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-29 00:32:57",系統,view_activity_monitor,"執行操作: view_activity_monitor",172.19.0.1,success,低
+"2025-08-29 00:32:59",系統,view_activity_export,"執行操作: view_activity_export",172.19.0.1,success,低
+"2025-08-29 00:33:00",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-29 00:33:03",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/security",172.19.0.1,warning,低
+"2025-08-29 00:33:03",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/appearance",172.19.0.1,warning,低
+"2025-08-29 00:33:04",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/integration",172.19.0.1,warning,低
+"2025-08-29 00:33:05",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/notifications",172.19.0.1,warning,低
+"2025-08-29 00:33:06",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/maintenance",172.19.0.1,warning,低
+"2025-08-29 00:33:07",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/backups",172.19.0.1,warning,低
+"2025-08-29 00:40:14",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-29 00:42:37",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/backups",172.19.0.1,warning,低
+"2025-08-29 00:42:37",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/backups",172.19.0.1,warning,低
+"2025-08-29 00:42:41",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/backups",172.19.0.1,warning,低
+"2025-08-29 00:42:46",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-29 00:43:14",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 16:26:04",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 17:19:14",系統,login_failed,登入失敗：admin,172.19.0.1,warning,中
+"2025-08-29 17:20:31",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 17:40:25",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-29 17:40:38",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-29 17:40:39",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-29 17:40:43",系統,view_activity_monitor,"執行操作: view_activity_monitor",172.19.0.1,success,低
+"2025-08-29 17:40:45",系統,view_activity_export,"執行操作: view_activity_export",172.19.0.1,success,低
+"2025-08-29 17:40:48",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-29 17:49:33",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 17:51:22",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 17:53:52",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 17:53:56",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 17:57:13",系統,login_failed,登入失敗：admin,172.19.0.1,warning,中
+"2025-08-29 17:59:56",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 17:59:59",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 18:04:24",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 18:05:03",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 18:41:09",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 18:41:25",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 18:42:53",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 18:54:03",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:11:28",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 21:11:49",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:14:52",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:15:47",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:16:05",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:18:30",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:21:17",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:21:26",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:23:01",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:23:52",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:25:55",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:28:45",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 21:35:01",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:35:13",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:35:21",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 21:36:43",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 21:40:24",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 22:02:34",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 22:05:09",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 22:05:11",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 22:05:12",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-29 23:48:29",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-29 23:49:48",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-29 23:52:30",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-29 23:52:34",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 00:08:52",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-30 00:08:52",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-30 00:48:25",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 00:48:29",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 00:48:36",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 00:48:37",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 00:48:39",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-30 00:48:41",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-30 00:48:42",系統,view_activity_monitor,"執行操作: view_activity_monitor",172.19.0.1,success,低
+"2025-08-30 00:48:44",系統,view_activity_export,"執行操作: view_activity_export",172.19.0.1,success,低
+"2025-08-30 00:48:48",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 00:50:03",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 00:50:30",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 00:50:48",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 00:51:04",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 00:57:33",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-30 01:07:20",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/backups",172.19.0.1,warning,低
+"2025-08-30 01:09:18",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 01:10:02",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 01:10:03",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/backups",172.19.0.1,warning,低
+"2025-08-30 01:10:23",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 01:10:23",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/backups",172.19.0.1,warning,低
+"2025-08-30 01:10:39",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 01:10:39",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/backups",172.19.0.1,warning,低
+"2025-08-30 01:11:07",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-30 01:11:13",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 01:11:14",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings",172.19.0.1,warning,低
+"2025-08-30 01:11:15",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/settings/security",172.19.0.1,warning,低
+"2025-08-30 01:13:33",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-30 01:13:35",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 01:13:35",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:13:40",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:13:40",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:13:47",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 01:13:48",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-30 01:13:50",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-30 01:13:50",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-30 01:13:51",系統,view_activity_monitor,"執行操作: view_activity_monitor",172.19.0.1,success,低
+"2025-08-30 01:13:52",系統,view_activity_export,"執行操作: view_activity_export",172.19.0.1,success,低
+"2025-08-30 01:13:56",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-30 01:14:09",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-30 01:14:16",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-30 01:14:18",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-30 01:14:19",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-30 01:14:21",系統,view_activity_monitor,"執行操作: view_activity_monitor",172.19.0.1,success,低
+"2025-08-30 01:14:21",系統,forbidden_access,"HTTP 錯誤：403 - GET admin/activities/security",172.19.0.1,warning,低
+"2025-08-30 01:15:29",系統,security_monitor_access,管理員存取安全事件監控頁面,172.19.0.1,warning,低
+"2025-08-30 01:15:42",系統,security_monitor_access,管理員存取安全事件監控頁面,172.19.0.1,warning,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:15:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 01:16:12",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-30 01:16:15",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 12:10:26",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 12:13:09",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 12:13:21",系統,slow_query,"系統事件: slow_query",172.19.0.1,success,低
+"2025-08-30 12:24:45",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 12:36:53",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-30 12:36:59",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-30 12:37:15",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-30 12:37:57",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-30 13:22:38",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-30 13:22:42",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 13:46:53",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-30 13:47:12",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 13:57:11",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-30 13:58:02",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-30 13:58:49",系統,server_error,"HTTP 錯誤：500 - GET admin/permissions",172.19.0.1,warning,低
+"2025-08-30 14:12:53",系統,slow_query,"系統事件: slow_query",127.0.0.1,success,低
+"2025-08-30 14:12:55",系統,slow_query,"系統事件: slow_query",127.0.0.1,success,低
+"2025-08-30 15:43:39",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-30 15:43:41",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 15:45:18",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-30 15:45:51",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 18:43:19",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 18:59:08",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 20:01:06",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-30 20:01:07",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 20:02:41",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-30 20:03:12",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 20:43:34",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 20:47:00",系統,slow_query,"系統事件: slow_query",172.19.0.1,success,低
+"2025-08-30 20:54:00",系統,server_error,"HTTP 錯誤：500 - GET admin/roles/create",172.19.0.1,warning,低
+"2025-08-30 21:26:10",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:26:35",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:26:37",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-30 21:26:39",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:28:25",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:28:29",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:38:01",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:38:04",系統,security_monitor_access,管理員存取安全事件監控頁面,172.19.0.1,warning,低
+"2025-08-30 21:38:07",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-30 21:38:09",系統,view_activity_monitor,"執行操作: view_activity_monitor",172.19.0.1,success,低
+"2025-08-30 21:38:12",系統,view_activity_export,"執行操作: view_activity_export",172.19.0.1,success,低
+"2025-08-30 21:38:14",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:39:40",系統,security_monitor_access,管理員存取安全事件監控頁面,172.19.0.1,warning,低
+"2025-08-30 21:39:50",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:10",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:11",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:53",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:54",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:55",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:56",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:56",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:57",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:58",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:58",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:40:59",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:41:00",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:41:15",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:41:16",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:41:20",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:41:31",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:43:39",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:43:41",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:45:36",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:45:45",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:46:54",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 21:46:54",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 21:48:06",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 21:48:06",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 21:48:16",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 21:48:16",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 21:48:21",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 21:49:13",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 21:53:31",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 21:53:31",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:04:40",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:04:40",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:04:45",系統,security_monitor_access,管理員存取安全事件監控頁面,172.19.0.1,warning,低
+"2025-08-30 22:05:02",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:05:37",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-30 22:05:40",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:08:00",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:08:07",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:10:32",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:10:32",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:10:39",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:11:19",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:11:20",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:11:47",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:11:48",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:11:59",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:12:00",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:13:50",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:13:51",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:14:57",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 22:14:57",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:14:58",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:15:01",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:15:02",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:15:39",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:15:39",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:15:39",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:15:39",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:15:40",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:15:56",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:15:56",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:15:57",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:15:57",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:16:06",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:16:07",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:16:17",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:16:18",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:17:09",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:17:10",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:17:10",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:17:11",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:17:22",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:17:22",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:17:23",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:17:23",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:17:39",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:17:40",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:17:42",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:17:42",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:17:43",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:17:43",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:17:51",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:17:52",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:18:03",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:18:04",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:19:08",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:19:08",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:19:33",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:23:22",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:23:22",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:23:23",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:24:28",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 22:24:33",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:24:33",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:24:34",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:28:57",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:28:57",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:28:57",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:29:32",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:29:32",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:35:15",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:35:15",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:35:42",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:36:30",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 22:36:30",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:40:08",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:40:09",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:40:10",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:40:13",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:41:16",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:41:16",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:41:46",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 22:41:56",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:42:09",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:45:26",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:45:27",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:45:27",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:45:28",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:45:31",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:45:31",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:46:09",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:46:10",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:46:10",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:46:11",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:46:14",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:46:15",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:46:51",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:46:51",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:46:52",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:46:52",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:46:53",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:46:56",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:46:57",系統,server_error,"HTTP 錯誤：500 - GET admin/activities",172.19.0.1,warning,低
+"2025-08-30 22:47:13",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:47:14",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:47:20",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:47:20",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:47:25",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:47:57",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:49:08",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:50:14",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:50:24",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:51:18",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 22:51:18",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:51:29",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-30 22:54:11",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-30 22:54:11",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-30 22:54:11",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-30 22:54:23",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:15:42",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-31 00:15:43",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 00:15:45",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-31 00:15:45",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-31 00:31:22",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-31 00:31:37",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 00:31:46",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-31 00:31:46",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-31 00:34:37",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:34:42",系統管理員,activity_flagged,"標記活動為可疑 #336",172.19.0.1,success,中
+"2025-08-31 00:34:53",系統管理員,activity_flagged,"標記活動為可疑 #336",172.19.0.1,success,中
+"2025-08-31 00:35:02",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:35:18",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:35:20",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:35:20",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:35:26",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:41:27",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-31 00:41:27",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-31 00:41:28",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:41:56",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:41:57",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:42:20",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:42:20",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:42:24",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:42:45",系統管理員,activity_flagged,"標記活動為可疑 #351",172.19.0.1,success,中
+"2025-08-31 00:43:34",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:44:06",系統管理員,activity_flagged,"標記活動為可疑 #353",172.19.0.1,success,中
+"2025-08-31 00:46:15",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:46:22",系統管理員,activity_flagged,"標記活動為可疑 #355",172.19.0.1,success,中
+"2025-08-31 00:46:25",系統管理員,activity_flagged,"標記活動為可疑 #356",172.19.0.1,success,中
+"2025-08-31 00:46:30",系統管理員,activity_flagged,"標記活動為可疑 #357",172.19.0.1,success,中
+"2025-08-31 00:46:37",系統管理員,activity_flagged,"標記活動為可疑 #355",172.19.0.1,success,中
+"2025-08-31 00:46:46",系統管理員,activity_flagged,"標記活動為可疑 #359",172.19.0.1,success,中
+"2025-08-31 00:46:46",系統管理員,activity_flagged,"取消標記活動為可疑 #359",172.19.0.1,success,中
+"2025-08-31 00:46:54",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-31 00:46:54",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-31 00:46:55",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:47:31",系統,security_monitor_access,管理員存取安全事件監控頁面,172.19.0.1,warning,低
+"2025-08-31 00:47:34",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-31 00:47:36",系統,security_monitor_access,管理員存取安全事件監控頁面,172.19.0.1,warning,低
+"2025-08-31 00:47:37",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:47:39",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-31 00:47:49",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 00:47:49",系統,view_activity_monitor,"執行操作: view_activity_monitor",172.19.0.1,success,低
+"2025-08-31 00:47:50",系統,view_activity_export,"執行操作: view_activity_export",172.19.0.1,success,低
+"2025-08-31 00:50:43",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:50:45",系統,security_monitor_access,管理員存取安全事件監控頁面,172.19.0.1,warning,低
+"2025-08-31 00:51:09",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 00:51:18",系統,view_activity_monitor,"執行操作: view_activity_monitor",172.19.0.1,success,低
+"2025-08-31 00:51:20",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-31 00:51:21",系統,security_monitor_access,管理員存取安全事件監控頁面,172.19.0.1,warning,低
+"2025-08-31 00:51:24",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 01:03:10",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:07:55",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:07:55",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-31 01:07:55",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-31 01:07:59",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:15:19",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:15:19",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-31 01:15:19",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-31 01:15:20",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 01:22:35",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:23:13",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:23:13",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-31 01:23:13",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-31 01:23:18",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 01:23:34",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:23:34",系統,server_error,"HTTP 錯誤：500 - GET admin/users",172.19.0.1,warning,低
+"2025-08-31 01:23:35",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:23:43",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:31:51",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:31:55",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:31:56",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:32:29",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:33:58",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:34:28",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:34:29",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:34:48",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:35:48",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:36:01",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:38:46",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:40:56",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:40:57",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:41:00",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:42:13",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:42:16",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:45:08",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:45:13",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:45:44",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:45:48",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:47:02",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:47:05",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:49:25",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:49:31",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 01:49:46",系統,server_error,"HTTP 錯誤：500 - GET admin/users",172.19.0.1,warning,低
+"2025-08-31 02:05:52",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 02:06:29",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 02:07:01",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 02:07:05",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 02:07:12",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 12:39:26",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 12:39:31",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 12:39:43",系統,user_updated,更新使用者：系統管理員,172.19.0.1,success,低
+"2025-08-31 12:39:49",系統,server_error,"HTTP 錯誤：500 - GET admin/users",172.19.0.1,warning,低
+"2025-08-31 12:42:32",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 12:48:17",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 12:51:00",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 12:53:25",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-31 12:53:25",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-31 12:53:31",系統,security_monitor_access,管理員存取安全事件監控頁面,172.19.0.1,warning,低
+"2025-08-31 12:53:32",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-31 12:53:33",系統,view_activity_monitor,"執行操作: view_activity_monitor",172.19.0.1,success,低
+"2025-08-31 12:53:34",系統,view_activity_export,"執行操作: view_activity_export",172.19.0.1,success,低
+"2025-08-31 12:53:38",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-31 12:53:38",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 16:04:53",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 16:09:52",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 16:52:22",系統管理員,user_logout,使用者登出系統,172.19.0.1,success,低
+"2025-08-31 16:52:24",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 16:54:57",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 17:07:32",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 17:14:21",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 17:19:44",系統管理員,user_login,使用者登入系統,172.19.0.1,success,低
+"2025-08-31 17:21:48",系統,cache_missed,"系統事件: cache_missed",172.19.0.1,success,低
+"2025-08-31 17:21:48",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
+"2025-08-31 17:21:50",系統,view_activity_stats,"執行操作: view_activity_stats",172.19.0.1,success,低
+"2025-08-31 17:21:53",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 17:22:04",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 17:22:05",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 17:22:06",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 17:22:07",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 17:22:07",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 17:22:08",系統,cache_hit,"系統事件: cache_hit",172.19.0.1,success,低
+"2025-08-31 17:27:31",系統,view_activity_logs,"執行操作: view_activity_logs",172.19.0.1,success,低
