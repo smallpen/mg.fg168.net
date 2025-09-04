@@ -86,13 +86,13 @@ curl http://localhost/health
 
 ## 故障排除
 
-如果遇到部署問題，請參考 [故障排除指南](TROUBLESHOOTING.md)。
-
 常見問題：
 - 資料庫連線問題
 - Redis 認證問題  
 - 檔案權限問題
 - APP_KEY 未設定
+
+詳細故障排除資訊請參考 `docs/troubleshooting/TROUBLESHOOTING.md`。
 
 ## 環境配置
 
