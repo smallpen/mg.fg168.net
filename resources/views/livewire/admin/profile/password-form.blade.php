@@ -39,7 +39,7 @@
                 <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     新密碼 <span class="text-red-500">*</span>
                 </label>
-                <input type="password" id="password" wire:model.lazy="password" 
+                <input type="password" id="password" wire:model.live="password" 
                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                        autocomplete="new-password">
                 @error('password')
@@ -64,47 +64,7 @@
             </div>
 
             <!-- 密碼強度指示器 -->
-            <div x-data="{ 
-                password: @entangle('password'),
-                strength: 0,
-                strengthText: '很弱',
-                strengthColor: 'bg-red-500'
-            }" x-init="
-                $watch('password', value => {
-                    let score = 0;
-                    if (value.length >= 8) score++;
-                    if (/[a-z]/.test(value)) score++;
-                    if (/[A-Z]/.test(value)) score++;
-                    if (/[0-9]/.test(value)) score++;
-                    if (/[^A-Za-z0-9]/.test(value)) score++;
-                    
-                    strength = score;
-                    
-                    switch(score) {
-                        case 0:
-                        case 1:
-                            strengthText = '很弱';
-                            strengthColor = 'bg-red-500';
-                            break;
-                        case 2:
-                            strengthText = '弱';
-                            strengthColor = 'bg-orange-500';
-                            break;
-                        case 3:
-                            strengthText = '中等';
-                            strengthColor = 'bg-yellow-500';
-                            break;
-                        case 4:
-                            strengthText = '強';
-                            strengthColor = 'bg-blue-500';
-                            break;
-                        case 5:
-                            strengthText = '很強';
-                            strengthColor = 'bg-green-500';
-                            break;
-                    }
-                })
-            " x-show="password.length > 0">
+            <div x-data="passwordStrengthIndicator()" x-show="showStrength">
                 <div class="mt-2">
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-sm text-gray-600 dark:text-gray-400">密碼強度：</span>
@@ -165,3 +125,69 @@
         </form>
     </div>
 </div>
+
+<script>
+function passwordStrengthIndicator() {
+    return {
+        password: @entangle('password'),
+        strength: 0,
+        strengthText: '很弱',
+        strengthColor: 'bg-red-500',
+        showStrength: false,
+        
+        init() {
+            var self = this;
+            
+            // 監聽密碼欄位的輸入事件
+            var passwordField = document.getElementById('password');
+            if (passwordField) {
+                passwordField.addEventListener('input', function(e) {
+                    self.updateStrength(e.target.value);
+                });
+            }
+            
+            // 監聽 Livewire 的變化
+            this.$watch('password', function(value) {
+                self.updateStrength(value);
+            });
+        },
+        
+        updateStrength(value) {
+            this.showStrength = value && value.length > 0;
+            
+            var score = 0;
+            if (value && value.length >= 8) score++;
+            if (value && /[a-z]/.test(value)) score++;
+            if (value && /[A-Z]/.test(value)) score++;
+            if (value && /[0-9]/.test(value)) score++;
+            if (value && /[^A-Za-z0-9]/.test(value)) score++;
+            
+            this.strength = score;
+            
+            switch(score) {
+                case 0:
+                case 1:
+                    this.strengthText = '很弱';
+                    this.strengthColor = 'bg-red-500';
+                    break;
+                case 2:
+                    this.strengthText = '弱';
+                    this.strengthColor = 'bg-orange-500';
+                    break;
+                case 3:
+                    this.strengthText = '中等';
+                    this.strengthColor = 'bg-yellow-500';
+                    break;
+                case 4:
+                    this.strengthText = '強';
+                    this.strengthColor = 'bg-blue-500';
+                    break;
+                case 5:
+                    this.strengthText = '很強';
+                    this.strengthColor = 'bg-green-500';
+                    break;
+            }
+        }
+    }
+}
+</script>
