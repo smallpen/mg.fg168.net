@@ -128,50 +128,25 @@
 @endpush
 
 @section('content')
-<div class="permission-matrix-container bg-gray-50 dark:bg-gray-900">
+<div class="space-y-6">
     {{-- 載入指示器 --}}
     <div wire:loading.delay class="fixed top-0 left-0 right-0 z-50">
         <div class="bg-blue-600 h-1">
             <div class="bg-blue-400 h-full animate-pulse"></div>
         </div>
     </div>
-    
-    {{-- 主要內容區域 --}}
-    <div class="container mx-auto px-4 py-6">
-        {{-- 麵包屑導航 --}}
-        <nav class="flex mb-6" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                <li class="inline-flex items-center">
-                    <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
-                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-                        </svg>
-                        {{ __('admin.dashboard.title') }}
-                    </a>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        <a href="{{ route('admin.permissions.index') }}" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">
-                            {{ __('permissions.titles.permission_management') }}
-                        </a>
-                    </div>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">
-                            {{ __('permissions.titles.permission_matrix', ['default' => '權限矩陣']) }}
-                        </span>
-                    </div>
-                </li>
-            </ol>
-        </nav>
-        
+        <!-- 頁面標題 -->
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    {{ __('permissions.titles.permission_matrix', ['default' => '權限矩陣']) }}
+                </h1>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    管理角色與權限的對應關係，快速檢視和調整權限分配
+                </p>
+            </div>
+        </div>
+
         {{-- 權限矩陣 Livewire 元件 --}}
         <div class="relative">
             <div wire:loading.delay class="loading-overlay">

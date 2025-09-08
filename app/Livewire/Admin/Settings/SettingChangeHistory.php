@@ -779,7 +779,6 @@ class SettingChangeHistory extends AdminComponent
 
     public function render()
     {
-        return view('livewire.admin.settings.setting-change-history')
-            ->layout('components.layouts.admin');
+        return view('livewire.admin.settings.setting-change-history');
     }
 }

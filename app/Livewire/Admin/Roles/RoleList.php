@@ -310,7 +310,7 @@ class RoleList extends AdminComponent
             $this->selectedRoles = [];
             $this->selectAll = false;
             $this->bulkAction = '';
-            $this->showFilters = 'all';
+            $this->showFilters = false;
             $this->showBulkActions = false;
             
             // 清除快取
@@ -324,26 +324,6 @@ class RoleList extends AdminComponent
             
             // 強制重新渲染整個元件
             $this->skipRender = false;
-            
-            // 強制 Livewire 同步狀態到前端
-            $this->js('
-                // 強制更新所有表單元素的值
-                setTimeout(() => {
-                    const searchInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="search"]\');
-                    searchInputs.forEach(input => {
-                        input.value = "";
-                        input.dispatchEvent(new Event("input", { bubbles: true }));
-                    });
-                    
-                    const filterSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live*="Filter"]\');
-                    filterSelects.forEach(select => {
-                        select.value = "all";
-                        select.dispatchEvent(new Event("change", { bubbles: true }));
-                    });
-                    
-                    console.log("✅ 角色管理表單元素已強制同步");
-                }, 100);
-            ');
             
             // 發送強制 UI 更新事件
             $this->dispatch('force-ui-update');
@@ -379,7 +359,44 @@ class RoleList extends AdminComponent
                 'type' => 'error',
                 'message' => '重置操作失敗，請重試'
             ]);
-        }}
+        }
+    }
+
+    /**
+     * 每頁顯示筆數更新時重置分頁
+     */
+    public function updatedPerPage(): void
+    {
+        try {
+            // 驗證 perPage 值
+            if (!in_array($this->perPage, [10, 20, 50, 100])) {
+                $this->perPage = 20; // 重置為預設值
+            }
+            
+            $this->resetPage();
+            
+            // 發送更新事件
+            $this->dispatch('per-page-updated', perPage: $this->perPage);
+            
+        } catch (\Exception $e) {
+            logger()->error('Error updating perPage', [
+                'error' => $e->getMessage(),
+                'perPage' => $this->perPage
+            ]);
+            
+            // 重置為預設值
+            $this->perPage = 20;
+            $this->resetPage();
+        }
+    }
+
+    /**
+     * 前往指定頁面
+     */
+    public function gotoPage(int $page): void
+    {
+        $this->setPage($page);
+    }
 
     /**
      * 切換篩選器顯示
@@ -864,7 +881,6 @@ class RoleList extends AdminComponent
 
     public function render()
     {
-        return view('livewire.admin.roles.role-list')
-            ->layout('layouts.admin');
+        return view('livewire.admin.roles.role-list');
     }
 }

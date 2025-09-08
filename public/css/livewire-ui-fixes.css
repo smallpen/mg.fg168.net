@@ -1,0 +1,346 @@
+/**
+ * Livewire UI 佈局和樣式修復
+ * 
+ * 此 CSS 檔案修復 Livewire 元件中的 UI 佈局和樣式問題
+ */
+
+/* 重置按鈕樣式修復 */
+.reset-button {
+    @apply inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors duration-200;
+}
+
+.reset-button:hover {
+    @apply bg-gray-50 dark:bg-gray-700 rounded-md;
+}
+
+.reset-button svg {
+    @apply w-4 h-4 mr-2;
+}
+
+/* 篩選器區域樣式 */
+.filters-container {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6;
+}
+
+.filters-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+}
+
+.filter-group {
+    @apply space-y-2;
+}
+
+.filter-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
+}
+
+.filter-input {
+    @apply block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white text-sm;
+}
+
+.filter-select {
+    @apply block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-700 dark:text-white text-sm;
+}
+
+/* 分頁樣式修復 */
+.pagination-container {
+    @apply flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 sm:px-6;
+}
+
+.pagination-info {
+    @apply text-sm text-gray-700 dark:text-gray-400;
+}
+
+.pagination-controls {
+    @apply flex items-center space-x-2;
+}
+
+.pagination-button {
+    @apply relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200;
+}
+
+.pagination-button:disabled {
+    @apply opacity-50 cursor-not-allowed;
+}
+
+.pagination-button.active {
+    @apply bg-primary-600 text-white border-primary-600 hover:bg-primary-700;
+}
+
+/* 每頁顯示筆數選擇器 */
+.per-page-selector {
+    @apply flex items-center space-x-3;
+}
+
+.per-page-label {
+    @apply text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap;
+}
+
+.per-page-select {
+    @apply px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent min-w-[80px];
+}
+
+/* 表格樣式修復 */
+.data-table {
+    @apply min-w-full divide-y divide-gray-200 dark:divide-gray-700;
+}
+
+.data-table thead {
+    @apply bg-gray-50 dark:bg-gray-900;
+}
+
+.data-table th {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+}
+
+.data-table tbody {
+    @apply bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700;
+}
+
+.data-table tr {
+    @apply hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150;
+}
+
+.data-table td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white;
+}
+
+/* 排序按鈕樣式 */
+.sort-button {
+    @apply inline-flex items-center space-x-1 text-left font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:text-gray-700 dark:focus:text-gray-200 transition-colors duration-150;
+}
+
+.sort-icon {
+    @apply w-4 h-4;
+}
+
+/* 狀態徽章樣式 */
+.status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-badge.active {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+}
+
+.status-badge.inactive {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+}
+
+.status-badge.pending {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+}
+
+/* 操作按鈕樣式 */
+.action-buttons {
+    @apply flex items-center space-x-2;
+}
+
+.action-button {
+    @apply inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.action-button.primary {
+    @apply text-primary-700 bg-primary-100 hover:bg-primary-200 focus:ring-primary-500;
+}
+
+.action-button.secondary {
+    @apply text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-gray-500;
+}
+
+.action-button.danger {
+    @apply text-red-700 bg-red-100 hover:bg-red-200 focus:ring-red-500;
+}
+
+/* 載入狀態樣式 */
+.loading-overlay {
+    @apply absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 flex items-center justify-center z-10;
+}
+
+.loading-spinner {
+    @apply animate-spin h-8 w-8 text-primary-600;
+}
+
+/* Toast 通知樣式 */
+.toast-container {
+    @apply fixed top-4 right-4 z-50 space-y-2;
+}
+
+.toast {
+    @apply p-4 rounded-md shadow-lg transition-all duration-300 transform;
+}
+
+.toast.success {
+    @apply bg-green-500 text-white;
+}
+
+.toast.error {
+    @apply bg-red-500 text-white;
+}
+
+.toast.warning {
+    @apply bg-yellow-500 text-black;
+}
+
+.toast.info {
+    @apply bg-blue-500 text-white;
+}
+
+.toast-enter {
+    @apply translate-x-full opacity-0;
+}
+
+.toast-enter-active {
+    @apply translate-x-0 opacity-100;
+}
+
+.toast-exit {
+    @apply translate-x-0 opacity-100;
+}
+
+.toast-exit-active {
+    @apply translate-x-full opacity-0;
+}
+
+/* 表單驗證錯誤樣式 */
+.form-error {
+    @apply mt-1 text-sm text-red-600 dark:text-red-400;
+}
+
+.form-input.error {
+    @apply border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500;
+}
+
+/* 批量操作樣式 */
+.bulk-actions {
+    @apply bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3;
+}
+
+.bulk-actions-content {
+    @apply flex items-center justify-between;
+}
+
+.bulk-actions-info {
+    @apply text-sm text-gray-700 dark:text-gray-300;
+}
+
+.bulk-actions-buttons {
+    @apply flex items-center space-x-3;
+}
+
+/* 空狀態樣式 */
+.empty-state {
+    @apply text-center py-12;
+}
+
+.empty-state-icon {
+    @apply mx-auto h-12 w-12 text-gray-400 dark:text-gray-600;
+}
+
+.empty-state-title {
+    @apply mt-4 text-lg font-medium text-gray-900 dark:text-white;
+}
+
+.empty-state-description {
+    @apply mt-2 text-sm text-gray-500 dark:text-gray-400;
+}
+
+/* 響應式修復 */
+@media (max-width: 640px) {
+    .filters-grid {
+        @apply grid-cols-1;
+    }
+    
+    .pagination-container {
+        @apply flex-col space-y-3;
+    }
+    
+    .pagination-controls {
+        @apply w-full justify-center;
+    }
+    
+    .action-buttons {
+        @apply flex-col space-y-1 space-x-0;
+    }
+    
+    .data-table {
+        @apply text-xs;
+    }
+    
+    .data-table th,
+    .data-table td {
+        @apply px-3 py-2;
+    }
+}
+
+/* 深色模式特定修復 */
+@media (prefers-color-scheme: dark) {
+    .filters-container {
+        @apply bg-gray-800 border-gray-700;
+    }
+    
+    .pagination-container {
+        @apply bg-gray-800 border-gray-700;
+    }
+    
+    .bulk-actions {
+        @apply bg-gray-900 border-gray-700;
+    }
+}
+
+/* 動畫效果 */
+.fade-in {
+    @apply transition-opacity duration-300 ease-in-out;
+}
+
+.fade-in.show {
+    @apply opacity-100;
+}
+
+.fade-in.hide {
+    @apply opacity-0;
+}
+
+.slide-down {
+    @apply transition-all duration-300 ease-in-out transform;
+}
+
+.slide-down.show {
+    @apply translate-y-0 opacity-100;
+}
+
+.slide-down.hide {
+    @apply -translate-y-2 opacity-0;
+}
+
+/* 焦點管理 */
+.focus-visible:focus {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-gray-800;
+}
+
+/* 可訪問性改進 */
+.sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+}
+
+/* 列表項目懸停效果 */
+.list-item {
+    @apply transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700;
+}
+
+/* 卡片樣式 */
+.card {
+    @apply bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700;
+}
+
+.card-header {
+    @apply px-6 py-4 border-b border-gray-200 dark:border-gray-700;
+}
+
+.card-body {
+    @apply px-6 py-4;
+}
+
+.card-footer {
+    @apply px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900;
+}

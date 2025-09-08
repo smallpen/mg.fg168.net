@@ -300,16 +300,29 @@
                                         @else bg-yellow-100 dark:bg-yellow-900
                                         @endif
                                     ">
-                                        <x-dynamic-component 
-                                            :component="'heroicon-o-' . $this->getChangeTypeIcon($change)"
-                                            class="w-4 h-4
-                                                @if($this->getChangeTypeText($change) === '新增') text-green-600 dark:text-green-400
-                                                @elseif($this->getChangeTypeText($change) === '刪除') text-red-600 dark:text-red-400
-                                                @elseif($this->getChangeTypeText($change) === '回復') text-blue-600 dark:text-blue-400
-                                                @else text-yellow-600 dark:text-yellow-400
-                                                @endif
-                                            "
-                                        />
+                                        @php
+                                            $changeType = $this->getChangeTypeText($change);
+                                            $iconClass = "w-4 h-4 ";
+                                            if ($changeType === '新增') {
+                                                $iconClass .= 'text-green-600 dark:text-green-400';
+                                            } elseif ($changeType === '刪除') {
+                                                $iconClass .= 'text-red-600 dark:text-red-400';
+                                            } elseif ($changeType === '回復') {
+                                                $iconClass .= 'text-blue-600 dark:text-blue-400';
+                                            } else {
+                                                $iconClass .= 'text-yellow-600 dark:text-yellow-400';
+                                            }
+                                        @endphp
+                                        
+                                        @if($changeType === '新增')
+                                            <x-heroicon-o-plus-circle class="{{ $iconClass }}" />
+                                        @elseif($changeType === '刪除')
+                                            <x-heroicon-o-minus-circle class="{{ $iconClass }}" />
+                                        @elseif($changeType === '回復')
+                                            <x-heroicon-o-arrow-uturn-left class="{{ $iconClass }}" />
+                                        @else
+                                            <x-heroicon-o-pencil-square class="{{ $iconClass }}" />
+                                        @endif
                                     </div>
                                 </div>
 

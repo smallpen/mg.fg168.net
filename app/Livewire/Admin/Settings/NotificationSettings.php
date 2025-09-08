@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Settings;
 
 use App\Livewire\Admin\AdminComponent;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
@@ -103,6 +104,12 @@ class NotificationSettings extends AdminComponent
     public function mount(): void
     {
         parent::mount();
+        
+        // 檢查權限
+        if (!auth()->user()->hasPermission('settings.view')) {
+            abort(403, '您沒有權限存取此頁面');
+        }
+        
         $this->loadSettings();
         $this->loadTemplates();
         $this->testEmailAddress = auth()->user()->email ?? '';
@@ -113,9 +120,39 @@ class NotificationSettings extends AdminComponent
      */
     public function loadSettings(): void
     {
-        // 使用預設設定，讓郵件通知預設啟用
-        $this->settings = $this->defaultSettings;
-        $this->originalSettings = $this->settings;
+        try {
+            // 從資料庫載入通知相關設定
+            $dbSettings = Setting::byCategory('notification')->get()->keyBy('key');
+            
+            // 合併預設設定和資料庫設定
+            $this->settings = $this->defaultSettings;
+            
+            foreach ($this->defaultSettings as $key => $defaultValue) {
+                $settingKey = "notification.{$key}";
+                if ($dbSettings->has($settingKey)) {
+                    $this->settings[$key] = $dbSettings[$settingKey]->value ?? $defaultValue;
+                }
+            }
+            
+            $this->originalSettings = $this->settings;
+            
+            logger()->info('通知設定載入成功', [
+                'loaded_settings' => array_keys($this->settings),
+                'db_settings_count' => $dbSettings->count()
+            ]);
+            
+        } catch (\Exception $e) {
+            logger()->error('載入通知設定失敗', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // 載入失敗時使用預設設定
+            $this->settings = $this->defaultSettings;
+            $this->originalSettings = $this->settings;
+            
+            $this->addFlash('warning', '載入設定時發生錯誤，已使用預設設定');
+        }
     }
 
     /**
@@ -246,28 +283,161 @@ class NotificationSettings extends AdminComponent
      */
     public function save(): void
     {
+        // 檢查權限
+        if (!auth()->user()->hasPermission('settings.edit')) {
+            $this->addFlash('error', '您沒有權限編輯設定');
+            return;
+        }
+        
         $this->saving = true;
         $this->validationErrors = [];
 
         try {
+            logger()->info('🚀 開始儲存通知設定', [
+                'user_id' => auth()->id(),
+                'username' => auth()->user()->username,
+                'settings' => $this->settings,
+                'original_settings' => $this->originalSettings,
+                'has_changes' => $this->hasChanges,
+                'timestamp' => now()->toISOString()
+            ]);
+            
             // 驗證設定
             $this->validateSettings();
 
-            // 這裡應該將設定儲存到資料庫或配置檔案
-            // 目前只是模擬儲存成功
+            // 儲存設定到資料庫
+            $savedCount = 0;
+            $errors = [];
             
-            // 更新原始值
-            $this->originalSettings = $this->settings;
+            foreach ($this->settings as $key => $value) {
+                // 只儲存有變更的設定
+                if ($value !== ($this->originalSettings[$key] ?? '')) {
+                    try {
+                        $settingKey = "notification.{$key}";
+                        
+                        logger()->info("準備儲存設定: {$settingKey}", [
+                            'old_value' => $this->originalSettings[$key] ?? null,
+                            'new_value' => $value
+                        ]);
+                        
+                        // 查找現有設定
+                        $setting = Setting::where('key', $settingKey)->first();
+                        
+                        if ($setting) {
+                            // 更新現有設定
+                            $setting->value = $value;
+                            $setting->description = $this->getSettingDescription($key);
+                        } else {
+                            // 建立新設定
+                            $setting = new Setting([
+                                'key' => $settingKey,
+                                'value' => $value,
+                                'category' => 'notification',
+                                'type' => $this->getSettingType($key),
+                                'description' => $this->getSettingDescription($key),
+                                'default_value' => $this->defaultSettings[$key] ?? null,
+                                'is_encrypted' => $this->isEncryptedSetting($key),
+                                'is_system' => true,
+                                'is_public' => false,
+                                'sort_order' => $this->getSettingSortOrder($key),
+                            ]);
+                        }
+                        
+                        if ($setting->save()) {
+                            $savedCount++;
+                            logger()->info("設定已儲存: {$settingKey}", [
+                                'old_value' => $this->originalSettings[$key] ?? null,
+                                'new_value' => $value
+                            ]);
+                        } else {
+                            $errors[] = "儲存設定 {$key} 失敗";
+                        }
+                        
+                    } catch (\Exception $e) {
+                        $errors[] = "儲存設定 {$key} 時發生錯誤：{$e->getMessage()}";
+                        logger()->error("儲存設定失敗: {$key}", [
+                            'error' => $e->getMessage(),
+                            'value' => $value,
+                            'trace' => $e->getTraceAsString()
+                        ]);
+                    }
+                }
+            }
             
-            $this->addFlash('success', '通知設定已成功更新');
+            if (!empty($errors)) {
+                throw new \Exception('部分設定儲存失敗：' . implode('、', $errors));
+            }
+            
+            if ($savedCount > 0) {
+                // 清除相關快取
+                Cache::forget('settings_category_notification');
+                Cache::forget('settings_all');
+                
+                // 更新原始值
+                $this->originalSettings = $this->settings;
+                
+                $this->addFlash('success', "通知設定已成功更新（{$savedCount} 項變更）");
+                
+                logger()->info('✅ 通知設定儲存完成', [
+                    'saved_count' => $savedCount,
+                    'user_id' => auth()->id(),
+                    'timestamp' => now()->toISOString()
+                ]);
+                
+                // 發送成功事件到前端
+                $this->dispatch('notification-settings-saved', [
+                    'message' => "通知設定已成功更新（{$savedCount} 項變更）",
+                    'count' => $savedCount
+                ]);
+                
+            } else {
+                $this->addFlash('info', '沒有設定需要更新');
+                
+                logger()->info('ℹ️ 通知設定無變更', [
+                    'user_id' => auth()->id(),
+                    'timestamp' => now()->toISOString()
+                ]);
+            }
 
         } catch (ValidationException $e) {
             $this->validationErrors = $e->validator->errors()->toArray();
             $this->addFlash('error', '設定驗證失敗，請檢查輸入值');
+            
+            logger()->warning('⚠️ 通知設定驗證失敗', [
+                'errors' => $this->validationErrors,
+                'user_id' => auth()->id(),
+                'username' => auth()->user()->username,
+                'settings' => $this->settings,
+                'timestamp' => now()->toISOString()
+            ]);
+            
+            // 發送錯誤事件到前端
+            $this->dispatch('notification-settings-error', [
+                'message' => '設定驗證失敗，請檢查輸入值',
+                'errors' => $this->validationErrors
+            ]);
+            
         } catch (\Exception $e) {
             $this->addFlash('error', "設定更新時發生錯誤：{$e->getMessage()}");
+            
+            logger()->error('❌ 通知設定儲存失敗', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => auth()->id(),
+                'username' => auth()->user()->username,
+                'settings' => $this->settings,
+                'timestamp' => now()->toISOString()
+            ]);
+            
+            // 發送錯誤事件到前端
+            $this->dispatch('notification-settings-error', [
+                'message' => "設定更新時發生錯誤：{$e->getMessage()}"
+            ]);
         } finally {
             $this->saving = false;
+            
+            // 強制重新渲染元件以確保 UI 狀態更新
+            $this->dispatch('settings-saved');
         }
     }
 
@@ -542,11 +712,94 @@ class NotificationSettings extends AdminComponent
     public function resetAll(): void
     {
         try {
+            logger()->info('重設所有通知設定', ['user_id' => auth()->id()]);
             $this->settings = $this->defaultSettings;
             $this->addFlash('success', '所有通知設定已重設為預設值');
         } catch (\Exception $e) {
+            logger()->error('重設設定失敗', ['error' => $e->getMessage()]);
             $this->addFlash('error', "重設設定時發生錯誤：{$e->getMessage()}");
         }
+    }
+    
+    /**
+     * 測試方法 - 用於驗證 Livewire 調用是否正常
+     */
+    public function testMethod(): void
+    {
+        logger()->info('測試方法被調用', ['user_id' => auth()->id()]);
+        $this->addFlash('success', '測試方法調用成功！');
+    }
+
+    /**
+     * 取得設定的資料類型
+     */
+    protected function getSettingType(string $key): string
+    {
+        $types = [
+            'email_enabled' => 'boolean',
+            'smtp_host' => 'text',
+            'smtp_port' => 'number',
+            'smtp_encryption' => 'select',
+            'smtp_username' => 'text',
+            'smtp_password' => 'password',
+            'from_name' => 'text',
+            'from_email' => 'email',
+            'rate_limit_per_minute' => 'number',
+        ];
+
+        return $types[$key] ?? 'text';
+    }
+
+    /**
+     * 取得設定的描述
+     */
+    protected function getSettingDescription(string $key): string
+    {
+        $descriptions = [
+            'email_enabled' => '啟用或停用系統郵件通知功能',
+            'smtp_host' => 'SMTP 伺服器的主機名稱或 IP 位址',
+            'smtp_port' => 'SMTP 伺服器連接埠號（通常為 25、465 或 587）',
+            'smtp_encryption' => 'SMTP 連線加密方式（建議使用 TLS）',
+            'smtp_username' => 'SMTP 認證使用者名稱',
+            'smtp_password' => 'SMTP 認證密碼或應用程式密碼',
+            'from_name' => '系統發送郵件時顯示的寄件者名稱',
+            'from_email' => '系統發送郵件使用的信箱地址',
+            'rate_limit_per_minute' => '限制系統每分鐘發送的通知數量，防止垃圾通知',
+        ];
+
+        return $descriptions[$key] ?? '';
+    }
+
+    /**
+     * 檢查設定是否需要加密
+     */
+    protected function isEncryptedSetting(string $key): bool
+    {
+        $encryptedSettings = [
+            'smtp_password',
+        ];
+
+        return in_array($key, $encryptedSettings);
+    }
+
+    /**
+     * 取得設定的排序順序
+     */
+    protected function getSettingSortOrder(string $key): int
+    {
+        $orders = [
+            'email_enabled' => 10,
+            'smtp_host' => 20,
+            'smtp_port' => 30,
+            'smtp_encryption' => 40,
+            'smtp_username' => 50,
+            'smtp_password' => 60,
+            'from_name' => 70,
+            'from_email' => 80,
+            'rate_limit_per_minute' => 90,
+        ];
+
+        return $orders[$key] ?? 999;
     }
 
     /**
@@ -568,6 +821,12 @@ class NotificationSettings extends AdminComponent
      */
     public function updatedSettings($value, $key): void
     {
+        logger()->info("設定值已更新: {$key}", [
+            'old_value' => $this->originalSettings[$key] ?? null,
+            'new_value' => $value,
+            'user_id' => auth()->id()
+        ]);
+        
         // 如果郵件通知被停用，清除測試結果
         if ($key === 'email_enabled' && !$value) {
             $this->testResult = [];

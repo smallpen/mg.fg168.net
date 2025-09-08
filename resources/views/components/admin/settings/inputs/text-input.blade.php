@@ -1,18 +1,18 @@
 @props([
-    'wire:model' => null,
-    'id' => null,
-    'placeholder' => '',
-    'maxlength' => null,
+    'id' => '',
     'required' => false,
-    'error' => false
+    'error' => false,
+    'placeholder' => '',
+    'maxlength' => null
 ])
 
-<input type="text"
-       {{ $attributes->merge([
-           'class' => 'block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm' . ($error ? ' border-red-300' : '')
-       ]) }}
-       @if($id) id="{{ $id }}" @endif
-       @if($placeholder) placeholder="{{ $placeholder }}" @endif
-       @if($maxlength) maxlength="{{ $maxlength }}" @endif
-       @if($required) required @endif
-       {{ $attributes->whereStartsWith('wire:') }}>
+<input 
+    type="text"
+    id="{{ $id }}"
+    {{ $attributes->merge([
+        'class' => 'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm' . ($error ? ' border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500' : '')
+    ]) }}
+    @if($required) required @endif
+    @if($placeholder) placeholder="{{ $placeholder }}" @endif
+    @if($maxlength) maxlength="{{ $maxlength }}" @endif
+/>

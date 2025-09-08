@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class NotificationSeeder extends Seeder
@@ -12,101 +13,54 @@ class NotificationSeeder extends Seeder
      */
     public function run(): void
     {
-        $notificationService = app(\App\Services\NotificationService::class);
+        $adminUser = User::where('username', 'admin')->first();
         
-        // 獲取所有使用者
-        $users = \App\Models\User::all();
-        
-        if ($users->isEmpty()) {
-            $this->command->warn('沒有找到使用者，請先執行 UserSeeder');
+        if (!$adminUser) {
             return;
         }
 
-        $this->command->info('開始建立通知資料...');
+        $notifications = [
+            [
+                'user_id' => $adminUser->id,
+                'type' => 'info',
+                'title' => '系統維護通知',
+                'message' => '系統將於今晚 23:00 進行例行維護，預計維護時間約 2 小時。',
+                'priority' => 'normal',
+                'icon' => 'fas fa-tools',
+                'color' => 'text-blue-500',
+            ],
+            [
+                'user_id' => $adminUser->id,
+                'type' => 'warning',
+                'title' => '密碼即將過期',
+                'message' => '您的密碼將於 7 天後過期，請及時更新密碼以確保帳號安全。',
+                'priority' => 'high',
+                'icon' => 'fas fa-exclamation-triangle',
+                'color' => 'text-yellow-500',
+            ],
+            [
+                'user_id' => $adminUser->id,
+                'type' => 'success',
+                'title' => '備份完成',
+                'message' => '系統資料備份已成功完成，備份檔案已儲存至安全位置。',
+                'priority' => 'low',
+                'icon' => 'fas fa-check-circle',
+                'color' => 'text-green-500',
+                'read_at' => now(),
+            ],
+            [
+                'user_id' => $adminUser->id,
+                'type' => 'error',
+                'title' => '登入異常',
+                'message' => '檢測到您的帳號有異常登入行為，請檢查帳號安全設定。',
+                'priority' => 'urgent',
+                'icon' => 'fas fa-shield-alt',
+                'color' => 'text-red-500',
+            ],
+        ];
 
-        foreach ($users as $user) {
-            // 為每個使用者建立不同類型的通知
-            
-            // 安全通知
-            $notificationService->createSecurityNotification(
-                $user,
-                '安全警報：異常登入嘗試',
-                '檢測到來自 IP 192.168.1.100 的異常登入嘗試，請檢查您的帳號安全。',
-                [
-                    'data' => [
-                        'ip_address' => '192.168.1.100',
-                        'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                        'location' => '台北市',
-                    ],
-                    'action_url' => '/admin/security/logs',
-                ]
-            );
-
-            // 系統通知
-            $notificationService->createSystemNotification(
-                $user,
-                '系統更新完成',
-                '系統已成功更新到版本 2.1.0，新增多項功能改進。',
-                [
-                    'data' => [
-                        'version' => '2.1.0',
-                        'maintenance_duration' => '30 分鐘',
-                    ],
-                    'action_url' => '/admin/system/updates',
-                ]
-            );
-
-            // 使用者操作通知
-            $notificationService->createUserActionNotification(
-                $user,
-                '新使用者註冊',
-                '使用者 張小明 已成功註冊並等待審核。',
-                [
-                    'data' => [
-                        'target_user_id' => $user->id,
-                        'action_type' => 'create',
-                    ],
-                    'action_url' => '/admin/users',
-                ]
-            );
-
-            // 報告通知
-            $notificationService->createReportNotification(
-                $user,
-                '每日統計報告',
-                '今日系統共有 85 位使用者活躍，較昨日增長 12%。',
-                [
-                    'data' => [
-                        'report_type' => 'daily',
-                        'data_points' => 85,
-                    ],
-                    'action_url' => '/admin/reports/daily',
-                ]
-            );
-
-            // 建立一些已讀的通知
-            $readNotifications = \App\Models\Notification::factory()
-                ->count(3)
-                ->read()
-                ->create(['user_id' => $user->id]);
-
-            // 建立一些未讀的通知
-            $unreadNotifications = \App\Models\Notification::factory()
-                ->count(5)
-                ->unread()
-                ->create(['user_id' => $user->id]);
-
-            // 建立一些高優先級通知
-            $highPriorityNotifications = \App\Models\Notification::factory()
-                ->count(2)
-                ->highPriority()
-                ->unread()
-                ->create(['user_id' => $user->id]);
-
-            $this->command->info("已為使用者 {$user->name} 建立通知");
+        foreach ($notifications as $notification) {
+            Notification::create($notification);
         }
-
-        $totalNotifications = \App\Models\Notification::count();
-        $this->command->info("通知資料建立完成！總共建立了 {$totalNotifications} 筆通知");
     }
 }

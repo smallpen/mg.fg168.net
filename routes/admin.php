@@ -255,6 +255,11 @@ Route::middleware('admin')
                  ->name('import')
                  ->middleware('can:settings.backup');
             
+            // 備份管理 API
+            Route::post('/create-backup', [App\Http\Controllers\Admin\SettingsController::class, 'createBackup'])
+                 ->name('create-backup')
+                 ->middleware('can:settings.backup');
+            
             // 快取管理 API
             Route::post('/clear-cache', [App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])
                  ->name('clear-cache')
@@ -334,11 +339,23 @@ Route::middleware('admin')
         })->name('sessions');
     });
     
-    // 通知中心路由
+    // 通知管理路由群組
     Route::prefix('notifications')->name('notifications.')->group(function () {
-        Route::get('/', function () {
-            return view('admin.notifications.index');
-        })->name('index');
+        Route::get('/', [App\Http\Controllers\Admin\NotificationController::class, 'index'])
+             ->name('index')
+             ->middleware('can:notifications.view');
+        
+        Route::get('/create', [App\Http\Controllers\Admin\NotificationController::class, 'create'])
+             ->name('create')
+             ->middleware('can:notifications.create');
+        
+        Route::get('/{notification}', [App\Http\Controllers\Admin\NotificationController::class, 'show'])
+             ->name('show')
+             ->middleware('can:notifications.view');
+        
+        Route::get('/{notification}/edit', [App\Http\Controllers\Admin\NotificationController::class, 'edit'])
+             ->name('edit')
+             ->middleware('can:notifications.edit');
         
         Route::get('/settings', function () {
             return view('admin.notifications.settings');

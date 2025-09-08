@@ -20,7 +20,7 @@
                         </label>
                         <input type="text" 
                                id="username"
-                               wire:model="username" 
+                               wire:model.live="username" 
                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white @error('username') border-red-500 @enderror"
                                placeholder="{{ __('admin.users.username_placeholder') }}">
                         @error('username')
@@ -35,7 +35,7 @@
                         </label>
                         <input type="text" 
                                id="name"
-                               wire:model="name" 
+                               wire:model.live="name" 
                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white @error('name') border-red-500 @enderror"
                                placeholder="{{ __('admin.users.name_placeholder') }}">
                         @error('name')
@@ -50,7 +50,7 @@
                         </label>
                         <input type="email" 
                                id="email"
-                               wire:model="email" 
+                               wire:model.live="email" 
                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white @error('email') border-red-500 @enderror"
                                placeholder="{{ __('admin.users.email_placeholder') }}">
                         @error('email')
@@ -67,7 +67,7 @@
                         <div class="flex items-center">
                             <input type="checkbox" 
                                    id="is_active"
-                                   wire:model="is_active" 
+                                   wire:model.live="is_active" 
                                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                             <label for="is_active" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
                                 {{ __('admin.users.active') }}
@@ -116,7 +116,7 @@
                         <div class="relative">
                             <input type="{{ $showPassword ? 'text' : 'password' }}" 
                                    id="password"
-                                   wire:model="password" 
+                                   wire:model.live="password" 
                                    class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white @error('password') border-red-500 @enderror"
                                    placeholder="{{ $isEditing ? __('admin.users.password_optional') : __('admin.users.password_placeholder') }}">
                             <button type="button" 
@@ -152,7 +152,7 @@
                         </label>
                         <input type="{{ $showPassword ? 'text' : 'password' }}" 
                                id="password_confirmation"
-                               wire:model="password_confirmation" 
+                               wire:model.live="password_confirmation" 
                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white @error('password_confirmation') border-red-500 @enderror"
                                placeholder="{{ __('admin.users.password_confirmation_placeholder') }}">
                         @error('password_confirmation')
@@ -179,7 +179,7 @@
                             <div class="flex items-center">
                                 <input type="checkbox" 
                                        id="role_{{ $role->id }}"
-                                       wire:model="selectedRoles" 
+                                       wire:model.live="selectedRoles" 
                                        value="{{ $role->id }}"
                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                 <label for="role_{{ $role->id }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">

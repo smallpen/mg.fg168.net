@@ -259,7 +259,6 @@ class AppearanceSettings extends Component
      */
     public function render()
     {
-        return view('livewire.admin.settings.appearance-settings')
-            ->layout('layouts.admin');
+        return view('livewire.admin.settings.appearance-settings');
     }
 }

@@ -56,6 +56,9 @@ class UserForm extends Component
                 abort(403, __('admin.users.no_permission_edit'));
             }
         } else {
+            $this->isEditing = false;
+            $this->user = null;
+            
             // 檢查建立權限
             if (!auth()->user()->hasPermission('users.create')) {
                 abort(403, __('admin.users.no_permission_create'));
@@ -152,6 +155,16 @@ class UserForm extends Component
         $this->validate();
 
         try {
+            // 記錄調試資訊
+            \Log::error('🔧 UserForm save() 開始', [
+                'isEditing' => $this->isEditing,
+                'user_id' => $this->user?->id,
+                'username' => $this->username,
+                'name' => $this->name,
+                'email' => $this->email,
+                'selectedRoles' => $this->selectedRoles,
+            ]);
+
             $userData = [
                 'username' => $this->username,
                 'name' => $this->name,
@@ -164,7 +177,10 @@ class UserForm extends Component
                 $userData['password'] = Hash::make($this->password);
             }
 
+            \Log::error('🔧 準備儲存的使用者資料', $userData);
+
             if ($this->isEditing) {
+                \Log::error('🔧 執行使用者更新操作');
                 // 更新使用者
                 $this->user->update($userData);
                 
@@ -173,17 +189,22 @@ class UserForm extends Component
                 
                 $message = __('admin.messages.success.updated', ['item' => __('admin.users.user')]);
             } else {
+                \Log::error('🔧 執行使用者建立操作');
                 // 建立新使用者
                 $user = User::create($userData);
+                \Log::error('🔧 使用者建立成功', ['user_id' => $user->id]);
                 
                 // 分配角色
                 if (!empty($this->selectedRoles)) {
                     $user->roles()->sync($this->selectedRoles);
+                    \Log::error('🔧 角色分配完成', ['roles' => $this->selectedRoles]);
                 }
                 
                 $this->user = $user;
                 $message = __('admin.messages.success.created', ['item' => __('admin.users.user')]);
             }
+
+            \Log::error('🔧 使用者儲存成功，準備重定向');
 
             $this->dispatch('show-toast', [
                 'type' => 'success',
@@ -194,6 +215,13 @@ class UserForm extends Component
             return $this->redirect(route('admin.users.index'));
 
         } catch (\Exception $e) {
+            \Log::error('🔧 使用者儲存失敗', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'isEditing' => $this->isEditing,
+                'userData' => $userData ?? null,
+            ]);
+
             $this->dispatch('show-toast', [
                 'type' => 'error',
                 'message' => $this->isEditing 
@@ -265,8 +293,6 @@ class UserForm extends Component
     {
         return view('livewire.admin.users.user-form', [
             'availableRoles' => $this->availableRoles,
-        ])->layout('admin.layouts.app', [
-            'title' => $this->isEditing ? __('admin.users.edit') : __('admin.users.create')
         ]);
     }
 }

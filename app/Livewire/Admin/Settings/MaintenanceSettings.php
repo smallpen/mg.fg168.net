@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Validation\ValidationException;
 
 /**
  * 維護設定管理元件
@@ -17,6 +18,20 @@ use Illuminate\Support\Facades\Artisan;
  */
 class MaintenanceSettings extends Component
 {
+    // 直接使用個別屬性而不是嵌套陣列
+    public $auto_backup_enabled = true;
+    public $backup_frequency = 'daily';
+    public $backup_retention_days = 30;
+    public $backup_storage_path = '';
+    public $log_level = 'info';
+    public $log_retention_days = 14;
+    public $cache_driver = 'redis';
+    public $cache_ttl = 3600;
+    public $maintenance_mode = false;
+    public $maintenance_message = '系統正在進行維護，請稍後再試。';
+    public $monitoring_enabled = true;
+    public $monitoring_interval = 300;
+    
     public $settings = [];
     public $storageValidation = [];
     public $testResults = [];
@@ -30,18 +45,18 @@ class MaintenanceSettings extends Component
     protected function rules()
     {
         return [
-            'settings.maintenance.auto_backup_enabled' => 'required|boolean',
-            'settings.maintenance.backup_frequency' => 'required_if:settings.maintenance.auto_backup_enabled,true|string|in:hourly,daily,weekly,monthly',
-            'settings.maintenance.backup_retention_days' => 'required|integer|min:1|max:365',
-            'settings.maintenance.backup_storage_path' => 'nullable|string|max:255',
-            'settings.maintenance.log_level' => 'required|string|in:debug,info,notice,warning,error,critical,alert,emergency',
-            'settings.maintenance.log_retention_days' => 'required|integer|min:1|max:90',
-            'settings.maintenance.cache_driver' => 'required|string|in:file,redis,memcached,array',
-            'settings.maintenance.cache_ttl' => 'required|integer|min:60|max:86400',
-            'settings.maintenance.maintenance_mode' => 'required|boolean',
-            'settings.maintenance.maintenance_message' => 'required_if:settings.maintenance.maintenance_mode,true|string|max:500',
-            'settings.maintenance.monitoring_enabled' => 'required|boolean',
-            'settings.maintenance.monitoring_interval' => 'required_if:settings.maintenance.monitoring_enabled,true|integer|min:60|max:3600',
+            'auto_backup_enabled' => 'required|boolean',
+            'backup_frequency' => 'required_if:auto_backup_enabled,true|string|in:hourly,daily,weekly,monthly',
+            'backup_retention_days' => 'required|integer|min:1|max:365',
+            'backup_storage_path' => 'nullable|string|max:255',
+            'log_level' => 'required|string|in:debug,info,notice,warning,error,critical,alert,emergency',
+            'log_retention_days' => 'required|integer|min:1|max:90',
+            'cache_driver' => 'required|string|in:file,redis,memcached,array',
+            'cache_ttl' => 'required|integer|min:60|max:86400',
+            'maintenance_mode' => 'required|boolean',
+            'maintenance_message' => 'required_if:maintenance_mode,true|string|max:500',
+            'monitoring_enabled' => 'required|boolean',
+            'monitoring_interval' => 'required_if:monitoring_enabled,true|integer|min:60|max:3600',
         ];
     }
 
@@ -57,47 +72,141 @@ class MaintenanceSettings extends Component
         ];
     }
 
-    public function boot(ConfigurationService $configurationService, BackupService $backupService)
-    {
-        $this->configurationService = $configurationService;
-        $this->backupService = $backupService;
-    }
-
     public function mount()
     {
+        try {
+            Log::info('🔧 MaintenanceSettings mount() 開始');
+            
+            // 初始化服務
+            $this->configurationService = app(ConfigurationService::class);
+            $this->backupService = app(BackupService::class);
+            
+            $this->loadSettings();
+            $this->initializeStorageValidation();
+            
+            Log::info('✅ MaintenanceSettings mount() 完成', [
+                'settings_count' => count($this->settings),
+                'settings_keys' => array_keys($this->settings),
+                'sample_values' => [
+                    'auto_backup_enabled' => $this->settings['maintenance.auto_backup_enabled'] ?? 'not_set',
+                    'backup_frequency' => $this->settings['maintenance.backup_frequency'] ?? 'not_set',
+                    'maintenance_mode' => $this->settings['maintenance.maintenance_mode'] ?? 'not_set'
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('❌ MaintenanceSettings mount() 失敗', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * 監聽清除快取事件
+     */
+    #[\Livewire\Attributes\On('clearCache')]
+    public function handleClearCache()
+    {
+        $this->clearCache();
+    }
+
+    /**
+     * 公開方法：重新載入設定
+     */
+    public function reloadSettings()
+    {
+        Log::info('🔄 手動重新載入設定');
         $this->loadSettings();
-        $this->initializeStorageValidation();
+        $this->dispatch('settings-reloaded', [
+            'message' => '設定已重新載入',
+            'count' => count($this->settings)
+        ]);
     }
 
     public function loadSettings()
     {
-        $this->settings = $this->configurationService->getSettingsByCategory('maintenance');
-        $this->originalSettings = $this->settings;
-        
-        // 確保所有必要的設定都存在，如果不存在則設定預設值
-        $defaultSettings = [
-            'maintenance.auto_backup_enabled' => true,
-            'maintenance.backup_frequency' => 'daily',
-            'maintenance.backup_retention_days' => 30,
-            'maintenance.backup_storage_path' => '',
-            'maintenance.log_level' => 'info',
-            'maintenance.log_retention_days' => 14,
-            'maintenance.cache_driver' => 'redis',
-            'maintenance.cache_ttl' => 3600,
-            'maintenance.maintenance_mode' => false,
-            'maintenance.maintenance_message' => '系統正在進行維護，請稍後再試。',
-            'maintenance.monitoring_enabled' => true,
-            'maintenance.monitoring_interval' => 300,
-        ];
-        
-        foreach ($defaultSettings as $key => $defaultValue) {
-            if (!array_key_exists($key, $this->settings)) {
-                $this->settings[$key] = $defaultValue;
+        try {
+            // 確保服務已初始化
+            if (!$this->configurationService) {
+                $this->configurationService = app(ConfigurationService::class);
             }
+            
+            // 載入設定資料
+            $settingsData = $this->configurationService->getSettingsByCategory('maintenance');
+            
+            // 保存到 settings 陣列（用於其他方法）
+            $this->settings = $settingsData;
+            
+            // 設定個別屬性（用於表單綁定）
+            $this->auto_backup_enabled = $settingsData['maintenance.auto_backup_enabled'] ?? true;
+            $this->backup_frequency = $settingsData['maintenance.backup_frequency'] ?? 'daily';
+            $this->backup_retention_days = $settingsData['maintenance.backup_retention_days'] ?? 30;
+            $this->backup_storage_path = $settingsData['maintenance.backup_storage_path'] ?? '';
+            $this->log_level = $settingsData['maintenance.log_level'] ?? 'info';
+            $this->log_retention_days = $settingsData['maintenance.log_retention_days'] ?? 14;
+            $this->cache_driver = $settingsData['maintenance.cache_driver'] ?? 'redis';
+            $this->cache_ttl = $settingsData['maintenance.cache_ttl'] ?? 3600;
+            $this->maintenance_mode = $settingsData['maintenance.maintenance_mode'] ?? false;
+            $this->maintenance_message = $settingsData['maintenance.maintenance_message'] ?? '系統正在進行維護，請稍後再試。';
+            $this->monitoring_enabled = $settingsData['maintenance.monitoring_enabled'] ?? true;
+            $this->monitoring_interval = $settingsData['maintenance.monitoring_interval'] ?? 300;
+            
+            // 保存原始設定的副本（使用與比較相同的格式）
+            $this->originalSettings = [
+                'maintenance.auto_backup_enabled' => $this->auto_backup_enabled,
+                'maintenance.backup_frequency' => $this->backup_frequency,
+                'maintenance.backup_retention_days' => $this->backup_retention_days,
+                'maintenance.backup_storage_path' => $this->backup_storage_path,
+                'maintenance.log_level' => $this->log_level,
+                'maintenance.log_retention_days' => $this->log_retention_days,
+                'maintenance.cache_driver' => $this->cache_driver,
+                'maintenance.cache_ttl' => $this->cache_ttl,
+                'maintenance.maintenance_mode' => $this->maintenance_mode,
+                'maintenance.maintenance_message' => $this->maintenance_message,
+                'maintenance.monitoring_enabled' => $this->monitoring_enabled,
+                'maintenance.monitoring_interval' => $this->monitoring_interval,
+            ];
+            
+            // 重置警告狀態
+            $this->showMaintenanceWarning = false;
+            
+        } catch (\Exception $e) {
+            // 設定預設值以防止錯誤
+            $this->auto_backup_enabled = true;
+            $this->backup_frequency = 'daily';
+            $this->backup_retention_days = 30;
+            $this->backup_storage_path = '';
+            $this->log_level = 'info';
+            $this->log_retention_days = 14;
+            $this->cache_driver = 'redis';
+            $this->cache_ttl = 3600;
+            $this->maintenance_mode = false;
+            $this->maintenance_message = '系統正在進行維護，請稍後再試。';
+            $this->monitoring_enabled = true;
+            $this->monitoring_interval = 300;
+            
+            // 設定原始設定以避免顯示未儲存變更警告
+            $this->originalSettings = [
+                'maintenance.auto_backup_enabled' => $this->auto_backup_enabled,
+                'maintenance.backup_frequency' => $this->backup_frequency,
+                'maintenance.backup_retention_days' => $this->backup_retention_days,
+                'maintenance.backup_storage_path' => $this->backup_storage_path,
+                'maintenance.log_level' => $this->log_level,
+                'maintenance.log_retention_days' => $this->log_retention_days,
+                'maintenance.cache_driver' => $this->cache_driver,
+                'maintenance.cache_ttl' => $this->cache_ttl,
+                'maintenance.maintenance_mode' => $this->maintenance_mode,
+                'maintenance.maintenance_message' => $this->maintenance_message,
+                'maintenance.monitoring_enabled' => $this->monitoring_enabled,
+                'maintenance.monitoring_interval' => $this->monitoring_interval,
+            ];
+            
+            $this->dispatch('settings-load-error', [
+                'type' => 'error',
+                'message' => '載入維護設定失敗：' . $e->getMessage()
+            ]);
         }
-        
-        // 檢查維護模式變更警告
-        $this->showMaintenanceWarning = $this->settings['maintenance.maintenance_mode'] ?? false;
     }
 
     public function initializeStorageValidation()
@@ -111,11 +220,40 @@ class MaintenanceSettings extends Component
 
     public function save()
     {
-        $this->validate();
-
         try {
+            $this->validate();
+            
+            // 確保服務已初始化
+            if (!$this->configurationService) {
+                $this->configurationService = app(ConfigurationService::class);
+            }
+            
+            // 檢查維護模式變更
+            $oldMaintenanceMode = $this->originalSettings['maintenance.maintenance_mode'] ?? false;
+            $newMaintenanceMode = $this->maintenance_mode;
+            
+            if ($oldMaintenanceMode !== $newMaintenanceMode) {
+                $this->showMaintenanceWarning = $newMaintenanceMode;
+            }
+            
+            // 準備要儲存的設定資料
+            $settingsToSave = [
+                'maintenance.auto_backup_enabled' => $this->auto_backup_enabled,
+                'maintenance.backup_frequency' => $this->backup_frequency,
+                'maintenance.backup_retention_days' => $this->backup_retention_days,
+                'maintenance.backup_storage_path' => $this->backup_storage_path,
+                'maintenance.log_level' => $this->log_level,
+                'maintenance.log_retention_days' => $this->log_retention_days,
+                'maintenance.cache_driver' => $this->cache_driver,
+                'maintenance.cache_ttl' => $this->cache_ttl,
+                'maintenance.maintenance_mode' => $this->maintenance_mode,
+                'maintenance.maintenance_message' => $this->maintenance_message,
+                'maintenance.monitoring_enabled' => $this->monitoring_enabled,
+                'maintenance.monitoring_interval' => $this->monitoring_interval,
+            ];
+            
             // 驗證儲存位置
-            if ($this->settings['maintenance.auto_backup_enabled']) {
+            if ($this->auto_backup_enabled) {
                 $this->validateBackupStorage();
             }
 
@@ -123,36 +261,41 @@ class MaintenanceSettings extends Component
             $this->validateCacheConnection();
 
             // 如果啟用維護模式，顯示警告
-            if ($this->settings['maintenance.maintenance_mode'] && !$this->originalSettings['maintenance.maintenance_mode']) {
+            if ($newMaintenanceMode && !$oldMaintenanceMode) {
                 $this->showMaintenanceWarning = true;
                 $this->dispatch('maintenance-mode-warning', [
                     'message' => '啟用維護模式將阻止一般使用者存取系統，請確認您要繼續。'
                 ]);
                 return;
             }
-
-            $this->configurationService->updateSettings($this->settings);
-            $this->loadSettings();
+            
+            // 儲存設定
+            $this->configurationService->updateSettings($settingsToSave);
+            
+            // 更新 settings 陣列和原始設定
+            $this->settings = $settingsToSave;
+            $this->originalSettings = $settingsToSave;
             
             // 如果變更了快取設定，清除快取
-            if ($this->originalSettings['maintenance.cache_driver'] !== $this->settings['maintenance.cache_driver']) {
+            if (($this->originalSettings['maintenance.cache_driver'] ?? '') !== $this->cache_driver) {
                 $this->clearCache();
             }
             
-            $this->dispatch('saved', [
+            $this->dispatch('settings-saved', [
                 'type' => 'success',
                 'message' => '維護設定已成功儲存！'
             ]);
-
-        } catch (\Exception $e) {
-            Log::error('儲存維護設定失敗', [
-                'error' => $e->getMessage(),
-                'settings' => $this->settings,
-            ]);
             
-            $this->dispatch('saved', [
+        } catch (ValidationException $e) {
+            $this->dispatch('settings-validation-error', [
                 'type' => 'error',
-                'message' => '儲存維護設定時發生錯誤：' . $e->getMessage()
+                'message' => '請檢查輸入的資料是否正確',
+                'errors' => $e->errors()
+            ]);
+        } catch (\Exception $e) {
+            $this->dispatch('settings-save-error', [
+                'type' => 'error',
+                'message' => '儲存設定時發生錯誤：' . $e->getMessage()
             ]);
         }
     }
@@ -162,7 +305,7 @@ class MaintenanceSettings extends Component
      */
     public function validateBackupStorage()
     {
-        $backupPath = $this->settings['maintenance.backup_storage_path'] ?? storage_path('backups');
+        $backupPath = $this->backup_storage_path ?: storage_path('backups');
         
         try {
             // 檢查目錄是否存在，不存在則建立
@@ -203,7 +346,7 @@ class MaintenanceSettings extends Component
      */
     public function validateCacheConnection()
     {
-        $driver = $this->settings['maintenance.cache_driver'];
+        $driver = $this->cache_driver;
         
         try {
             switch ($driver) {
@@ -295,20 +438,36 @@ class MaintenanceSettings extends Component
     public function clearCache()
     {
         try {
-            Artisan::call('cache:clear');
-            Artisan::call('config:clear');
-            Artisan::call('route:clear');
-            Artisan::call('view:clear');
+            Log::info('開始清除快取');
             
-            $this->dispatch('cache-cleared', [
+            // 清除各種快取
+            $results = [];
+            
+            $results['cache'] = Artisan::call('cache:clear');
+            $results['config'] = Artisan::call('config:clear');
+            $results['route'] = Artisan::call('route:clear');
+            $results['view'] = Artisan::call('view:clear');
+            
+            // 嘗試清除 OPcache（如果啟用）
+            if (function_exists('opcache_reset')) {
+                opcache_reset();
+                $results['opcache'] = 'cleared';
+            }
+            
+            Log::info('快取清除完成', $results);
+            
+            $this->dispatch('show-toast', [
                 'type' => 'success',
-                'message' => '快取已成功清除'
+                'message' => '所有快取已成功清除！'
             ]);
             
         } catch (\Exception $e) {
-            Log::error('清除快取失敗', ['error' => $e->getMessage()]);
+            Log::error('清除快取失敗', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
-            $this->dispatch('cache-cleared', [
+            $this->dispatch('show-toast', [
                 'type' => 'error',
                 'message' => '清除快取失敗：' . $e->getMessage()
             ]);
@@ -397,7 +556,24 @@ class MaintenanceSettings extends Component
         $this->showMaintenanceWarning = false;
         
         try {
-            $this->configurationService->updateSettings($this->settings);
+            // 準備要儲存的設定資料
+            $settingsToSave = [
+                'maintenance.auto_backup_enabled' => $this->auto_backup_enabled,
+                'maintenance.backup_frequency' => $this->backup_frequency,
+                'maintenance.backup_retention_days' => $this->backup_retention_days,
+                'maintenance.backup_storage_path' => $this->backup_storage_path,
+                'maintenance.log_level' => $this->log_level,
+                'maintenance.log_retention_days' => $this->log_retention_days,
+                'maintenance.cache_driver' => $this->cache_driver,
+                'maintenance.cache_ttl' => $this->cache_ttl,
+                'maintenance.maintenance_mode' => $this->maintenance_mode,
+                'maintenance.maintenance_message' => $this->maintenance_message,
+                'maintenance.monitoring_enabled' => $this->monitoring_enabled,
+                'maintenance.monitoring_interval' => $this->monitoring_interval,
+            ];
+            
+            $this->configurationService->updateSettings($settingsToSave);
+            
             $this->loadSettings();
             
             $this->dispatch('saved', [
@@ -418,8 +594,31 @@ class MaintenanceSettings extends Component
      */
     public function cancelMaintenanceMode()
     {
-        $this->settings['maintenance.maintenance_mode'] = false;
+        $this->maintenance_mode = false;
         $this->showMaintenanceWarning = false;
+    }
+
+    /**
+     * 檢查是否有未儲存的變更
+     */
+    public function getHasUnsavedChangesProperty()
+    {
+        $currentSettings = [
+            'maintenance.auto_backup_enabled' => $this->auto_backup_enabled,
+            'maintenance.backup_frequency' => $this->backup_frequency,
+            'maintenance.backup_retention_days' => $this->backup_retention_days,
+            'maintenance.backup_storage_path' => $this->backup_storage_path,
+            'maintenance.log_level' => $this->log_level,
+            'maintenance.log_retention_days' => $this->log_retention_days,
+            'maintenance.cache_driver' => $this->cache_driver,
+            'maintenance.cache_ttl' => $this->cache_ttl,
+            'maintenance.maintenance_mode' => $this->maintenance_mode,
+            'maintenance.maintenance_message' => $this->maintenance_message,
+            'maintenance.monitoring_enabled' => $this->monitoring_enabled,
+            'maintenance.monitoring_interval' => $this->monitoring_interval,
+        ];
+        
+        return $currentSettings !== $this->originalSettings;
     }
 
     /**
@@ -438,7 +637,6 @@ class MaintenanceSettings extends Component
 
     public function render()
     {
-        return view('livewire.admin.settings.maintenance-settings')
-            ->layout('layouts.admin');
+        return view('livewire.admin.settings.maintenance-settings');
     }
 }

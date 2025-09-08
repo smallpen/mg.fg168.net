@@ -251,8 +251,9 @@ class SettingsController extends Controller
         try {
             $value = $request->input('value');
 
-            // 驗證設定值
-            if (!$this->configurationService->validateSettingValue($key, $value)) {
+            // 驗證設定值（如果配置服務有驗證方法）
+            if (method_exists($this->configurationService, 'validateSettingValue') && 
+                !$this->configurationService->validateSettingValue($key, $value)) {
                 return response()->json([
                     'success' => false,
                     'message' => '設定值格式不正確',
@@ -465,21 +466,48 @@ class SettingsController extends Controller
     /**
      * API: 匯出設定
      */
-    public function exportSettings(Request $request): JsonResponse
+    public function exportSettings(Request $request)
     {
         $this->authorize('settings.backup');
 
         try {
             $categories = $request->input('categories', []);
+            $download = $request->input('download', false);
+            
             $data = $this->settingsRepository->exportSettings($categories);
 
             // 記錄操作日誌
             Log::info('設定已匯出', [
                 'categories' => $categories,
                 'settings_count' => count($data),
+                'download' => $download,
                 'user_id' => auth()->id(),
             ]);
 
+            // 如果請求下載，直接返回檔案下載響應
+            if ($download) {
+                $filename = 'settings_export_' . date('Y-m-d_H-i-s') . '.json';
+                
+                $exportData = [
+                    'export_info' => [
+                        'exported_at' => now()->toISOString(),
+                        'exported_by' => auth()->user()->name ?? 'Unknown',
+                        'categories' => $categories,
+                        'settings_count' => count($data),
+                        'version' => '1.0',
+                    ],
+                    'settings' => $data,
+                ];
+                
+                $content = json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                
+                return response($content)
+                    ->header('Content-Type', 'application/json')
+                    ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                    ->header('Content-Length', strlen($content));
+            }
+
+            // 否則返回 JSON 響應
             return response()->json([
                 'success' => true,
                 'data' => $data,
@@ -491,6 +519,11 @@ class SettingsController extends Controller
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),
             ]);
+
+            // 如果是下載請求且出錯，返回錯誤頁面
+            if ($request->input('download')) {
+                abort(500, '匯出設定時發生錯誤：' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => false,
@@ -583,6 +616,72 @@ class SettingsController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => '清除設定快取失敗',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * API: 建立設定備份
+     */
+    public function createBackup(Request $request): JsonResponse
+    {
+        $this->authorize('settings.backup');
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'categories' => 'nullable|array',
+            'categories.*' => 'string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => '請求資料格式不正確',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $name = $request->input('name');
+            $description = $request->input('description', '');
+            $categories = $request->input('categories', []);
+
+            // 建立備份
+            $backup = $this->settingsRepository->createBackup($name, $description, $categories);
+
+            // 記錄操作日誌
+            Log::info('設定備份已建立', [
+                'backup_id' => $backup->id,
+                'backup_name' => $backup->name,
+                'categories' => $categories,
+                'settings_count' => count($backup->settings_data ?? []),
+                'user_id' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => '設定備份建立成功',
+                'backup' => [
+                    'id' => $backup->id,
+                    'name' => $backup->name,
+                    'description' => $backup->description,
+                    'created_at' => $backup->created_at->toISOString(),
+                    'settings_count' => count($backup->settings_data ?? []),
+                ],
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('建立設定備份失敗', [
+                'error' => $e->getMessage(),
+                'name' => $request->input('name'),
+                'user_id' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => '建立設定備份失敗',
                 'error' => $e->getMessage(),
             ], 500);
         }

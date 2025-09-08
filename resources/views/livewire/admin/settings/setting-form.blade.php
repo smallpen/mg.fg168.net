@@ -1,34 +1,17 @@
 <div>
     {{-- 設定編輯表單模態對話框 --}}
-    <div x-data="{ show: @entangle('showForm') }" 
-         x-show="show" 
-         x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto"
-         style="display: none;">
+    @if($showForm)
+    <div class="fixed inset-0 z-50 overflow-y-auto">
         
         {{-- 背景遮罩 --}}
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div x-show="show" 
-                 x-transition:enter="ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-                 @click="$wire.closeForm()"></div>
+            <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+                 wire:click="closeForm"></div>
 
             {{-- 對話框內容 --}}
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
             
-            <div x-show="show"
-                 x-transition:enter="ease-out duration-300"
-                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave="ease-in duration-200"
-                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
                 
                 @if($this->setting)
                     {{-- 表單標題 --}}
@@ -124,18 +107,64 @@
 
                     {{-- 設定表單 --}}
                     <form wire:submit.prevent="save" class="space-y-6">
-                        {{-- 使用統一的表單欄位元件 --}}
-                        <x-admin.settings.form-field
-                            :label="'設定值'"
-                            :name="'setting-value'"
-                            :type="$this->inputType"
-                            :required="$this->isRequired()"
-                            :error="$validationErrors['value'] ?? null"
-                            :help="$this->getSettingHelp()"
-                            :value="$value"
-                            :options="array_merge($this->options, $this->settingConfig['options'] ?? [])"
-                            :dependencyWarnings="$dependencyWarnings"
-                            :autoSave="false" />
+                        <div class="space-y-2">
+                            <label for="setting-value" class="block text-sm font-medium text-gray-700">
+                                設定值
+                                @if($this->isRequired())
+                                    <span class="text-red-500 ml-1">*</span>
+                                @endif
+                            </label>
+                            
+                            @if($this->inputType === 'boolean')
+                                <div class="flex items-center">
+                                    <input 
+                                        type="checkbox" 
+                                        id="setting-value"
+                                        wire:model="value"
+                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label for="setting-value" class="ml-2 block text-sm text-gray-900">
+                                        啟用此設定
+                                    </label>
+                                </div>
+                            @elseif($this->inputType === 'select')
+                                <select 
+                                    id="setting-value"
+                                    wire:model="value"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                >
+                                    @foreach($this->options as $optionValue => $optionLabel)
+                                        <option value="{{ $optionValue }}">{{ $optionLabel }}</option>
+                                    @endforeach
+                                </select>
+                            @elseif($this->inputType === 'textarea')
+                                <textarea 
+                                    id="setting-value"
+                                    wire:model="value"
+                                    rows="4"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                ></textarea>
+                            @else
+                                <input 
+                                    type="{{ $this->inputType === 'password' ? 'password' : 'text' }}"
+                                    id="setting-value"
+                                    wire:model="value"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                />
+                            @endif
+                            
+                            @if($this->getSettingHelp())
+                                <p class="text-sm text-gray-500">{{ $this->getSettingHelp() }}</p>
+                            @endif
+                            
+                            @if(isset($validationErrors['value']))
+                                <div class="text-sm text-red-600">
+                                    @foreach((array)$validationErrors['value'] as $error)
+                                        <p>{{ $error }}</p>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
                     </form>
 
                         {{-- 表單按鈕 --}}
@@ -173,8 +202,9 @@
                                 </button>
 
                                 {{-- 儲存按鈕 --}}
-                                <button type="submit"
-                                        :disabled="$wire.saving"
+                                <button type="button"
+                                        wire:click="save"
+                                        @if($saving) disabled @endif
                                         class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
                                     @if($saving)
                                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -193,4 +223,5 @@
             </div>
         </div>
     </div>
+    @endif
 </div>

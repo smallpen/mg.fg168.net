@@ -244,7 +244,7 @@ class ActivityBackup extends Component
     /**
      * 下載備份檔案
      */
-    public function downloadBackup(string $filename): void
+    public function downloadBackup(string $filename)
     {
         $this->authorize('activity_logs.export');
         

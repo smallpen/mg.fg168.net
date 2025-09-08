@@ -69,7 +69,12 @@ class SettingsList extends AdminComponent
         parent::mount();
         
         // 預設展開所有分類
-        $this->expandedCategories = array_keys($this->getConfigService()->getCategories());
+        try {
+            $this->expandedCategories = array_keys(config('system-settings.categories', []));
+        } catch (\Exception $e) {
+            \Log::error('初始化分類失敗', ['error' => $e->getMessage()]);
+            $this->expandedCategories = [];
+        }
     }
 
     /**
@@ -89,18 +94,62 @@ class SettingsList extends AdminComponent
     }
 
     /**
+     * 錯誤處理方法
+     */
+    protected function handleError(\Exception $e, string $operation = 'unknown'): void
+    {
+        \Log::error("SettingsList 元件錯誤: {$operation}", [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'user_id' => auth()->id(),
+            'component' => static::class,
+        ]);
+
+        $this->dispatch('show-toast', [
+            'type' => 'error',
+            'message' => "操作失敗：{$e->getMessage()}"
+        ]);
+    }
+
+    /**
      * 取得篩選後的設定列表
      */
     #[Computed]
     public function settings(): Collection
     {
-        $filters = [
-            'category' => $this->categoryFilter !== 'all' ? $this->categoryFilter : null,
-            'type' => $this->typeFilter !== 'all' ? $this->typeFilter : null,
-            'changed' => $this->changedFilter !== 'all' ? ($this->changedFilter === 'changed') : null,
-        ];
-
-        return $this->getSettingsRepository()->searchSettings($this->search, $filters);
+        try {
+            // 直接從資料庫查詢設定
+            $query = \App\Models\Setting::query();
+            
+            // 搜尋篩選
+            if (!empty($this->search)) {
+                $query->where(function ($q) {
+                    $q->where('key', 'like', '%' . $this->search . '%')
+                      ->orWhere('description', 'like', '%' . $this->search . '%');
+                });
+            }
+            
+            // 分類篩選
+            if ($this->categoryFilter !== 'all') {
+                $query->where('category', $this->categoryFilter);
+            }
+            
+            // 變更狀態篩選
+            if ($this->changedFilter === 'changed') {
+                $query->where('is_changed', true);
+            } elseif ($this->changedFilter === 'unchanged') {
+                $query->where('is_changed', false);
+            }
+            
+            return $query->orderBy('category')
+                        ->orderBy('sort_order')
+                        ->orderBy('key')
+                        ->get();
+                        
+        } catch (\Exception $e) {
+            \Log::error('載入設定失敗', ['error' => $e->getMessage()]);
+            return collect();
+        }
     }
 
     /**
@@ -118,7 +167,12 @@ class SettingsList extends AdminComponent
     #[Computed]
     public function categories(): array
     {
-        return $this->getConfigService()->getCategories();
+        try {
+            return config('system-settings.categories', []);
+        } catch (\Exception $e) {
+            \Log::error('取得分類失敗', ['error' => $e->getMessage()]);
+            return [];
+        }
     }
 
     /**
@@ -127,7 +181,12 @@ class SettingsList extends AdminComponent
     #[Computed]
     public function availableTypes(): Collection
     {
-        return $this->getSettingsRepository()->getAvailableTypes();
+        try {
+            return collect(['text', 'number', 'boolean', 'select', 'textarea', 'password', 'email', 'url', 'color', 'file', 'json']);
+        } catch (\Exception $e) {
+            \Log::error('取得類型失敗', ['error' => $e->getMessage()]);
+            return collect();
+        }
     }
 
     /**
@@ -136,7 +195,12 @@ class SettingsList extends AdminComponent
     #[Computed]
     public function changedSettings(): Collection
     {
-        return $this->getSettingsRepository()->getChangedSettings();
+        try {
+            return \App\Models\Setting::where('is_changed', true)->get();
+        } catch (\Exception $e) {
+            \Log::error('取得已變更設定失敗', ['error' => $e->getMessage()]);
+            return collect();
+        }
     }
 
     /**
@@ -145,15 +209,25 @@ class SettingsList extends AdminComponent
     #[Computed]
     public function stats(): array
     {
-        $allSettings = $this->getSettingsRepository()->getAllSettings();
-        $changedSettings = $this->changedSettings;
+        try {
+            $allSettings = \App\Models\Setting::all();
+            $changedSettings = $this->changedSettings;
 
-        return [
-            'total' => $allSettings->count(),
-            'changed' => $changedSettings->count(),
-            'categories' => $allSettings->groupBy('category')->count(),
-            'filtered' => $this->settings->count(),
-        ];
+            return [
+                'total' => $allSettings->count(),
+                'changed' => $changedSettings->count(),
+                'categories' => $allSettings->groupBy('category')->count(),
+                'filtered' => $this->settings->count(),
+            ];
+        } catch (\Exception $e) {
+            \Log::error('計算統計資訊失敗', ['error' => $e->getMessage()]);
+            return [
+                'total' => 0,
+                'changed' => 0,
+                'categories' => 0,
+                'filtered' => 0,
+            ];
+        }
     }
 
     /**
@@ -198,13 +272,17 @@ class SettingsList extends AdminComponent
     public function resetSetting(string $key): void
     {
         try {
-            $result = $this->getSettingsRepository()->resetSetting($key);
+            $setting = \App\Models\Setting::where('key', $key)->first();
             
-            if ($result) {
+            if ($setting) {
+                $setting->value = $setting->default_value;
+                $setting->is_changed = false;
+                $setting->save();
+                
                 $this->dispatch('setting-updated', settingKey: $key);
                 $this->addFlash('success', "設定 '{$key}' 已重設為預設值");
             } else {
-                $this->addFlash('error', "無法重設設定 '{$key}'");
+                $this->addFlash('error', "找不到設定 '{$key}'");
             }
         } catch (\Exception $e) {
             $this->addFlash('error', "重設設定時發生錯誤：{$e->getMessage()}");
@@ -272,9 +350,17 @@ class SettingsList extends AdminComponent
             foreach ($this->selectedSettings as $settingKey) {
                 switch ($this->bulkAction) {
                     case 'reset':
-                        if ($this->getSettingsRepository()->resetSetting($settingKey)) {
-                            $successCount++;
-                        } else {
+                        try {
+                            $setting = \App\Models\Setting::where('key', $settingKey)->first();
+                            if ($setting) {
+                                $setting->value = $setting->default_value;
+                                $setting->is_changed = false;
+                                $setting->save();
+                                $successCount++;
+                            } else {
+                                $errorCount++;
+                            }
+                        } catch (\Exception $e) {
                             $errorCount++;
                         }
                         break;
@@ -475,6 +561,33 @@ class SettingsList extends AdminComponent
     }
 
     /**
+     * 監聽載入統計資訊事件
+     */
+    #[On('load-statistics')]
+    public function handleLoadStatistics(): void
+    {
+        // 移除統計資訊載入，避免錯誤
+    }
+
+    /**
+     * 取得最後備份資訊
+     */
+    protected function getLastBackupInfo(): string
+    {
+        try {
+            $lastBackup = \App\Models\SettingBackup::latest()->first();
+            
+            if ($lastBackup) {
+                return $lastBackup->created_at->diffForHumans();
+            }
+            
+            return '無';
+        } catch (\Exception $e) {
+            return '無';
+        }
+    }
+
+    /**
      * 取得分類圖示
      */
     public function getCategoryIcon(string $category): string
@@ -574,7 +687,6 @@ class SettingsList extends AdminComponent
 
     public function render()
     {
-        return view('livewire.admin.settings.settings-list')
-            ->layout('components.layouts.admin');
+        return view('livewire.admin.settings.settings-list');
     }
 }

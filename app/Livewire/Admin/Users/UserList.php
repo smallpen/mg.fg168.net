@@ -40,6 +40,16 @@ class UserList extends Component
     
     // 分頁相關屬性
     public int $perPage = 15;
+    public array $perPageOptions = [10, 15, 25, 50];
+    
+    // URL 查詢字串屬性（用於狀態持久化）
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'statusFilter' => ['except' => 'all'],
+        'roleFilter' => ['except' => 'all'],
+        'perPage' => ['except' => 15],
+        // 注意：不要添加 'page'，Livewire 會自動處理
+    ];
     
     // 排序相關屬性
     public string $sortField = 'created_at';
@@ -94,17 +104,34 @@ class UserList extends Component
      */
     public function mount(): void
     {
-        // 使用新的錯誤處理機制檢查權限
-        if (!$this->checkPermissionOrFail('users.view', 'mount_user_list', [
-            'component' => 'UserList',
-            'action' => 'mount',
-        ])) {
-            // 權限檢查失敗時，HandlesLivewireErrors trait 會處理錯誤顯示
-            return;
+        // 檢查權限
+        if (!auth()->user()->hasPermission('users.view')) {
+            abort(403, '您沒有檢視使用者的權限');
         }
+
+        // 從 URL 參數初始化狀態
+        $this->initializeFromQueryString();
 
         // 記錄存取日誌
         $this->getAuditService()->logDataAccess('users', 'list_view');
+    }
+
+    /**
+     * 從 URL 查詢字串初始化狀態
+     */
+    private function initializeFromQueryString(): void
+    {
+        $request = request();
+        
+        $this->search = $request->get('search', '');
+        $this->statusFilter = $request->get('statusFilter', 'all');
+        $this->roleFilter = $request->get('roleFilter', 'all');
+        
+        // 驗證並設定 perPage
+        $requestedPerPage = (int) $request->get('perPage', 15);
+        if (in_array($requestedPerPage, $this->perPageOptions)) {
+            $this->perPage = $requestedPerPage;
+        }
     }
 
     /**
@@ -153,27 +180,6 @@ class UserList extends Component
     }
 
     /**
-     * 延遲載入使用者資料
-     * 用於初始頁面載入時的效能優化
-     */
-    public function loadUsers(): void
-    {
-        // 這個方法會觸發 getUsersProperty 的執行
-        $this->users;
-    }
-
-    /**
-     * 檢查是否應該延遲載入
-     */
-    public function shouldLazyLoad(): bool
-    {
-        // 如果有搜尋或篩選條件，不使用延遲載入
-        return empty($this->search) && 
-               $this->statusFilter === 'all' && 
-               $this->roleFilter === 'all';
-    }
-
-    /**
      * 取得可用的角色選項（計算屬性）
      */
     public function getAvailableRolesProperty(): Collection
@@ -196,59 +202,6 @@ class UserList extends Component
             'inactive' => __('admin.users.inactive'),
         ];
     }
-
-    /**
-     * 取得本地化的使用者狀態
-     */
-    public function getLocalizedStatus(bool $isActive): string
-    {
-        return $isActive ? __('admin.users.active') : __('admin.users.inactive');
-    }
-
-    /**
-     * 取得格式化的日期時間
-     */
-    public function getFormattedDateTime($datetime, string $format = 'default'): string
-    {
-        if (!$datetime) {
-            return '';
-        }
-        
-        switch ($format) {
-            case 'relative':
-                return \App\Helpers\DateTimeHelper::formatRelative($datetime);
-            case 'date_only':
-                return \App\Helpers\DateTimeHelper::formatDate($datetime);
-            case 'time_only':
-                return \App\Helpers\DateTimeHelper::formatTime($datetime);
-            default:
-                return \App\Helpers\DateTimeHelper::formatDateTime($datetime);
-        }
-    }
-
-    /**
-     * 取得使用者的本地化角色顯示
-     */
-    public function getLocalizedUserRoles(User $user): string
-    {
-        return $user->role_count_display;
-    }
-
-    /**
-     * 取得使用者狀態的本地化顯示（包含圖示）
-     */
-    public function getStatusBadge(bool $isActive): array
-    {
-        return $isActive ? [
-            'text' => __('admin.users.active'),
-            'class' => 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-        ] : [
-            'text' => __('admin.users.inactive'),
-            'class' => 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-        ];
-    }
-
-
 
     /**
      * 搜尋條件更新時重置分頁並清除快取
@@ -307,6 +260,43 @@ class UserList extends Component
     }
 
     /**
+     * 每頁顯示筆數更新時重置分頁
+     */
+    public function updatedPerPage(): void
+    {
+        try {
+            // 驗證 perPage 值
+            if (!in_array($this->perPage, $this->perPageOptions)) {
+                $this->perPage = 15; // 重置為預設值
+            }
+            
+            $this->resetPage();
+            $this->clearCache(); // 如果有快取機制
+            
+            // 發送更新事件
+            $this->dispatch('per-page-updated', perPage: $this->perPage);
+            
+        } catch (\Exception $e) {
+            logger()->error('Error updating perPage', [
+                'error' => $e->getMessage(),
+                'perPage' => $this->perPage
+            ]);
+            
+            // 重置為預設值
+            $this->perPage = 15;
+            $this->resetPage();
+        }
+    }
+
+    /**
+     * 前往指定頁面
+     */
+    public function gotoPage(int $page): void
+    {
+        $this->setPage($page);
+    }
+
+    /**
      * 排序功能
      */
     public function sortBy(string $field): void
@@ -327,7 +317,8 @@ class UserList extends Component
     public function toggleSelectAll(): void
     {
         if ($this->selectAll) {
-            $this->selectedUsers = $this->users->pluck('id')->toArray();
+            $users = $this->getUsersProperty();
+            $this->selectedUsers = $users->pluck('id')->toArray();
         } else {
             $this->selectedUsers = [];
         }
@@ -345,423 +336,8 @@ class UserList extends Component
         }
 
         // 更新全選狀態
-        $this->selectAll = count($this->selectedUsers) === $this->users->count();
-    }
-
-    /**
-     * 檢視使用者
-     */
-    public function viewUser(int $userId): void
-    {
-        try {
-            // 驗證使用者 ID
-            $userId = $this->getValidationService()->validateUserId($userId);
-            
-            // 檢查權限
-            if (!$this->getPermissionService()->hasPermission('users.view')) {
-                $this->getPermissionService()->logPermissionDenied('users.view', 'view_user');
-                $this->dispatch('show-toast', [
-                    'type' => 'error',
-                    'message' => __('admin.users.no_permission_view')
-                ]);
-                return;
-            }
-
-            $targetUser = User::find($userId);
-            if (!$targetUser) {
-                $this->dispatch('show-toast', [
-                    'type' => 'error',
-                    'message' => __('admin.users.user_not_found')
-                ]);
-                return;
-            }
-
-            // 記錄操作日誌
-            $this->getAuditService()->logUserManagementAction('user_view', [
-                'target_user_id' => $userId,
-            ], $targetUser);
-            
-            $this->redirect(route('admin.users.show', $userId));
-        } catch (ValidationException $e) {
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.invalid_user_id')
-            ]);
-        }
-    }
-
-    /**
-     * 編輯使用者
-     */
-    public function editUser(int $userId): void
-    {
-        try {
-            // 驗證使用者 ID
-            $userId = $this->getValidationService()->validateUserId($userId);
-            
-            $targetUser = User::find($userId);
-            if (!$targetUser) {
-                $this->dispatch('show-toast', [
-                    'type' => 'error',
-                    'message' => __('admin.users.user_not_found')
-                ]);
-                return;
-            }
-
-            // 檢查權限
-            if (!$this->getPermissionService()->canPerformActionOnUser('users.edit', $targetUser)) {
-                $this->getPermissionService()->logPermissionDenied('users.edit', 'edit_user');
-                $this->dispatch('show-toast', [
-                    'type' => 'error',
-                    'message' => __('admin.users.no_permission_edit')
-                ]);
-                return;
-            }
-
-            // 記錄操作日誌
-            $this->getAuditService()->logUserManagementAction('user_edit_access', [
-                'target_user_id' => $userId,
-            ], $targetUser);
-            
-            $this->redirect(route('admin.users.edit', $userId));
-        } catch (ValidationException $e) {
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.invalid_user_id')
-            ]);
-        }
-    }
-
-    /**
-     * 切換使用者狀態
-     */
-    public function toggleUserStatus(int $userId): void
-    {
-        $this->executeWithPermission('users.edit', function () use ($userId) {
-            // 驗證使用者 ID
-            $userId = $this->getValidationService()->validateUserId($userId);
-            
-            $user = User::find($userId);
-            if (!$user) {
-                throw new \InvalidArgumentException(__('admin.users.user_not_exists'));
-            }
-
-            // 檢查是否可以對此使用者執行操作
-            if (!$this->getPermissionService()->canPerformActionOnUser('users.edit', $user)) {
-                throw new AuthorizationException('無權限編輯此使用者');
-            }
-
-            $oldStatus = $user->is_active;
-            $success = $this->getUserRepository()->toggleUserStatus($userId);
-            
-            if (!$success) {
-                throw new \RuntimeException(__('admin.users.status_toggle_failed'));
-            }
-
-            $user->refresh();
-            $newStatus = $user->is_active;
-            
-            // 記錄操作日誌
-            $this->getAuditService()->logUserManagementAction('user_status_toggle', [
-                'old_status' => $oldStatus,
-                'new_status' => $newStatus,
-                'action' => $newStatus ? 'activated' : 'deactivated',
-            ], $user);
-            
-            $message = $user->is_active 
-                ? __('admin.users.user_activated')
-                : __('admin.users.user_deactivated');
-            
-            $this->showSuccessMessage($message);
-            $this->dispatch('user-status-updated', userId: $userId);
-            
-            // 清除相關快取
-            $this->clearUserCaches();
-
-            return true;
-        }, 'toggle_user_status', [
-            'user_id' => $userId,
-        ]);
-    }
-
-    /**
-     * 刪除使用者
-     */
-    public function deleteUser(int $userId): void
-    {
-        try {
-            // 驗證使用者 ID
-            $userId = $this->getValidationService()->validateUserId($userId);
-            
-            $user = User::find($userId);
-            if (!$user) {
-                $this->dispatch('show-toast', [
-                    'type' => 'error',
-                    'message' => __('admin.users.user_not_found')
-                ]);
-                return;
-            }
-
-            // 檢查權限
-            if (!$this->getPermissionService()->canPerformActionOnUser('users.delete', $user)) {
-                $this->getPermissionService()->logPermissionDenied('users.delete', 'delete_user');
-                $this->dispatch('show-toast', [
-                    'type' => 'error',
-                    'message' => __('admin.users.no_permission_delete')
-                ]);
-                return;
-            }
-
-            // 記錄刪除嘗試
-            $this->getAuditService()->logUserManagementAction('user_delete_attempt', [
-                'target_user_id' => $userId,
-            ], $user);
-            
-            $this->dispatch('confirm-user-delete', userId: $userId);
-        } catch (ValidationException $e) {
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.invalid_user_id')
-            ]);
-        }
-    }
-
-    /**
-     * 確認刪除使用者
-     */
-    #[On('user-delete-confirmed')]
-    public function confirmDelete(int $userId): void
-    {
-        $user = User::find($userId);
-        
-        if (!$user) {
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.user_not_found')
-            ]);
-            return;
-        }
-
-        if (!auth()->user()->hasPermission('users.delete')) {
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.no_permission_delete')
-            ]);
-            return;
-        }
-
-        try {
-            $success = $this->getUserRepository()->softDeleteUser($userId);
-            
-            if ($success) {
-                $this->dispatch('show-toast', [
-                    'type' => 'success',
-                    'message' => __('admin.users.user_deleted_permanently', ['username' => $user->username])
-                ]);
-
-                // 清除相關快取
-                $this->clearUserCaches();
-                
-                // 重新載入頁面資料
-                $this->resetPage();
-            } else {
-                $this->dispatch('show-toast', [
-                    'type' => 'error',
-                    'message' => __('admin.users.delete_failed')
-                ]);
-            }
-        } catch (\Exception $e) {
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.delete_failed')
-            ]);
-        }
-    }
-
-    /**
-     * 批量啟用使用者
-     */
-    public function bulkActivate(): void
-    {
-        try {
-            // 驗證選中的使用者 ID
-            $userIds = $this->getValidationService()->validateUserIds($this->selectedUsers);
-            
-            // 檢查權限
-            if (!$this->getPermissionService()->hasPermission('users.edit')) {
-                $this->getPermissionService()->logPermissionDenied('users.edit', 'bulk_activate');
-                $this->dispatch('show-toast', [
-                    'type' => 'error',
-                    'message' => __('admin.users.no_permission_edit')
-                ]);
-                return;
-            }
-
-            $count = $this->getUserRepository()->bulkUpdateStatus($userIds, true);
-            
-            // 記錄批量操作
-            $this->getAuditService()->logBulkOperation('activate_users', $userIds, [
-                'affected_count' => $count,
-                'status' => 'success',
-            ]);
-            
-            $this->dispatch('show-toast', [
-                'type' => 'success',
-                'message' => __('admin.users.bulk_activate_success', ['count' => $count])
-            ]);
-
-            $this->dispatch('users-bulk-updated');
-            $this->selectedUsers = [];
-            $this->selectAll = false;
-            
-            // 清除相關快取
-            $this->clearUserCaches();
-        } catch (ValidationException $e) {
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.invalid_user_ids')
-            ]);
-        } catch (\Exception $e) {
-            $this->getAuditService()->logSecurityEvent('bulk_activate_failed', 'medium', [
-                'selected_users' => $this->selectedUsers,
-                'error' => $e->getMessage(),
-            ]);
-            
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.bulk_operation_failed')
-            ]);
-        }
-    }
-
-    /**
-     * 批量停用使用者
-     */
-    public function bulkDeactivate(): void
-    {
-        try {
-            // 驗證選中的使用者 ID
-            $userIds = $this->getValidationService()->validateUserIds($this->selectedUsers);
-            
-            // 檢查權限
-            if (!$this->getPermissionService()->hasPermission('users.edit')) {
-                $this->getPermissionService()->logPermissionDenied('users.edit', 'bulk_deactivate');
-                $this->dispatch('show-toast', [
-                    'type' => 'error',
-                    'message' => __('admin.users.no_permission_edit')
-                ]);
-                return;
-            }
-
-            // 檢查是否包含當前使用者
-            if (in_array(auth()->id(), $userIds)) {
-                $this->getAuditService()->logSecurityEvent('attempt_self_deactivate', 'medium', [
-                    'selected_users' => $userIds,
-                ]);
-                
-                $this->dispatch('show-toast', [
-                    'type' => 'error',
-                    'message' => __('admin.users.cannot_disable_self')
-                ]);
-                return;
-            }
-
-            // 檢查是否包含超級管理員（非超級管理員不能停用超級管理員）
-            if (!auth()->user()->isSuperAdmin()) {
-                $superAdminIds = User::whereIn('id', $userIds)
-                    ->whereHas('roles', function ($query) {
-                        $query->where('name', 'super_admin');
-                    })
-                    ->pluck('id')
-                    ->toArray();
-
-                if (!empty($superAdminIds)) {
-                    $this->getAuditService()->logSecurityEvent('attempt_deactivate_super_admin', 'high', [
-                        'selected_users' => $userIds,
-                        'super_admin_ids' => $superAdminIds,
-                    ]);
-                    
-                    $this->dispatch('show-toast', [
-                        'type' => 'error',
-                        'message' => __('admin.users.cannot_bulk_deactivate_super_admin')
-                    ]);
-                    return;
-                }
-            }
-
-            $count = $this->getUserRepository()->bulkUpdateStatus($userIds, false);
-            
-            // 記錄批量操作
-            $this->getAuditService()->logBulkOperation('deactivate_users', $userIds, [
-                'affected_count' => $count,
-                'status' => 'success',
-            ]);
-            
-            $this->dispatch('show-toast', [
-                'type' => 'success',
-                'message' => __('admin.users.bulk_deactivate_success', ['count' => $count])
-            ]);
-
-            $this->dispatch('users-bulk-updated');
-            $this->selectedUsers = [];
-            $this->selectAll = false;
-            
-            // 清除相關快取
-            $this->clearUserCaches();
-        } catch (ValidationException $e) {
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.invalid_user_ids')
-            ]);
-        } catch (\Exception $e) {
-            $this->getAuditService()->logSecurityEvent('bulk_deactivate_failed', 'medium', [
-                'selected_users' => $this->selectedUsers,
-                'error' => $e->getMessage(),
-            ]);
-            
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.bulk_operation_failed')
-            ]);
-        }
-    }
-
-    /**
-     * 匯出使用者資料
-     */
-    public function exportUsers(): void
-    {
-        // 檢查權限
-        if (!$this->getPermissionService()->hasPermission('users.export')) {
-            $this->getPermissionService()->logPermissionDenied('users.export', 'export_users');
-            $this->dispatch('show-toast', [
-                'type' => 'error',
-                'message' => __('admin.users.no_permission_export')
-            ]);
-            return;
-        }
-
-        // 記錄匯出操作
-        $this->getAuditService()->logDataAccess('users', 'export', [
-            'filters' => [
-                'search' => $this->search,
-                'status' => $this->statusFilter,
-                'role' => $this->roleFilter,
-            ],
-        ]);
-        
-        $this->dispatch('export-started');
-        
-        // 這裡可以實作匯出邏輯
-        // 例如：生成 CSV 或 Excel 檔案
-    }
-
-    /**
-     * 切換篩選器顯示狀態
-     */
-    public function toggleFilters(): void
-    {
-        $this->showFilters = !$this->showFilters;
+        $users = $this->getUsersProperty();
+        $this->selectAll = count($this->selectedUsers) === $users->count();
     }
 
     /**
@@ -800,32 +376,6 @@ class UserList extends Component
             // 強制重新渲染整個元件
             $this->skipRender = false;
             
-            // 強制 Livewire 同步狀態到前端
-            $this->js('
-                // 強制更新所有表單元素的值
-                setTimeout(() => {
-                    const searchInputs = document.querySelectorAll(\'input[wire\\\\:model\\\\.live="search"]\');
-                    searchInputs.forEach(input => {
-                        input.value = "";
-                        input.dispatchEvent(new Event("input", { bubbles: true }));
-                    });
-                    
-                    const statusSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live="statusFilter"]\');
-                    statusSelects.forEach(select => {
-                        select.value = "all";
-                        select.dispatchEvent(new Event("change", { bubbles: true }));
-                    });
-                    
-                    const roleSelects = document.querySelectorAll(\'select[wire\\\\:model\\\\.live="roleFilter"]\');
-                    roleSelects.forEach(select => {
-                        select.value = "all";
-                        select.dispatchEvent(new Event("change", { bubbles: true }));
-                    });
-                    
-                    console.log("✅ 表單元素已強制同步");
-                }, 100);
-            ');
-            
             // 發送強制 UI 更新事件
             $this->dispatch('force-ui-update');
             
@@ -836,15 +386,6 @@ class UserList extends Component
             $this->dispatch('show-toast', [
                 'type' => 'success',
                 'message' => '篩選條件已清除'
-            ]);
-            
-            // 記錄重置完成
-            \Log::info('✅ resetFilters - 篩選重置完成', [
-                'after_reset' => [
-                    'search' => $this->search,
-                    'statusFilter' => $this->statusFilter,
-                    'roleFilter' => $this->roleFilter,
-                ]
             ]);
             
         } catch (\Exception $e) {
@@ -862,69 +403,12 @@ class UserList extends Component
     }
 
     /**
-     * 測試方法 - 用於驗證 Livewire 連接
+     * 切換篩選器顯示狀態
      */
-    public function testMethod(): void
+    public function toggleFilters(): void
     {
-        \Log::info('🧪 testMethod - 測試方法被呼叫了！', [
-            'timestamp' => now()->toISOString(),
-            'user' => auth()->user()->username ?? 'unknown',
-        ]);
-        
-        $this->dispatch('show-toast', [
-            'type' => 'success',
-            'message' => '測試方法執行成功！'
-        ]);
+        $this->showFilters = !$this->showFilters;
     }
-
-    /**
-     * 完整重置方法（備用）
-     */
-    public function resetFiltersComplete(): void
-    {
-        // 記錄方法被呼叫
-        \Log::info('resetFiltersComplete method called', [
-            'before_reset' => [
-                'search' => $this->search,
-                'statusFilter' => $this->statusFilter,
-                'roleFilter' => $this->roleFilter,
-            ]
-        ]);
-        
-        // 直接設定屬性值而不使用 reset() 方法
-        $this->search = '';
-        $this->statusFilter = 'all';
-        $this->roleFilter = 'all';
-        $this->selectedUsers = [];
-        $this->selectAll = false;
-        
-        // 重置排序
-        $this->sortField = 'created_at';
-        $this->sortDirection = 'desc';
-        
-        // 重置分頁
-        $this->resetPage();
-        
-        // 記錄重置後的狀態
-        \Log::info('resetFiltersComplete completed', [
-            'after_reset' => [
-                'search' => $this->search,
-                'statusFilter' => $this->statusFilter,
-                'roleFilter' => $this->roleFilter,
-            ]
-        ]);
-        
-        // 顯示成功訊息
-        $this->dispatch('show-toast', [
-            'type' => 'success',
-            'message' => '篩選條件已清除'
-        ]);
-        
-        // 強制重新渲染
-        $this->render();
-    }
-
-
 
     /**
      * 檢查使用者是否擁有特定權限
@@ -943,59 +427,11 @@ class UserList extends Component
     }
 
     /**
-     * 格式化使用者建立時間
+     * 清除快取
      */
-    public function formatUserCreatedAt(User $user): string
+    private function clearCache(): void
     {
-        return $user->formatted_created_at;
-    }
-
-    /**
-     * 強制重新載入元件資料
-     */
-    public function forceRefresh(): void
-    {
-        // 清除所有快取
         $this->clearUserCaches();
-        
-        // 重置分頁
-        $this->resetPage();
-        
-        // 強制重新渲染
-        $this->dispatch('$refresh');
-        
-        \Log::info('UserList 元件強制重新整理完成');
-    }
-
-    /**
-     * 修復 DOM 狀態
-     */
-    public function fixDomState(): void
-    {
-        try {
-            // 重置所有可能導致 DOM 衝突的狀態
-            $this->selectedUsers = [];
-            $this->selectAll = false;
-            
-            // 清除快取
-            $this->clearUserCaches();
-            
-            // 重新載入資料
-            $this->resetPage();
-            
-            \Log::info('DOM 狀態修復完成');
-            
-            $this->dispatch('show-toast', [
-                'type' => 'success',
-                'message' => 'DOM 狀態已修復'
-            ]);
-            
-        } catch (\Exception $e) {
-            \Log::error('DOM 狀態修復失敗', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-        }
     }
 
     /**
@@ -1003,31 +439,6 @@ class UserList extends Component
      */
     public function render()
     {
-        try {
-            // 使用新的響應式設計版本
-            return view('livewire.admin.users.user-list', [
-                'users' => $this->users,
-                'availableRoles' => $this->availableRoles,
-                'statusOptions' => $this->statusOptions,
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('UserList 渲染失敗', [
-                'error' => $e->getMessage(),
-                'filters' => [
-                    'search' => $this->search,
-                    'statusFilter' => $this->statusFilter,
-                    'roleFilter' => $this->roleFilter,
-                ]
-            ]);
-            
-            // 嘗試重置狀態並重新渲染
-            $this->fixDomState();
-            
-            return view('livewire.admin.users.user-list', [
-                'users' => collect(),
-                'availableRoles' => collect(),
-                'statusOptions' => $this->statusOptions,
-            ]);
-        }
+        return view('livewire.admin.users.user-list');
     }
 }

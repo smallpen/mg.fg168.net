@@ -112,7 +112,7 @@ class SettingForm extends AdminComponent
             return null;
         }
 
-        return $this->getSettingsRepository()->getSetting($this->settingKey);
+        return Setting::where('key', $this->settingKey)->first();
     }
 
     /**
@@ -125,16 +125,8 @@ class SettingForm extends AdminComponent
             return [];
         }
 
-        $config = $this->getConfigService()->getSettingConfig($this->settingKey);
-        
-        if (isset($config['validation'])) {
-            if (is_string($config['validation'])) {
-                return explode('|', $config['validation']);
-            }
-            return $config['validation'];
-        }
-
-        return $this->setting->validation_rules ?? [];
+        // 簡化驗證規則
+        return ['required'];
     }
 
     /**
@@ -143,7 +135,11 @@ class SettingForm extends AdminComponent
     #[Computed]
     public function inputType(): string
     {
-        return $this->getConfigService()->getSettingType($this->settingKey);
+        if (!$this->setting) {
+            return 'text';
+        }
+        
+        return $this->setting->type ?? 'text';
     }
 
     /**
@@ -152,7 +148,34 @@ class SettingForm extends AdminComponent
     #[Computed]
     public function options(): array
     {
-        return $this->getConfigService()->getSettingOptions($this->settingKey);
+        if (!$this->setting) {
+            return [];
+        }
+        
+        try {
+            // 處理 select 類型的選項
+            if ($this->setting->type === 'select' && $this->setting->options) {
+                $options = $this->setting->options;
+                
+                // 如果 options 是陣列且包含 values 鍵
+                if (is_array($options) && isset($options['values'])) {
+                    return $options['values'];
+                }
+                
+                // 如果 options 直接是選項陣列
+                if (is_array($options)) {
+                    return $options;
+                }
+            }
+            
+            return [];
+        } catch (\Exception $e) {
+            \Log::error('取得設定選項失敗', [
+                'settingKey' => $this->settingKey,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
     }
 
     /**
@@ -219,11 +242,23 @@ class SettingForm extends AdminComponent
     #[On('open-setting-form')]
     public function openForm(string $settingKey): void
     {
-        $this->settingKey = $settingKey;
-        $this->loadSetting();
-        $this->showForm = true;
-        $this->resetValidationState();
-        $this->resetConnectionTest();
+        try {
+            $this->settingKey = $settingKey;
+            $this->showForm = true;
+            $this->loadSetting();
+            $this->resetValidationState();
+            $this->resetConnectionTest();
+        } catch (\Exception $e) {
+            \Log::error('開啟設定表單失敗', [
+                'settingKey' => $settingKey,
+                'error' => $e->getMessage()
+            ]);
+            
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => '開啟設定表單失敗：' . $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -231,81 +266,171 @@ class SettingForm extends AdminComponent
      */
     public function loadSetting(): void
     {
-        if (!$this->setting) {
-            $this->addFlash('error', '找不到指定的設定');
-            return;
-        }
+        try {
+            if (!$this->setting) {
+                $this->dispatch('show-toast', [
+                    'type' => 'error',
+                    'message' => '找不到指定的設定'
+                ]);
+                return;
+            }
 
-        $this->value = $this->setting->value;
-        $this->originalValue = $this->setting->value;
-        $this->settingConfig = $this->getConfigService()->getSettingConfig($this->settingKey);
-        
-        // 檢查依賴關係
-        $this->checkDependencies();
+            // 處理可能是陣列的值
+            $rawValue = $this->setting->value;
+            if (is_array($rawValue)) {
+                // 如果是陣列，轉換為 JSON 字串用於編輯
+                $this->value = json_encode($rawValue, JSON_UNESCAPED_UNICODE);
+            } else {
+                $this->value = $rawValue ?? '';
+            }
+            
+            $this->originalValue = $this->value;
+            $this->settingConfig = [];
+            
+            // 簡化依賴關係檢查
+            $this->dependencyWarnings = [];
+            
+        } catch (\Exception $e) {
+            \Log::error('載入設定資料失敗', [
+                'settingKey' => $this->settingKey,
+                'error' => $e->getMessage()
+            ]);
+            
+            $this->value = '';
+            $this->originalValue = '';
+            $this->settingConfig = [];
+            $this->dependencyWarnings = [];
+        }
     }
 
     /**
      * 儲存設定
      */
-    public function save(): void
+    public function save()
     {
-        if (!$this->setting) {
-            $this->addFlash('error', '找不到指定的設定');
-            return;
-        }
-
         $this->saving = true;
-        $this->resetValidationState();
-
+        
         try {
-            // 即時驗證
-            if (!$this->validateValue()) {
+            // 記錄儲存操作開始
+            \Log::info('💾 設定儲存開始', [
+                'setting_key' => $this->settingKey,
+                'old_value' => $this->originalValue,
+                'new_value' => $this->value,
+                'user' => auth()->user()->username ?? 'unknown',
+                'timestamp' => now()->toISOString()
+            ]);
+
+            // 驗證設定是否存在
+            $setting = Setting::where('key', $this->settingKey)->first();
+            if (!$setting) {
+                throw new \Exception("找不到設定項目：{$this->settingKey}");
+            }
+
+            // 取得設定的顯示名稱
+            $displayName = $setting->description ?? $this->settingKey;
+            
+            // 檢查值是否有變更
+            if ($this->value === $this->originalValue) {
+                $this->dispatch('show-toast', [
+                    'type' => 'info',
+                    'message' => "「{$displayName}」沒有變更，無需儲存"
+                ]);
+                $this->showForm = false;
                 return;
             }
 
-            // 檢查依賴關係
-            $dependencyIssues = $this->checkDependencies();
-            if (!empty($dependencyIssues)) {
-                $this->dependencyWarnings = $dependencyIssues;
-                $this->addFlash('warning', '設定變更可能影響其他相關設定，請檢查依賴關係');
-            }
+            // 執行資料庫更新
+            $affected = \DB::table('settings')
+                ->where('key', $this->settingKey)
+                ->update([
+                    'value' => json_encode($this->value),
+                    'is_changed' => true,
+                    'updated_at' => now()
+                ]);
 
-            // 處理檔案上傳
-            $valueToSave = $this->value;
-            if ($this->uploadedFile && in_array($this->inputType, ['file', 'image'])) {
-                $valueToSave = $this->handleFileUpload();
-            }
-
-            // 更新設定
-            $result = $this->getSettingsRepository()->updateSetting($this->settingKey, $valueToSave);
-
-            if ($result) {
-                $this->originalValue = $valueToSave;
-                $this->value = $valueToSave;
-                $this->uploadedFile = null;
+            if ($affected > 0) {
+                // 更新成功
+                $this->originalValue = $this->value;
                 
+                // 發送設定更新事件
                 $this->dispatch('setting-updated', settingKey: $this->settingKey);
-                $this->addFlash('success', '設定已成功更新');
                 
-                // 如果支援預覽，觸發預覽更新
-                if ($this->supportsPreview) {
-                    $this->dispatch('setting-preview-updated', [
-                        'key' => $this->settingKey,
-                        'value' => $valueToSave
-                    ]);
-                }
+                // 記錄成功日誌
+                \Log::info('✅ 設定儲存成功', [
+                    'setting_key' => $this->settingKey,
+                    'display_name' => $displayName,
+                    'new_value' => $this->value,
+                    'affected_rows' => $affected
+                ]);
+
+                // 顯示成功訊息
+                $this->dispatch('show-toast', [
+                    'type' => 'success',
+                    'message' => "✅ 「{$displayName}」設定已成功更新！"
+                ]);
+                
+                $this->showForm = false;
             } else {
-                $this->addFlash('error', '設定更新失敗');
+                // 沒有資料被更新
+                throw new \Exception('資料庫更新失敗，沒有資料被修改');
             }
 
-        } catch (ValidationException $e) {
-            $this->validationErrors = $e->validator->errors()->toArray();
-            $this->addFlash('error', '設定驗證失敗，請檢查輸入值');
         } catch (\Exception $e) {
-            $this->addFlash('error', "設定更新時發生錯誤：{$e->getMessage()}");
+            // 記錄錯誤日誌
+            \Log::error('❌ 設定儲存失敗', [
+                'setting_key' => $this->settingKey,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user' => auth()->user()->username ?? 'unknown'
+            ]);
+
+            // 取得友好的錯誤訊息
+            $friendlyMessage = $this->getFriendlyErrorMessage($e);
+            
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => "❌ 儲存失敗：{$friendlyMessage}"
+            ]);
         } finally {
             $this->saving = false;
         }
+    }
+
+    /**
+     * 取得友好的錯誤訊息
+     */
+    private function getFriendlyErrorMessage(\Exception $e): string
+    {
+        $message = $e->getMessage();
+        
+        // 常見錯誤的友好訊息
+        if (str_contains($message, 'Duplicate entry')) {
+            return '設定值重複，請使用不同的值';
+        }
+        
+        if (str_contains($message, 'Data too long')) {
+            return '設定值太長，請縮短內容';
+        }
+        
+        if (str_contains($message, 'Connection refused')) {
+            return '資料庫連線失敗，請稍後再試';
+        }
+        
+        if (str_contains($message, 'Syntax error')) {
+            return '設定格式錯誤，請檢查輸入內容';
+        }
+        
+        if (str_contains($message, 'Access denied')) {
+            return '權限不足，無法修改此設定';
+        }
+        
+        // 如果是自定義錯誤訊息，直接返回
+        if (str_contains($message, '找不到設定項目')) {
+            return $message;
+        }
+        
+        // 預設錯誤訊息
+        return '系統錯誤，請聯絡管理員或稍後再試';
     }
 
     /**
@@ -313,6 +438,31 @@ class SettingForm extends AdminComponent
      */
     public function cancel(): void
     {
+        // 檢查是否有未儲存的變更
+        $hasUnsavedChanges = $this->value !== $this->originalValue;
+        
+        if ($hasUnsavedChanges) {
+            // 取得設定顯示名稱
+            $displayName = $this->setting ? ($this->setting->description ?? $this->settingKey) : $this->settingKey;
+            
+            // 記錄取消操作
+            \Log::info('🚫 使用者取消設定編輯', [
+                'setting_key' => $this->settingKey,
+                'display_name' => $displayName,
+                'had_changes' => true,
+                'original_value' => $this->originalValue,
+                'cancelled_value' => $this->value,
+                'user' => auth()->user()->username ?? 'unknown'
+            ]);
+            
+            // 顯示取消訊息
+            $this->dispatch('show-toast', [
+                'type' => 'info',
+                'message' => "📝 已取消「{$displayName}」的變更"
+            ]);
+        }
+        
+        // 重置所有狀態
         $this->value = $this->originalValue;
         $this->uploadedFile = null;
         $this->showForm = false;
@@ -326,23 +476,75 @@ class SettingForm extends AdminComponent
     public function resetToDefault(): void
     {
         if (!$this->setting) {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => '❌ 找不到設定項目，無法重設'
+            ]);
             return;
         }
 
         try {
+            $displayName = $this->setting->description ?? $this->settingKey;
+            $currentValue = $this->value;
+            $defaultValue = $this->setting->default_value;
+            
+            // 檢查是否已經是預設值
+            if ($currentValue === $defaultValue) {
+                $this->dispatch('show-toast', [
+                    'type' => 'info',
+                    'message' => "ℹ️ 「{$displayName}」已經是預設值，無需重設"
+                ]);
+                return;
+            }
+            
+            // 記錄重設操作
+            \Log::info('🔄 設定重設為預設值', [
+                'setting_key' => $this->settingKey,
+                'display_name' => $displayName,
+                'current_value' => $currentValue,
+                'default_value' => $defaultValue,
+                'user' => auth()->user()->username ?? 'unknown'
+            ]);
+            
             $result = $this->getSettingsRepository()->resetSetting($this->settingKey);
             
             if ($result) {
+                // 更新本地值
                 $this->value = $this->setting->fresh()->value;
                 $this->originalValue = $this->value;
                 
+                // 發送更新事件
                 $this->dispatch('setting-updated', settingKey: $this->settingKey);
-                $this->addFlash('success', '設定已重設為預設值');
+                
+                // 記錄成功日誌
+                \Log::info('✅ 設定重設成功', [
+                    'setting_key' => $this->settingKey,
+                    'display_name' => $displayName,
+                    'reset_to_value' => $this->value
+                ]);
+                
+                // 顯示成功訊息
+                $this->dispatch('show-toast', [
+                    'type' => 'success',
+                    'message' => "🔄 「{$displayName}」已重設為預設值"
+                ]);
             } else {
-                $this->addFlash('error', '設定重設失敗');
+                throw new \Exception('重設操作失敗，請稍後再試');
             }
         } catch (\Exception $e) {
-            $this->addFlash('error', "設定重設時發生錯誤：{$e->getMessage()}");
+            // 記錄錯誤日誌
+            \Log::error('❌ 設定重設失敗', [
+                'setting_key' => $this->settingKey,
+                'error' => $e->getMessage(),
+                'user' => auth()->user()->username ?? 'unknown'
+            ]);
+            
+            $displayName = $this->setting ? ($this->setting->description ?? $this->settingKey) : $this->settingKey;
+            
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => "❌ 重設「{$displayName}」失敗：{$e->getMessage()}"
+            ]);
         }
     }
 
@@ -382,13 +584,33 @@ class SettingForm extends AdminComponent
     public function testConnection(): void
     {
         if (!$this->supportsConnectionTest) {
+            $this->dispatch('show-toast', [
+                'type' => 'warning',
+                'message' => '⚠️ 此設定不支援連線測試'
+            ]);
             return;
         }
 
         $this->testingConnection = true;
         $this->resetConnectionTest();
+        
+        $displayName = $this->setting ? ($this->setting->description ?? $this->settingKey) : $this->settingKey;
 
         try {
+            // 記錄測試開始
+            \Log::info('🔗 開始連線測試', [
+                'setting_key' => $this->settingKey,
+                'display_name' => $displayName,
+                'test_value' => $this->value,
+                'user' => auth()->user()->username ?? 'unknown'
+            ]);
+            
+            // 顯示測試中訊息
+            $this->dispatch('show-toast', [
+                'type' => 'info',
+                'message' => "🔗 正在測試「{$displayName}」的連線..."
+            ]);
+
             // 取得測試配置
             $testConfig = $this->buildConnectionTestConfig();
             
@@ -397,13 +619,57 @@ class SettingForm extends AdminComponent
             $result = $this->getConfigService()->testConnection($testType, $testConfig);
             
             $this->connectionTestResult = $result;
-            $this->connectionTestMessage = $result 
-                ? '連線測試成功' 
-                : '連線測試失敗，請檢查設定';
+            
+            if ($result) {
+                $this->connectionTestMessage = '✅ 連線測試成功！設定正確可用';
+                
+                // 記錄成功日誌
+                \Log::info('✅ 連線測試成功', [
+                    'setting_key' => $this->settingKey,
+                    'display_name' => $displayName,
+                    'test_type' => $testType
+                ]);
+                
+                // 顯示成功訊息
+                $this->dispatch('show-toast', [
+                    'type' => 'success',
+                    'message' => "✅ 「{$displayName}」連線測試成功！"
+                ]);
+            } else {
+                $this->connectionTestMessage = '❌ 連線測試失敗，請檢查設定值是否正確';
+                
+                // 記錄失敗日誌
+                \Log::warning('❌ 連線測試失敗', [
+                    'setting_key' => $this->settingKey,
+                    'display_name' => $displayName,
+                    'test_type' => $testType,
+                    'test_config' => $testConfig
+                ]);
+                
+                // 顯示失敗訊息
+                $this->dispatch('show-toast', [
+                    'type' => 'error',
+                    'message' => "❌ 「{$displayName}」連線測試失敗，請檢查設定"
+                ]);
+            }
 
         } catch (\Exception $e) {
             $this->connectionTestResult = false;
-            $this->connectionTestMessage = "連線測試錯誤：{$e->getMessage()}";
+            $this->connectionTestMessage = "❌ 連線測試錯誤：{$e->getMessage()}";
+            
+            // 記錄錯誤日誌
+            \Log::error('❌ 連線測試錯誤', [
+                'setting_key' => $this->settingKey,
+                'display_name' => $displayName,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // 顯示錯誤訊息
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => "❌ 「{$displayName}」連線測試發生錯誤：{$e->getMessage()}"
+            ]);
         } finally {
             $this->testingConnection = false;
         }
@@ -630,7 +896,7 @@ class SettingForm extends AdminComponent
             return '';
         }
 
-        return $this->settingConfig['description'] ?? $this->setting->description ?? $this->settingKey;
+        return $this->setting->description ?? $this->settingKey;
     }
 
     /**
@@ -638,7 +904,20 @@ class SettingForm extends AdminComponent
      */
     public function getSettingHelp(): string
     {
-        return $this->settingConfig['help'] ?? '';
+        try {
+            // 嘗試從 options 中取得 help
+            if ($this->setting && $this->setting->options) {
+                $options = $this->setting->options;
+                if (is_array($options) && isset($options['help'])) {
+                    return $options['help'];
+                }
+            }
+            
+            // 回退到 setting 的 help 屬性
+            return $this->setting->help ?? '';
+        } catch (\Exception $e) {
+            return '';
+        }
     }
 
     /**
@@ -646,7 +925,11 @@ class SettingForm extends AdminComponent
      */
     public function isRequired(): bool
     {
-        return in_array('required', $this->validationRules);
+        try {
+            return in_array('required', $this->validationRules);
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     /**

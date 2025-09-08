@@ -1,4 +1,71 @@
 <div class="space-y-8">
+    {{-- Flash 訊息顯示 --}}
+    @if (session()->has('success'))
+        <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md dark:bg-green-900/20 dark:border-green-800 dark:text-green-200" 
+             x-data="{ show: true }" 
+             x-show="show" 
+             x-transition
+             x-init="setTimeout(() => show = false, 5000)">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>{{ session('success') }}</span>
+                </div>
+                <button @click="show = false" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+
+    @if (session()->has('error'))
+        <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md dark:bg-red-900/20 dark:border-red-800 dark:text-red-200" 
+             x-data="{ show: true }" 
+             x-show="show" 
+             x-transition
+             x-init="setTimeout(() => show = false, 8000)">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>{{ session('error') }}</span>
+                </div>
+                <button @click="show = false" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+
+    @if (session()->has('warning'))
+        <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-200" 
+             x-data="{ show: true }" 
+             x-show="show" 
+             x-transition
+             x-init="setTimeout(() => show = false, 6000)">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span>{{ session('warning') }}</span>
+                </div>
+                <button @click="show = false" class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+
     {{-- 頂部控制區域 --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center space-x-4">
@@ -329,16 +396,18 @@
                             wire:loading.attr="disabled"
                             wire:target="save"
                             {{ !$this->hasChanges ? 'disabled' : '' }}
-                            class="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <svg wire:loading.remove wire:target="save" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            x-data="{ saving: @entangle('saving') }"
+                            :disabled="saving || !{{ $this->hasChanges ? 'true' : 'false' }}"
+                            class="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                        <svg wire:loading.remove wire:target="save" x-show="!saving" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
-                        <svg wire:loading wire:target="save" class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                        <svg wire:loading wire:target="save" x-show="saving" class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span wire:loading.remove wire:target="save">儲存設定</span>
-                        <span wire:loading wire:target="save">儲存中...</span>
+                        <span wire:loading.remove wire:target="save" x-show="!saving">儲存設定</span>
+                        <span wire:loading wire:target="save" x-show="saving">儲存中...</span>
                     </button>
                 </div>
             </div>
@@ -467,4 +536,77 @@
             </div>
         </div>
     @endif
+
+    {{-- JavaScript 處理儲存狀態和 UI 回饋 --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 通知設定頁面 JavaScript 已初始化');
+            
+            // 監聽設定儲存成功事件
+            Livewire.on('notification-settings-saved', (event) => {
+                console.log('✅ 通知設定儲存成功:', event);
+                
+                // 顯示成功提示
+                if (event.message) {
+                    // 如果有成功訊息，滾動到頂部顯示
+                    setTimeout(() => {
+                        const successMessage = document.querySelector('.bg-green-50');
+                        if (successMessage) {
+                            successMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 100);
+                }
+            });
+            
+            // 監聽設定儲存錯誤事件
+            Livewire.on('notification-settings-error', (event) => {
+                console.error('❌ 通知設定儲存錯誤:', event);
+                
+                // 顯示錯誤提示
+                setTimeout(() => {
+                    const errorMessage = document.querySelector('.bg-red-50');
+                    if (errorMessage) {
+                        errorMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
+            });
+            
+            // 監聽通用設定儲存事件
+            Livewire.on('settings-saved', () => {
+                console.log('✅ 設定已儲存，UI 狀態已更新');
+                
+                // 確保按鈕狀態正確重置
+                setTimeout(() => {
+                    const saveButton = document.querySelector('button[wire\\:click="save"]');
+                    if (saveButton) {
+                        saveButton.disabled = false;
+                        console.log('🔄 儲存按鈕狀態已重置');
+                    }
+                }, 100);
+            });
+            
+            // 監聽 Livewire 請求完成事件
+            document.addEventListener('livewire:finished', function(event) {
+                if (event.detail.component.name === 'admin.settings.notification-settings') {
+                    console.log('🔄 Livewire 請求完成');
+                    
+                    // 重置按鈕狀態
+                    setTimeout(() => {
+                        const saveButton = document.querySelector('button[wire\\:click="save"]');
+                        if (saveButton) {
+                            const isDisabled = saveButton.hasAttribute('disabled');
+                            console.log('按鈕狀態檢查:', { disabled: isDisabled });
+                        }
+                    }, 200);
+                }
+            });
+            
+            // 監聽 Livewire 請求開始事件
+            document.addEventListener('livewire:started', function(event) {
+                if (event.detail.component.name === 'admin.settings.notification-settings') {
+                    console.log('🚀 Livewire 請求開始');
+                }
+            });
+        });
+    </script>
 </div>

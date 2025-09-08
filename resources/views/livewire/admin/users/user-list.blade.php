@@ -133,7 +133,7 @@
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="all">{{ __('admin.users.all_roles') }}</option>
-                            @foreach($availableRoles as $role)
+                            @foreach($this->availableRoles as $role)
                                 <option value="{{ $role->name }}">{{ $role->display_name }}</option>
                             @endforeach
                         </select>
@@ -148,7 +148,7 @@
                             wire:model.live="statusFilter"
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
-                            @foreach($statusOptions as $value => $label)
+                            @foreach($this->statusOptions as $value => $label)
                                 <option value="{{ $value }}">{{ $label }}</option>
                             @endforeach
                         </select>
@@ -288,7 +288,7 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    @forelse($users as $user)
+                    @forelse($this->users as $user)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <input type="checkbox" 
@@ -405,7 +405,7 @@
 
         {{-- 手機版卡片 --}}
         <div class="lg:hidden">
-            @forelse($users as $user)
+            @forelse($this->users as $user)
                 <div class="border-b border-gray-200 dark:border-gray-700 p-4">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center">
@@ -513,9 +513,9 @@
         </div>
 
         {{-- 分頁 --}}
-        @if($users->hasPages())
+        @if($this->users->hasPages())
             <div class="bg-white dark:bg-gray-800 px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:px-6">
-                {{ $users->links() }}
+                {{ $this->users->links() }}
             </div>
         @endif
     </div>

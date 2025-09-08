@@ -227,16 +227,6 @@ class User extends Authenticatable
      * 
      * @return string
      */
-    public function username()
-    {
-        return 'username';
-    }
-
-    /**
-     * 取得用於認證的使用者名稱
-     * 
-     * @return string
-     */
     public function getAuthIdentifierName()
     {
         return 'username';

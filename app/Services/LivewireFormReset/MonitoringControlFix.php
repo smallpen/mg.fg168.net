@@ -632,7 +632,7 @@ class MonitoringControlFix extends StandardFormResetFix
             // 確保方法包含錯誤處理
             if (!preg_match('/function\s+refreshData[^{]*{[^}]*try\s*{/', $content)) {
                 $pattern = '/(public\s+function\s+refreshData\s*\([^)]*\)[^{]*{)([^}]*)(})/s';
-                $replacement = '$1' . "\n        try {$2\n        } catch (\\Exception \$e) {\n            \\Log::error('資料刷新失敗', ['error' => \$e->getMessage()]);\n        }\n    $3";
+                $replacement = '$1' . "\n        try {\$2\n        } catch (\\Exception \$e) {\n            \\Log::error('資料刷新失敗', ['error' => \$e->getMessage()]);\n        }\n    \$3";
                 $content = preg_replace($pattern, $replacement, $content);
             }
         }

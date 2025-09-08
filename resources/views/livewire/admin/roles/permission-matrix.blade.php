@@ -1,41 +1,30 @@
 <div class="space-y-6">
-    {{-- 頁面標題 --}}
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ __('admin.permissions.matrix') }}
-            </h1>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                {{ __('admin.permissions.matrix_description') }}
-            </p>
-        </div>
-        
-        <div class="flex space-x-3">
-            {{-- 顯示模式切換 --}}
-            <button wire:click="toggleViewMode" 
-                    class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                @if($viewMode === 'matrix')
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-                    </svg>
-                    列表檢視
-                @else
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"/>
-                    </svg>
-                    矩陣檢視
-                @endif
-            </button>
-
-            {{-- 描述顯示切換 --}}
-            <button wire:click="toggleDescriptions" 
-                    class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+    {{-- 控制按鈕區域 --}}
+    <div class="flex justify-end space-x-3">
+        {{-- 顯示模式切換 --}}
+        <button wire:click="toggleViewMode" 
+                class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+            @if($viewMode === 'matrix')
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                 </svg>
-                {{ $showDescriptions ? '隱藏描述' : '顯示描述' }}
-            </button>
-        </div>
+                列表檢視
+            @else
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+                矩陣檢視
+            @endif
+        </button>
+
+        {{-- 描述顯示切換 --}}
+        <button wire:click="toggleDescriptions" 
+                class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ $showDescriptions ? '隱藏描述' : '顯示描述' }}
+        </button>
     </div>
 
     {{-- 搜尋和篩選區域 --}}
