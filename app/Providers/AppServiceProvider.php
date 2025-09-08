@@ -52,6 +52,20 @@ class AppServiceProvider extends ServiceProvider
         // 註冊設定相關服務
         $this->app->singleton(\App\Services\EncryptionService::class);
         $this->app->singleton(\App\Services\ConfigurationService::class);
+        
+        // 註冊通路管理相關服務
+        $this->app->bind(
+            \App\Contracts\AgentServiceInterface::class,
+            \App\Services\AgentService::class
+        );
+        
+        $this->app->bind(
+            \App\Contracts\PointServiceInterface::class,
+            \App\Services\PointService::class
+        );
+        
+        $this->app->singleton(\App\Services\AgentService::class);
+        $this->app->singleton(\App\Services\PointService::class);
     }
 
     /**
