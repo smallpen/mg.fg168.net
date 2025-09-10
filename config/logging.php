@@ -250,6 +250,42 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // 通路管理系統日誌
+        'channel_management' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/channel-management.log'),
+            'level' => env('CHANNEL_LOG_LEVEL', 'debug'),
+            'days' => env('CHANNEL_LOG_RETENTION_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
+        // 通路管理效能監控日誌
+        'channel_performance' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/channel-performance.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 7,
+            'replace_placeholders' => true,
+        ],
+
+        // 通路管理稽核日誌
+        'channel_audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/channel-audit.log'),
+            'level' => env('LOG_LEVEL', 'info'),
+            'days' => env('CHANNEL_AUDIT_RETENTION_DAYS', 90),
+            'replace_placeholders' => true,
+        ],
+
+        // 通路管理點數異動日誌
+        'channel_points' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/channel-points.log'),
+            'level' => 'info',
+            'days' => env('CHANNEL_AUDIT_RETENTION_DAYS', 90),
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

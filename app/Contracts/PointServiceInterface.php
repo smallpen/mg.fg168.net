@@ -71,4 +71,46 @@ interface PointServiceInterface
      * @return array 稽核結果
      */
     public function auditPoints(): array;
+
+    /**
+     * 轉移玩家到新代理
+     * 
+     * @param \App\Models\Player $player 玩家
+     * @param Agent $newAgent 新代理
+     */
+    public function transferPlayerToNewAgent(\App\Models\Player $player, Agent $newAgent): void;
+
+    /**
+     * 批量分配點數給多個代理
+     * 
+     * @param array $allocations 分配資料
+     * @param Agent|null $fromAgent 來源代理
+     */
+    public function batchAllocateToAgents(array $allocations, ?Agent $fromAgent = null): void;
+
+    /**
+     * 批量分配點數給多個玩家
+     * 
+     * @param array $allocations 分配資料
+     * @param Agent $fromAgent 來源代理
+     */
+    public function batchAllocateToPlayers(array $allocations, Agent $fromAgent): void;
+
+    /**
+     * 取得點數交易歷史
+     * 
+     * @param Agent|\App\Models\Player|null $target 目標對象
+     * @param int $limit 限制數量
+     * @param array $filters 篩選條件
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function getTransactionHistory($target = null, int $limit = 50, array $filters = []);
+
+    /**
+     * 修復點數不一致問題
+     * 
+     * @param array $issues 稽核發現的問題
+     * @return array 修復結果
+     */
+    public function fixPointsInconsistencies(array $issues): array;
 }

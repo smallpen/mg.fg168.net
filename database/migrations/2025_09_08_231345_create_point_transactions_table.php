@@ -21,6 +21,7 @@ return new class extends Migration
                 'player_allocation',
                 'player_recovery',
                 'player_consumption',
+                'player_transfer',
                 'system_adjustment'
             ])->comment('交易類型');
             $table->decimal('amount', 15, 2)->comment('交易金額');

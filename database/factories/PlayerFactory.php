@@ -26,10 +26,10 @@ class PlayerFactory extends Factory
             'account' => $username, // 將在建立時根據代理前置符號更新
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->optional()->phoneNumber(),
-            'agent_id' => Agent::factory(),
+            'agent_id' => null, // Will be set by the test
             'points' => $this->faker->randomFloat(2, 100, 10000),
             'is_active' => $this->faker->boolean(95), // 95% 機率為啟用
-            'created_by' => User::factory(),
+            'created_by' => null, // Will be set by the test
             'notes' => $this->faker->optional()->sentence(),
         ];
     }

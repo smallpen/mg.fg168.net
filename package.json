@@ -21,6 +21,7 @@
     "dependencies": {
         "@heroicons/react": "^2.0.18",
         "@playwright/test": "^1.54.2",
-        "playwright": "^1.53.1"
+        "d3": "^7.9.0",
+        "playwright": "^1.55.0"
     }
 }

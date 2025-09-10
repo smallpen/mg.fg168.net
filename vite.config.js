@@ -19,6 +19,7 @@ export default defineConfig({
                 'resources/js/rtl-support.js',
                 'resources/js/lazy-loading.js',
                 'resources/js/service-worker-manager.js',
+                'resources/js/organization-chart.js',
             ],
             refresh: true,
         }),

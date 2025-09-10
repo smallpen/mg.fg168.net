@@ -32,7 +32,7 @@ class PermissionSeeder extends Seeder
      */
     private function seedPermissions(): void
     {
-        // 定義系統核心權限 - 精簡且完整的權限結構
+        // 定義系統核心權限 - 完整的權限結構（共 49 個權限）
         $permissions = [
             // === 儀表板模組 (2個權限) ===
             [
@@ -295,6 +295,162 @@ class PermissionSeeder extends Seeder
                 'description' => '可以管理系統安全設定和事件',
                 'module' => 'system',
                 'type' => 'security'
+            ],
+
+            // === 通路管理模組 (16個權限) ===
+            // 代理管理權限 (7個)
+            [
+                'name' => 'channels.agents.view',
+                'display_name' => '檢視代理',
+                'description' => '可以檢視代理列表和詳細資訊',
+                'module' => 'channels',
+                'type' => 'view'
+            ],
+            [
+                'name' => 'channels.agents.create',
+                'display_name' => '建立代理',
+                'description' => '可以建立新的代理',
+                'module' => 'channels',
+                'type' => 'create'
+            ],
+            [
+                'name' => 'channels.agents.edit',
+                'display_name' => '編輯代理',
+                'description' => '可以編輯代理資訊',
+                'module' => 'channels',
+                'type' => 'edit'
+            ],
+            [
+                'name' => 'channels.agents.delete',
+                'display_name' => '刪除代理',
+                'description' => '可以刪除代理',
+                'module' => 'channels',
+                'type' => 'delete'
+            ],
+            [
+                'name' => 'channels.agents.manage_hierarchy',
+                'display_name' => '管理代理層級',
+                'description' => '可以管理代理的層級結構和上下層關係',
+                'module' => 'channels',
+                'type' => 'manage'
+            ],
+            [
+                'name' => 'channels.agents.self_manage',
+                'display_name' => '代理自主管理',
+                'description' => '代理可以管理自己的下層代理和玩家',
+                'module' => 'channels',
+                'type' => 'self_manage'
+            ],
+            [
+                'name' => 'channels.agents.export',
+                'display_name' => '匯出代理資料',
+                'description' => '可以匯出代理網絡結構和統計資料',
+                'module' => 'channels',
+                'type' => 'export'
+            ],
+
+            // 玩家管理權限 (6個)
+            [
+                'name' => 'channels.players.view',
+                'display_name' => '檢視玩家',
+                'description' => '可以檢視玩家列表和詳細資訊',
+                'module' => 'channels',
+                'type' => 'view'
+            ],
+            [
+                'name' => 'channels.players.create',
+                'display_name' => '建立玩家',
+                'description' => '可以建立新的玩家',
+                'module' => 'channels',
+                'type' => 'create'
+            ],
+            [
+                'name' => 'channels.players.edit',
+                'display_name' => '編輯玩家',
+                'description' => '可以編輯玩家資訊',
+                'module' => 'channels',
+                'type' => 'edit'
+            ],
+            [
+                'name' => 'channels.players.delete',
+                'display_name' => '刪除玩家',
+                'description' => '可以刪除玩家',
+                'module' => 'channels',
+                'type' => 'delete'
+            ],
+            [
+                'name' => 'channels.players.assign_agent',
+                'display_name' => '指派玩家代理',
+                'description' => '可以變更玩家的隸屬代理',
+                'module' => 'channels',
+                'type' => 'assign'
+            ],
+            [
+                'name' => 'channels.players.export',
+                'display_name' => '匯出玩家資料',
+                'description' => '可以匯出玩家資料',
+                'module' => 'channels',
+                'type' => 'export'
+            ],
+
+            // 點數管理權限 (3個)
+            [
+                'name' => 'channels.points.view',
+                'display_name' => '檢視點數',
+                'description' => '可以檢視點數分配和交易記錄',
+                'module' => 'channels',
+                'type' => 'view'
+            ],
+            [
+                'name' => 'channels.points.allocate',
+                'display_name' => '分配點數',
+                'description' => '可以分配點數給代理或玩家',
+                'module' => 'channels',
+                'type' => 'allocate'
+            ],
+            [
+                'name' => 'channels.points.recover',
+                'display_name' => '回收點數',
+                'description' => '可以從代理或玩家回收點數',
+                'module' => 'channels',
+                'type' => 'recover'
+            ],
+
+            // === 通路系統管理權限 (5個) ===
+            [
+                'name' => 'channels.system.manage',
+                'display_name' => '系統管理',
+                'description' => '可以存取通路管理系統管理員功能',
+                'module' => 'channels',
+                'type' => 'manage'
+            ],
+            [
+                'name' => 'channels.system.audit',
+                'display_name' => '系統稽核',
+                'description' => '可以執行系統稽核和監控功能',
+                'module' => 'channels',
+                'type' => 'audit'
+            ],
+            [
+                'name' => 'channels.system.adjust_points',
+                'display_name' => '系統級點數調整',
+                'description' => '可以進行系統級的點數調整操作',
+                'module' => 'channels',
+                'type' => 'adjust'
+            ],
+            [
+                'name' => 'channels.system.export',
+                'display_name' => '系統資料匯出',
+                'description' => '可以匯出系統級的報表和資料',
+                'module' => 'channels',
+                'type' => 'export'
+            ],
+            [
+                'name' => 'channels.system.monitor',
+                'display_name' => '系統監控',
+                'description' => '可以監控系統健康度和異常狀況',
+                'module' => 'channels',
+                'type' => 'monitor'
             ],
         ];
 

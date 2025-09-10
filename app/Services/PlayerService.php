@@ -42,7 +42,7 @@ class PlayerService implements PlayerServiceInterface
             $data['account'] = $agent->full_prefix . $data['username'];
 
             // 設定建立者
-            $data['created_by'] = auth()->id();
+            $data['created_by'] = auth()->user()->id;
 
             // 建立玩家
             $player = Player::create($data);
@@ -299,7 +299,7 @@ class PlayerService implements PlayerServiceInterface
                 'balance_before' => $balanceBefore,
                 'balance_after' => $player->points,
                 'description' => $description ?: "玩家消費",
-                'created_by' => auth()->id(),
+                'created_by' => auth()->user()->id,
             ]);
 
             // 記錄活動日誌

@@ -47,6 +47,7 @@ class User extends Authenticatable
         'is_active',
         'accessibility_preferences',
         'preferences',
+        'agent_id',
     ];
 
     /**
@@ -107,6 +108,16 @@ class User extends Authenticatable
     public function settingChanges(): HasMany
     {
         return $this->hasMany(SettingChange::class, 'changed_by');
+    }
+
+    /**
+     * 使用者對應的代理關聯
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function agent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Agent::class, 'agent_id');
     }
 
     /**

@@ -18,6 +18,7 @@ class PointTransaction extends Model
     const TYPE_PLAYER_ALLOCATION = 'player_allocation';
     const TYPE_PLAYER_RECOVERY = 'player_recovery';
     const TYPE_PLAYER_CONSUMPTION = 'player_consumption';
+    const TYPE_PLAYER_TRANSFER = 'player_transfer';
     const TYPE_SYSTEM_ADJUSTMENT = 'system_adjustment';
 
     protected $fillable = [
@@ -87,6 +88,7 @@ class PointTransaction extends Model
             self::TYPE_PLAYER_ALLOCATION => '玩家點數分配',
             self::TYPE_PLAYER_RECOVERY => '玩家點數回收',
             self::TYPE_PLAYER_CONSUMPTION => '玩家點數消費',
+            self::TYPE_PLAYER_TRANSFER => '玩家轉移',
             self::TYPE_SYSTEM_ADJUSTMENT => '系統調整',
             default => '未知類型',
         };
@@ -198,6 +200,7 @@ class PointTransaction extends Model
             self::TYPE_PLAYER_ALLOCATION => '玩家點數分配',
             self::TYPE_PLAYER_RECOVERY => '玩家點數回收',
             self::TYPE_PLAYER_CONSUMPTION => '玩家點數消費',
+            self::TYPE_PLAYER_TRANSFER => '玩家轉移',
             self::TYPE_SYSTEM_ADJUSTMENT => '系統調整',
         ];
     }

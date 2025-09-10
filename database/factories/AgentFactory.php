@@ -21,7 +21,7 @@ class AgentFactory extends Factory
         $username = 'agent' . $this->faker->unique()->randomNumber(5);
         
         return [
-            'name' => $this->faker->name(),
+            'name' => $this->faker->firstName() . ' ' . $this->faker->lastName(),
             'username' => $username,
             'account' => $username, // 將在建立時根據前置符號更新
             'email' => $this->faker->unique()->safeEmail(),
@@ -33,7 +33,7 @@ class AgentFactory extends Factory
             'allocated_points' => 0,
             'remaining_points' => 0, // 將在 afterCreating 中計算
             'is_active' => $this->faker->boolean(90), // 90% 機率為啟用
-            'created_by' => User::factory(),
+            'created_by' => null, // Will be set by the test
             'notes' => $this->faker->optional()->sentence(),
         ];
     }

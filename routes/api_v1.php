@@ -99,3 +99,17 @@ Route::get('/info', function () {
 Route::get('/docs', [\App\Http\Controllers\Api\V1\ApiDocumentationController::class, 'index'])
     ->name('docs')
     ->withoutMiddleware(['api_auth', 'api_rate_limit']); // 文檔不需要認證
+
+/*
+|--------------------------------------------------------------------------
+| 通路管理 API 路由
+|--------------------------------------------------------------------------
+|
+| 通路管理相關的 API 端點，包含代理、玩家和點數管理
+|
+*/
+
+// 通路管理 API 路由群組
+Route::prefix('channels')->name('channels.')->group(function () {
+    require __DIR__ . '/api_v1_channels.php';
+});

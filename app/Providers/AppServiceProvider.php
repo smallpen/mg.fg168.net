@@ -66,6 +66,7 @@ class AppServiceProvider extends ServiceProvider
         
         $this->app->singleton(\App\Services\AgentService::class);
         $this->app->singleton(\App\Services\PointService::class);
+        $this->app->singleton(\App\Services\ChannelAccessControlService::class);
     }
 
     /**

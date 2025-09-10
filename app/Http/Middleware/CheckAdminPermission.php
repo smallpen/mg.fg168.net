@@ -250,7 +250,7 @@ class CheckAdminPermission
      */
     protected function isAdminUser($user): bool
     {
-        return $user->hasRole(['super_admin', 'admin']) || 
+        return $user->hasAnyRole(['super_admin', 'admin']) || 
                $user->hasPermission('admin.access');
     }
     

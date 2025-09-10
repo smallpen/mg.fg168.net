@@ -1,40 +1,38 @@
 {
   "mcpServers": {
     "playwright": {
-      "command": "uvx",
-      "args": ["mcp-playwright@latest"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR"
-      },
+      "command": "playwright-mcp-server",
+      "args": [],
       "disabled": false,
       "autoApprove": [
-        "mcp_playwright_playwright_navigate",
-        "mcp_playwright_playwright_screenshot", 
-        "mcp_playwright_playwright_click",
-        "mcp_playwright_playwright_fill",
-        "mcp_playwright_playwright_get_visible_text",
-        "mcp_playwright_playwright_get_visible_html",
-        "mcp_playwright_playwright_evaluate",
-        "mcp_playwright_playwright_console_logs"
+        "playwright_navigate",
+        "playwright_screenshot",
+        "playwright_get_visible_text",
+        "playwright_get_visible_html",
+        "playwright_fill",
+        "playwright_click",
+        "playwright_select",
+        "playwright_evaluate",
+        "playwright_console_logs",
+        "playwright_close"
       ]
     },
     "mysql": {
-      "command": "uvx", 
-      "args": ["mcp-mysql@latest"],
+      "command": "mysql-mcp-server",
+      "args": [],
       "env": {
-        "MYSQL_HOST": "localhost",
-        "MYSQL_PORT": "3306", 
-        "MYSQL_USER": "root",
-        "MYSQL_PASSWORD": "password",
-        "MYSQL_DATABASE": "mg_fg168_net",
-        "FASTMCP_LOG_LEVEL": "ERROR"
+        "MYSQL_HOST": "127.0.0.1",
+        "MYSQL_PORT": "3306",
+        "MYSQL_USER": "laravel",
+        "MYSQL_PASSWORD": "secret",
+        "MYSQL_DATABASE": "laravel_admin"
       },
       "disabled": false,
       "autoApprove": [
-        "mcp_mysql_list_databases",
-        "mcp_mysql_list_tables", 
-        "mcp_mysql_describe_table",
-        "mcp_mysql_execute_query"
+        "mysql_list_databases",
+        "mysql_list_tables",
+        "mysql_describe_table",
+        "mysql_execute_query"
       ]
     }
   }

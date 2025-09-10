@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\PointTransaction;
 use App\Models\Agent;
 use App\Models\Player;
-use App\Models\PointTransaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -14,18 +14,23 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class PointTransactionFactory extends Factory
 {
     /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
+    protected $model = PointTransaction::class;
+
+    /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
-        $amount = $this->faker->randomFloat(2, -10000, 10000);
-        $balanceBefore = $this->faker->randomFloat(2, 0, 50000);
+        $amount = $this->faker->randomFloat(2, -1000, 1000);
+        $balanceBefore = $this->faker->randomFloat(2, 0, 5000);
         
         return [
-            'agent_id' => null,
-            'player_id' => null,
             'type' => $this->faker->randomElement([
                 PointTransaction::TYPE_AGENT_ALLOCATION,
                 PointTransaction::TYPE_AGENT_RECOVERY,
@@ -39,123 +44,110 @@ class PointTransactionFactory extends Factory
             'balance_after' => $balanceBefore + $amount,
             'description' => $this->faker->sentence(),
             'reference_id' => $this->faker->optional()->randomNumber(),
-            'created_by' => User::factory(),
+            'created_by' => null, // Will be set by the test
+            'created_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'updated_at' => now(),
         ];
     }
 
     /**
      * 代理相關交易
      */
-    public function forAgent(Agent $agent): static
+    public function forAgent(?Agent $agent = null): static
     {
-        return $this->state(fn (array $attributes) => [
-            'agent_id' => $agent->id,
-            'player_id' => null,
-        ]);
+        return $this->state(function (array $attributes) use ($agent) {
+            return [
+                'agent_id' => $agent?->id ?? Agent::factory(),
+                'player_id' => null,
+                'type' => $this->faker->randomElement([
+                    PointTransaction::TYPE_AGENT_ALLOCATION,
+                    PointTransaction::TYPE_AGENT_RECOVERY,
+                    PointTransaction::TYPE_SYSTEM_ADJUSTMENT,
+                ]),
+            ];
+        });
     }
 
     /**
      * 玩家相關交易
      */
-    public function forPlayer(Player $player): static
+    public function forPlayer(?Player $player = null): static
     {
-        return $this->state(fn (array $attributes) => [
-            'agent_id' => null,
-            'player_id' => $player->id,
-        ]);
-    }
-
-    /**
-     * 代理點數分配交易
-     */
-    public function agentAllocation(): static
-    {
-        return $this->state(function (array $attributes) {
-            $amount = $this->faker->randomFloat(2, 100, 10000);
-            $balanceBefore = $this->faker->randomFloat(2, 0, 50000);
-            
+        return $this->state(function (array $attributes) use ($player) {
             return [
-                'type' => PointTransaction::TYPE_AGENT_ALLOCATION,
-                'amount' => $amount,
-                'balance_before' => $balanceBefore,
-                'balance_after' => $balanceBefore + $amount,
-                'description' => '代理點數分配',
+                'agent_id' => null,
+                'player_id' => $player?->id ?? Player::factory(),
+                'type' => $this->faker->randomElement([
+                    PointTransaction::TYPE_PLAYER_ALLOCATION,
+                    PointTransaction::TYPE_PLAYER_RECOVERY,
+                    PointTransaction::TYPE_PLAYER_CONSUMPTION,
+                    PointTransaction::TYPE_SYSTEM_ADJUSTMENT,
+                ]),
             ];
         });
     }
 
     /**
-     * 代理點數回收交易
+     * 點數分配交易
      */
-    public function agentRecovery(): static
+    public function allocation(): static
     {
         return $this->state(function (array $attributes) {
-            $amount = $this->faker->randomFloat(2, -10000, -100);
-            $balanceBefore = $this->faker->randomFloat(2, 1000, 50000);
+            $amount = $this->faker->randomFloat(2, 1, 1000);
+            $balanceBefore = $this->faker->randomFloat(2, 0, 2000);
             
             return [
-                'type' => PointTransaction::TYPE_AGENT_RECOVERY,
+                'type' => $this->faker->randomElement([
+                    PointTransaction::TYPE_AGENT_ALLOCATION,
+                    PointTransaction::TYPE_PLAYER_ALLOCATION,
+                ]),
                 'amount' => $amount,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $balanceBefore + $amount,
-                'description' => '代理點數回收',
+                'description' => '點數分配',
             ];
         });
     }
 
     /**
-     * 玩家點數分配交易
+     * 點數回收交易
      */
-    public function playerAllocation(): static
+    public function recovery(): static
     {
         return $this->state(function (array $attributes) {
-            $amount = $this->faker->randomFloat(2, 50, 5000);
-            $balanceBefore = $this->faker->randomFloat(2, 0, 20000);
+            $amount = $this->faker->randomFloat(2, -1000, -1);
+            $balanceBefore = $this->faker->randomFloat(2, 1000, 3000);
             
             return [
-                'type' => PointTransaction::TYPE_PLAYER_ALLOCATION,
+                'type' => $this->faker->randomElement([
+                    PointTransaction::TYPE_AGENT_RECOVERY,
+                    PointTransaction::TYPE_PLAYER_RECOVERY,
+                ]),
                 'amount' => $amount,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $balanceBefore + $amount,
-                'description' => '玩家點數分配',
+                'description' => '點數回收',
             ];
         });
     }
 
     /**
-     * 玩家點數回收交易
+     * 玩家消費交易
      */
-    public function playerRecovery(): static
+    public function consumption(): static
     {
         return $this->state(function (array $attributes) {
-            $amount = $this->faker->randomFloat(2, -5000, -50);
-            $balanceBefore = $this->faker->randomFloat(2, 500, 20000);
+            $amount = $this->faker->randomFloat(2, -500, -1);
+            $balanceBefore = $this->faker->randomFloat(2, 500, 2000);
             
             return [
-                'type' => PointTransaction::TYPE_PLAYER_RECOVERY,
-                'amount' => $amount,
-                'balance_before' => $balanceBefore,
-                'balance_after' => $balanceBefore + $amount,
-                'description' => '玩家點數回收',
-            ];
-        });
-    }
-
-    /**
-     * 玩家點數消費交易
-     */
-    public function playerConsumption(): static
-    {
-        return $this->state(function (array $attributes) {
-            $amount = $this->faker->randomFloat(2, -2000, -10);
-            $balanceBefore = $this->faker->randomFloat(2, 100, 10000);
-            
-            return [
+                'player_id' => Player::factory(),
+                'agent_id' => null,
                 'type' => PointTransaction::TYPE_PLAYER_CONSUMPTION,
                 'amount' => $amount,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $balanceBefore + $amount,
-                'description' => '玩家點數消費',
+                'description' => '遊戲消費',
             ];
         });
     }
@@ -166,15 +158,35 @@ class PointTransactionFactory extends Factory
     public function systemAdjustment(): static
     {
         return $this->state(function (array $attributes) {
-            $amount = $this->faker->randomFloat(2, -5000, 5000);
-            $balanceBefore = $this->faker->randomFloat(2, 0, 30000);
+            $amount = $this->faker->randomFloat(2, -500, 500);
+            $balanceBefore = $this->faker->randomFloat(2, 0, 2000);
             
             return [
                 'type' => PointTransaction::TYPE_SYSTEM_ADJUSTMENT,
                 'amount' => $amount,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $balanceBefore + $amount,
-                'description' => '系統點數調整',
+                'description' => '系統調整 - ' . $this->faker->sentence(3),
+            ];
+        });
+    }
+
+    /**
+     * 玩家轉移交易
+     */
+    public function playerTransfer(): static
+    {
+        return $this->state(function (array $attributes) {
+            $balanceBefore = $this->faker->randomFloat(2, 100, 1000);
+            
+            return [
+                'player_id' => Player::factory(),
+                'agent_id' => null,
+                'type' => PointTransaction::TYPE_PLAYER_TRANSFER,
+                'amount' => 0, // 轉移時玩家點數不變
+                'balance_before' => $balanceBefore,
+                'balance_after' => $balanceBefore,
+                'description' => '玩家代理轉移',
             ];
         });
     }
@@ -185,8 +197,8 @@ class PointTransactionFactory extends Factory
     public function positive(): static
     {
         return $this->state(function (array $attributes) {
-            $amount = $this->faker->randomFloat(2, 10, 10000);
-            $balanceBefore = $this->faker->randomFloat(2, 0, 50000);
+            $amount = $this->faker->randomFloat(2, 1, 1000);
+            $balanceBefore = $this->faker->randomFloat(2, 0, 2000);
             
             return [
                 'amount' => $amount,
@@ -202,8 +214,8 @@ class PointTransactionFactory extends Factory
     public function negative(): static
     {
         return $this->state(function (array $attributes) {
-            $amount = $this->faker->randomFloat(2, -10000, -10);
-            $balanceBefore = $this->faker->randomFloat(2, 1000, 50000);
+            $amount = $this->faker->randomFloat(2, -1000, -1);
+            $balanceBefore = $this->faker->randomFloat(2, 1000, 3000);
             
             return [
                 'amount' => $amount,
@@ -214,12 +226,46 @@ class PointTransactionFactory extends Factory
     }
 
     /**
-     * 設定參考ID
+     * 大額交易
      */
-    public function withReference($referenceId): static
+    public function largeAmount(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'reference_id' => $referenceId,
-        ]);
+        return $this->state(function (array $attributes) {
+            $amount = $this->faker->randomFloat(2, 5000, 50000);
+            $balanceBefore = $this->faker->randomFloat(2, 10000, 100000);
+            
+            return [
+                'amount' => $amount,
+                'balance_before' => $balanceBefore,
+                'balance_after' => $balanceBefore + $amount,
+                'description' => '大額' . $attributes['description'] ?? '交易',
+            ];
+        });
+    }
+
+    /**
+     * 最近的交易
+     */
+    public function recent(): static
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'created_at' => $this->faker->dateTimeBetween('-7 days', 'now'),
+                'updated_at' => now(),
+            ];
+        });
+    }
+
+    /**
+     * 歷史交易
+     */
+    public function historical(): static
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'created_at' => $this->faker->dateTimeBetween('-1 year', '-1 month'),
+                'updated_at' => $this->faker->dateTimeBetween('-1 year', '-1 month'),
+            ];
+        });
     }
 }
