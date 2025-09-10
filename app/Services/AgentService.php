@@ -355,8 +355,20 @@ class AgentService implements AgentServiceInterface
         $usedPrefixes = Agent::where('level', 1)
             ->whereNotNull('prefix')
             ->pluck('prefix')
+            ->map(function ($prefix) {
+                return strtolower($prefix); // 統一轉為小寫
+            })
             ->toArray();
             
-        return array_diff($allPrefixes, $usedPrefixes);
+        $availablePrefixes = array_diff($allPrefixes, $usedPrefixes);
+        
+        Log::info('🔤 計算可用前置符號', [
+            'all_prefixes_count' => count($allPrefixes),
+            'used_prefixes' => $usedPrefixes,
+            'available_prefixes' => array_values($availablePrefixes),
+            'available_count' => count($availablePrefixes),
+        ]);
+        
+        return array_values($availablePrefixes);
     }
 }

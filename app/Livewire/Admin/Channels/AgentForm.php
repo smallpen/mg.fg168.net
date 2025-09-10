@@ -124,7 +124,7 @@ class AgentForm extends Component
     public function mount(?Agent $agent = null, ?int $parentId = null): void
     {
         // 檢查權限
-        if ($agent) {
+        if ($agent && $agent->exists) {
             if (!auth()->user()->can('channels.agents.edit')) {
                 abort(403, '您沒有編輯代理的權限');
             }
@@ -303,8 +303,16 @@ class AgentForm extends Component
             $agentService = app(AgentService::class);
             $this->availablePrefixes = $agentService->getAvailablePrefixes();
         } catch (\Exception $e) {
-            // 如果服務不可用，使用預設的前置符號列表
-            $this->availablePrefixes = range('a', 'z');
+            // 如果服務不可用，手動計算可用的前置符號
+            $allPrefixes = range('a', 'z');
+            $usedPrefixes = Agent::where('level', 1)
+                ->whereNotNull('prefix')
+                ->pluck('prefix')
+                ->map(function ($prefix) {
+                    return strtolower($prefix); // 統一轉為小寫
+                })
+                ->toArray();
+            $this->availablePrefixes = array_diff($allPrefixes, $usedPrefixes);
         }
         
         // 如果是編輯模式且代理有前置符號，將其加入可用選項

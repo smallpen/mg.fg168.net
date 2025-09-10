@@ -27,6 +27,6 @@
         </div>
 
         {{-- 代理表單元件 --}}
-        <livewire:admin.channels.agent-form :parent-id="$parentId ?? null" />
+        @livewire('admin.channels.agent-form', ['parentId' => $parentId ?? null])
     </div>
 @endsection

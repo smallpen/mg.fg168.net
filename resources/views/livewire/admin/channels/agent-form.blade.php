@@ -132,16 +132,23 @@
                                         >
                                             <option value="">請選擇前置符號</option>
                                             @foreach($prefixOptions as $value => $label)
-                                                <option value="{{ $value }}">{{ strtoupper($label) }}</option>
+                                                <option value="{{ $value }}">{{ $label }}</option>
                                             @endforeach
                                         </select>
                                         @error('prefix')
                                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                                         @enderror
                                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                            第一層代理需要選擇唯一的前置符號
+                                            第一層代理需要選擇唯一的前置符號（可用選項：{{ count($prefixOptions) }} 個）
                                         </p>
                                     </div>
+                                @else
+                                    {{-- 偵錯資訊：顯示為什麼前置符號欄位沒有顯示 --}}
+                                    @if(config('app.debug'))
+                                        <div class="text-xs text-gray-400 p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                                            偵錯：前置符號欄位隱藏 - showPrefixField: {{ $showPrefixField ? 'true' : 'false' }}, parent_id: {{ $parent_id ?? 'null' }}, isEdit: {{ $isEdit ? 'true' : 'false' }}
+                                        </div>
+                                    @endif
                                 @endif
 
                                 {{-- 初始點數 --}}
