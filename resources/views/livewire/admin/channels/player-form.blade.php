@@ -90,11 +90,34 @@
                     <div>
                         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">隸屬代理</h3>
                         
+                        {{-- 編輯模式警告訊息 --}}
+                        @if($isEdit && $player && $player->points > 0)
+                            <div class="mb-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-4">
+                                <div class="flex">
+                                    <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                            無法變更隸屬代理
+                                        </h3>
+                                        <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                                            <p>玩家目前還有 <span class="font-semibold">{{ number_format($player->points, 2) }}</span> 點數。</p>
+                                            <p class="mt-1">請先回收所有點數後，才能變更隸屬代理。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                        
                         <div class="space-y-4">
                             {{-- 代理搜尋和選擇 --}}
-                            <div class="relative" x-data="{ open: @entangle('showAgentDropdown') }">
+                            <div class="relative" x-data="{ open: false }" @click.away="open = false">
                                 <label for="agentSearch" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     選擇隸屬代理 <span class="text-red-500">*</span>
+                                    @if($isEdit && $player && $player->points > 0)
+                                        <span class="ml-2 text-xs text-yellow-600 dark:text-yellow-400">(目前無法變更)</span>
+                                    @endif
                                 </label>
                                 
                                 <div class="mt-1 relative">
@@ -102,16 +125,21 @@
                                         type="text" 
                                         id="agentSearch"
                                         wire:model.live="agentSearchTerm"
-                                        @click="$wire.toggleAgentDropdown()"
+                                        @focus="open = true"
                                         @keydown.escape="open = false"
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white @error('agent_id') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror"
+                                        @if($isEdit && $player && $player->points > 0)
+                                            disabled
+                                            class="block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                                        @else
+                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white @error('agent_id') border-red-300 focus:border-red-500 focus:ring-red-500 @enderror"
+                                        @endif
                                         placeholder="搜尋代理名稱或帳號..."
                                         autocomplete="off"
                                     />
                                     
                                     <button 
                                         type="button"
-                                        @click="$wire.toggleAgentDropdown()"
+                                        @click="open = !open"
                                         class="absolute inset-y-0 right-0 flex items-center pr-2"
                                     >
                                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,20 +152,21 @@
                                 <div 
                                     x-show="open" 
                                     x-transition
-                                    @click.away="open = false"
                                     class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+                                    style="display: none;"
                                 >
                                     @if($filteredAgents && $filteredAgents->count() > 0)
                                         @foreach($filteredAgents as $agent)
                                             <button 
                                                 type="button"
                                                 wire:click="selectAgent({{ $agent->id }})"
+                                                @click="open = false"
                                                 class="w-full text-left px-4 py-2 text-sm text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-600 {{ $agent_id == $agent->id ? 'bg-blue-100 dark:bg-blue-900' : '' }}"
                                             >
                                                 <div class="flex flex-col">
                                                     <span class="font-medium">{{ $agent->name }}</span>
                                                     <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                        {{ $this->getAgentDisplayText($agent) }}
+                                                        帳號: {{ $agent->account }} | 第{{ $agent->level }}層 | 剩餘點數: {{ number_format($agent->remaining_points, 2) }}
                                                     </span>
                                                 </div>
                                             </button>
@@ -292,7 +321,7 @@
                                                 <button 
                                                     type="button"
                                                     wire:click="addPoints"
-                                                    :disabled="!$wire.pointsToAdd || $wire.pointsToAdd <= 0"
+                                                    @if(!$pointsToAdd || $pointsToAdd <= 0) disabled @endif
                                                     class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     增加點數
@@ -332,7 +361,7 @@
                                                 <button 
                                                     type="button"
                                                     wire:click="deductPoints"
-                                                    :disabled="!$wire.pointsToDeduct || $wire.pointsToDeduct <= 0"
+                                                    @if(!$pointsToDeduct || $pointsToDeduct <= 0) disabled @endif
                                                     class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     扣除點數

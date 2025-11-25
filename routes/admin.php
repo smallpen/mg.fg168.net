@@ -365,7 +365,7 @@ Route::middleware('admin')
     // 通路管理路由群組
     Route::prefix('channels')->name('channels.')->middleware('channel.permission')->group(function () {
         // 系統管理員介面路由
-        Route::prefix('system')->name('system.')->middleware('can:channels.system.manage')->group(function () {
+        Route::prefix('system')->name('system.')->middleware('can:channels.points.view')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\ChannelManagementController::class, 'index'])
                  ->name('index');
             

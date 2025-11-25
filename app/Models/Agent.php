@@ -109,6 +109,11 @@ class Agent extends Model
             return $this->prefix ?? '';
         }
         
+        // 確保 parent 關聯已載入
+        if (!$this->relationLoaded('parent') && $this->parent_id) {
+            $this->load('parent');
+        }
+        
         return $this->parent ? $this->parent->full_prefix : '';
     }
 

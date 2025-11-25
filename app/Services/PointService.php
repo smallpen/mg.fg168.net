@@ -128,7 +128,8 @@ class PointService implements PointServiceInterface
         DB::beginTransaction();
         
         try {
-            $balanceBefore = $player->points;
+            // 確保 points 不是 null
+            $balanceBefore = $player->points ?? 0;
             
             // 更新玩家點數
             $player->addPoints($amount);

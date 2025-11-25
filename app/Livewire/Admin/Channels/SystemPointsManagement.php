@@ -52,17 +52,15 @@ class SystemPointsManagement extends Component
 
     public function mount(): void
     {
-        $this->authorize('channels.system.manage');
+        // 檢查是否有點數管理相關權限
+        $this->authorize('channels.points.view');
     }
 
     public function render()
     {
-        $data = $this->getData();
-        $statistics = $this->getStatistics();
-        
         return view('livewire.admin.channels.system-points-management', [
-            'items' => $data,
-            'statistics' => $statistics,
+            'items' => $this->getData(),
+            'statistics' => $this->getStatistics(),
         ]);
     }
 
@@ -123,20 +121,23 @@ class SystemPointsManagement extends Component
         }
 
         // 排序
-        $query = $query->sortBy(function ($item) {
-            return $this->sortDirection === 'asc' ? $item->{$this->sortBy} : -$item->{$this->sortBy};
-        });
+        if ($this->sortDirection === 'desc') {
+            $query = $query->sortByDesc($this->sortBy);
+        } else {
+            $query = $query->sortBy($this->sortBy);
+        }
 
         // 分頁
         $total = $query->count();
-        $items = $query->forPage($this->getPage(), $this->perPage);
+        $currentPage = request()->get('page', 1);
+        $items = $query->forPage($currentPage, $this->perPage)->values();
 
         return new \Illuminate\Pagination\LengthAwarePaginator(
             $items,
             $total,
             $this->perPage,
-            $this->getPage(),
-            ['path' => request()->url()]
+            $currentPage,
+            ['path' => request()->url(), 'pageName' => 'page']
         );
     }
 

@@ -2,12 +2,15 @@
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["-y", "playwright-mcp"],
+      "args": [
+        "-y",
+        "playwright-mcp"
+      ],
       "env": {
         "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
         "PORT": "5175"
       },
-      "disabled": false,
+      "disabled": true,
       "autoApprove": [
         "playwright_navigate",
         "playwright_screenshot",
@@ -31,7 +34,7 @@
         "MYSQL_PASSWORD": "secret",
         "MYSQL_DATABASE": "laravel_admin"
       },
-      "disabled": false,
+      "disabled": true,
       "autoApprove": [
         "list_databases",
         "list_tables",

@@ -94,11 +94,18 @@ class PointManagement extends AdminComponent
         ];
     }
 
+    /**
+     * 元件掛載時執行
+     * 
+     * @param Agent|null $agent 代理物件（系統級管理時為 null）
+     * @return void
+     */
     public function mount(?Agent $agent = null): void
     {
         // 檢查權限
         $this->checkPermission('channels.points.view');
 
+        // 設定代理和系統級別標記
         $this->agent = $agent;
         $this->isSystemLevel = is_null($agent);
 
@@ -106,6 +113,7 @@ class PointManagement extends AdminComponent
         $this->dateTo = now()->format('Y-m-d');
         $this->dateFrom = now()->subDays(30)->format('Y-m-d');
 
+        // 載入初始資料
         $this->loadData();
     }
 

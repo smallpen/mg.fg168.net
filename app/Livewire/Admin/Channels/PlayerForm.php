@@ -124,8 +124,19 @@ class PlayerForm extends Component
      */
     public function mount(?Player $player = null): void
     {
-        // 檢查權限
-        if ($player) {
+        // 強制重置狀態
+        $this->isEdit = false;
+        $this->player = null;
+        
+        // 記錄除錯資訊 - 初始狀態
+        \Log::info('PlayerForm mount - START', [
+            'player_param' => $player ? $player->id : 'null',
+            'this_player' => $this->player ? $this->player->id : 'null',
+            'this_isEdit_before' => $this->isEdit,
+        ]);
+
+        // 檢查權限並設定模式
+        if ($player && $player->exists) {
             if (!auth()->user()->can('channels.players.edit')) {
                 abort(403, '您沒有編輯玩家的權限');
             }
@@ -136,10 +147,19 @@ class PlayerForm extends Component
             if (!auth()->user()->can('channels.players.create')) {
                 abort(403, '您沒有建立玩家的權限');
             }
+            // 新增模式：保持初始值
+            $this->isEdit = false;
+            $this->player = null;
         }
 
         $this->loadAgentOptions();
         $this->updatePreviewAccount();
+        
+        // 記錄除錯資訊 - 最終狀態
+        \Log::info('PlayerForm mount - END', [
+            'this_player' => $this->player ? $this->player->id : 'null',
+            'this_isEdit_after' => $this->isEdit,
+        ]);
     }
 
     /**
@@ -445,8 +465,11 @@ class PlayerForm extends Component
      */
     private function loadAgentOptions(): void
     {
+        // 使用遞迴載入所有父層級，避免 N+1 查詢問題
         $this->agentOptions = Agent::where('is_active', true)
-            ->with('parent')
+            ->with(['parent' => function ($query) {
+                $query->with('parent.parent.parent.parent'); // 支援最多 5 層代理結構
+            }])
             ->orderBy('level')
             ->orderBy('name')
             ->get();
@@ -483,7 +506,7 @@ class PlayerForm extends Component
 
         $agent = $this->agentOptions->find($this->agent_id);
         if ($agent) {
-            $this->previewAccount = $agent->full_prefix . $this->username;
+            $this->previewAccount = $agent->full_prefix . '_' . $this->username;
         }
     }
 
@@ -506,9 +529,15 @@ class PlayerForm extends Component
                 $path[] = [
                     'id' => $current->id,
                     'name' => $current->name,
-                    'level' => $current->level,
+                    'level' => $current->level ?? 0,
                     'remaining_points' => $current->remaining_points ?? 0,
                 ];
+                
+                // 確保 parent 關聯已載入，避免 N+1 查詢問題
+                if ($current->parent_id && !$current->relationLoaded('parent')) {
+                    $current->load('parent');
+                }
+                
                 $current = $current->parent;
             }
             
@@ -541,7 +570,14 @@ class PlayerForm extends Component
         
         // 建立路徑陣列
         while ($current) {
-            $path[] = $current->name . " (第{$current->level}層)";
+            $level = $current->level ?? 0;
+            $path[] = $current->name . " (第{$level}層)";
+            
+            // 確保 parent 關聯已載入
+            if ($current->parent_id && !$current->relationLoaded('parent')) {
+                $current->load('parent');
+            }
+            
             $current = $current->parent;
         }
         

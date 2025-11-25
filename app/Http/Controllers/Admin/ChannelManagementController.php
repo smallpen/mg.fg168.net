@@ -32,8 +32,8 @@ class ChannelManagementController extends Controller
         private PlayerService $playerService,
         private PointService $pointService
     ) {
-        // 確保只有系統管理員可以存取
-        $this->middleware(['can:channels.system.manage']);
+        // 確保只有有點數管理權限的使用者可以存取
+        $this->middleware(['can:channels.points.view']);
     }
 
     /**

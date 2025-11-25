@@ -38,8 +38,8 @@ class PlayerService implements PlayerServiceInterface
         try {
             $agent = Agent::findOrFail($data['agent_id']);
             
-            // 設定完整帳號（繼承代理前置符號）
-            $data['account'] = $agent->full_prefix . $data['username'];
+            // 設定完整帳號（繼承代理前置符號 + 底線 + 使用者名稱）
+            $data['account'] = $agent->full_prefix . '_' . $data['username'];
 
             // 設定建立者
             $data['created_by'] = auth()->user()->id;
@@ -57,10 +57,17 @@ class PlayerService implements PlayerServiceInterface
             }
 
             // 記錄活動日誌
-            $this->activityLogger->log('player_created', $player, [
-                'player_name' => $player->name,
-                'agent_name' => $agent->name,
-                'initial_points' => $data['initial_points'] ?? 0,
+            $this->activityLogger->log('player_created', "建立玩家：{$player->name}", [
+                'module' => 'players',
+                'subject_id' => $player->id,
+                'subject_type' => Player::class,
+                'properties' => [
+                    'player_name' => $player->name,
+                    'player_username' => $player->username,
+                    'agent_name' => $agent->name,
+                    'agent_id' => $agent->id,
+                    'initial_points' => $data['initial_points'] ?? 0,
+                ],
             ]);
 
             DB::commit();
@@ -106,7 +113,7 @@ class PlayerService implements PlayerServiceInterface
             // 處理代理變更
             if (isset($data['agent_id']) && $data['agent_id'] !== $player->agent_id) {
                 $newAgent = Agent::findOrFail($data['agent_id']);
-                $data['account'] = $newAgent->full_prefix . $player->username;
+                $data['account'] = $newAgent->full_prefix . '_' . $player->username;
                 
                 // 轉移點數到新代理
                 $this->transferPlayerToNewAgent($player, $newAgent);
@@ -117,16 +124,21 @@ class PlayerService implements PlayerServiceInterface
                 $currentAgent = isset($data['agent_id']) 
                     ? Agent::find($data['agent_id']) 
                     : $player->agent;
-                $data['account'] = $currentAgent->full_prefix . $data['username'];
+                $data['account'] = $currentAgent->full_prefix . '_' . $data['username'];
             }
 
             $player->update($data);
 
             // 記錄活動日誌
-            $this->activityLogger->log('player_updated', $player, [
-                'changes' => array_diff_assoc($data, $originalData),
-                'original_agent' => $originalAgent->name,
-                'new_agent' => $player->agent->name,
+            $this->activityLogger->log('player_updated', "更新玩家：{$player->name}", [
+                'module' => 'players',
+                'subject_id' => $player->id,
+                'subject_type' => Player::class,
+                'properties' => [
+                    'changes' => array_diff_assoc($data, $originalData),
+                    'original_agent' => $originalAgent->name,
+                    'new_agent' => $player->agent->name,
+                ],
             ]);
 
             DB::commit();
@@ -180,10 +192,15 @@ class PlayerService implements PlayerServiceInterface
             $player->delete();
 
             // 記錄活動日誌
-            $this->activityLogger->log('player_deleted', $player, [
-                'player_name' => $player->name,
-                'agent_name' => $agent->name,
-                'recovered_points' => $remainingPoints,
+            $this->activityLogger->log('player_deleted', "刪除玩家：{$player->name}", [
+                'module' => 'players',
+                'subject_id' => $player->id,
+                'subject_type' => Player::class,
+                'properties' => [
+                    'player_name' => $player->name,
+                    'agent_name' => $agent->name,
+                    'recovered_points' => $remainingPoints,
+                ],
             ]);
 
             DB::commit();
@@ -215,18 +232,19 @@ class PlayerService implements PlayerServiceInterface
      * 
      * @param Player $player 玩家實例
      * @param Agent $newAgent 新代理
+     * @throws \Exception 玩家還有點數時無法轉移
      */
     private function transferPlayerToNewAgent(Player $player, Agent $newAgent): void
     {
         $oldAgent = $player->agent;
-        $playerPoints = $player->points;
+        $playerPoints = $player->points ?? 0;
 
+        // 檢查玩家是否還有點數
         if ($playerPoints > 0) {
-            // 從舊代理回收點數
-            $this->pointService->recoverPointsFromPlayer($player, $playerPoints, $oldAgent);
-            
-            // 分配點數給新代理（需要新代理有足夠點數）
-            $this->pointService->allocatePointsToPlayer($player, $playerPoints, $newAgent);
+            throw new \Exception(
+                "無法變更隸屬代理：玩家「{$player->name}」目前還有 " . number_format($playerPoints, 2) . " 點數。" .
+                "請先回收所有點數後再變更隸屬代理。"
+            );
         }
 
         Log::info('玩家代理轉移', [
@@ -234,7 +252,8 @@ class PlayerService implements PlayerServiceInterface
             'player_name' => $player->name,
             'old_agent' => $oldAgent->name,
             'new_agent' => $newAgent->name,
-            'transferred_points' => $playerPoints,
+            'player_points' => 0,
+            'note' => '玩家點數為 0，允許轉移代理',
         ]);
     }
 
@@ -246,18 +265,50 @@ class PlayerService implements PlayerServiceInterface
      */
     public function getPlayerStatistics(Player $player): array
     {
-        $transactions = $player->pointTransactions();
-        
-        return [
-            'current_points' => $player->points,
-            'total_transactions' => $transactions->count(),
-            'total_received' => $transactions->positive()->sum('amount'),
-            'total_spent' => abs($transactions->negative()->sum('amount')),
-            'agent_path' => $player->agent_path_string,
-            'agent_level' => $player->agent->level,
-            'account_age_days' => $player->created_at->diffInDays(now()),
-            'last_transaction_date' => $transactions->latest()->first()?->created_at,
-        ];
+        // 確保玩家已經存在於資料庫中
+        if (!$player->exists) {
+            return [
+                'current_points' => 0,
+                'total_transactions' => 0,
+                'total_received' => 0,
+                'total_spent' => 0,
+                'agent_path' => '',
+                'agent_level' => 0,
+                'account_age_days' => 0,
+                'last_transaction_date' => null,
+            ];
+        }
+
+        try {
+            $transactions = $player->pointTransactions();
+            
+            return [
+                'current_points' => $player->points ?? 0,
+                'total_transactions' => $transactions->count(),
+                'total_received' => $transactions->positive()->sum('amount') ?? 0,
+                'total_spent' => abs($transactions->negative()->sum('amount') ?? 0),
+                'agent_path' => $player->agent_path_string ?? '',
+                'agent_level' => $player->agent?->level ?? 0,
+                'account_age_days' => $player->created_at ? $player->created_at->diffInDays(now()) : 0,
+                'last_transaction_date' => $transactions->latest()->first()?->created_at,
+            ];
+        } catch (\Exception $e) {
+            Log::error('取得玩家統計資訊失敗', [
+                'player_id' => $player->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return [
+                'current_points' => 0,
+                'total_transactions' => 0,
+                'total_received' => 0,
+                'total_spent' => 0,
+                'agent_path' => '',
+                'agent_level' => 0,
+                'account_age_days' => 0,
+                'last_transaction_date' => null,
+            ];
+        }
     }
 
     /**
@@ -303,10 +354,15 @@ class PlayerService implements PlayerServiceInterface
             ]);
 
             // 記錄活動日誌
-            $this->activityLogger->log('player_points_consumed', $player, [
-                'amount' => $amount,
-                'description' => $description,
-                'balance_after' => $player->points,
+            $this->activityLogger->log('player_points_consumed', "玩家點數消費：{$player->name}", [
+                'module' => 'players',
+                'subject_id' => $player->id,
+                'subject_type' => Player::class,
+                'properties' => [
+                    'amount' => $amount,
+                    'description' => $description,
+                    'balance_after' => $player->points,
+                ],
             ]);
 
             DB::commit();
@@ -348,10 +404,13 @@ class PlayerService implements PlayerServiceInterface
             $updatedCount = Player::whereIn('id', $playerIds)->update($data);
 
             // 記錄活動日誌
-            $this->activityLogger->log('players_batch_updated', null, [
-                'player_ids' => $playerIds,
-                'updated_count' => $updatedCount,
-                'data' => $data,
+            $this->activityLogger->log('players_batch_updated', "批次更新玩家：{$updatedCount} 筆", [
+                'module' => 'players',
+                'properties' => [
+                    'player_ids' => $playerIds,
+                    'updated_count' => $updatedCount,
+                    'data' => $data,
+                ],
             ]);
 
             DB::commit();

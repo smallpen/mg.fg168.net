@@ -23,17 +23,20 @@ class Player extends Model
         'email',                // 電子郵件
         'phone',                // 電話號碼
         'agent_id',             // 隸屬代理ID
-        'total_points',         // 總點數
-        'available_points',     // 可用點數
+        'points',               // 玩家點數
         'is_active',            // 是否啟用
         'created_by',           // 建立者
         'notes',                // 備註
     ];
 
     protected $casts = [
-        'total_points' => 'decimal:2',
-        'available_points' => 'decimal:2',
+        'points' => 'decimal:2',
         'is_active' => 'boolean',
+    ];
+
+    protected $attributes = [
+        'points' => 0,
+        'is_active' => true,
     ];
 
     protected $dates = [
@@ -106,12 +109,14 @@ class Player extends Model
         return $this->agent ? $this->agent->full_prefix : '';
     }
 
+
+
     /**
      * 檢查是否可以扣除指定點數
      */
     public function canDeductPoints(float $amount): bool
     {
-        return $this->available_points >= $amount;
+        return $this->points >= $amount;
     }
 
     /**
@@ -119,8 +124,7 @@ class Player extends Model
      */
     public function addPoints(float $amount): void
     {
-        $this->increment('total_points', $amount);
-        $this->increment('available_points', $amount);
+        $this->increment('points', $amount);
     }
 
     /**
@@ -132,7 +136,7 @@ class Player extends Model
             throw new InsufficientPointsException('玩家點數不足，無法扣除');
         }
 
-        $this->decrement('available_points', $amount);
+        $this->decrement('points', $amount);
     }
 
     /**
@@ -164,6 +168,6 @@ class Player extends Model
      */
     public function scopeWithPointsGreaterThan($query, float $amount)
     {
-        return $query->where('available_points', '>', $amount);
+        return $query->where('points', '>', $amount);
     }
 }
