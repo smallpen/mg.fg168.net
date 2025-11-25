@@ -362,6 +362,104 @@ Route::middleware('admin')
         })->name('settings');
     });
     
+    // 通路管理路由群組
+    Route::prefix('channels')->name('channels.')->middleware('channel.permission')->group(function () {
+        // 系統管理員介面路由
+        Route::prefix('system')->name('system.')->middleware('can:channels.points.view')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\ChannelManagementController::class, 'index'])
+                 ->name('index');
+            
+            Route::get('/agents', [App\Http\Controllers\Admin\ChannelManagementController::class, 'agents'])
+                 ->name('agents');
+            
+            Route::get('/players', [App\Http\Controllers\Admin\ChannelManagementController::class, 'players'])
+                 ->name('players');
+            
+            Route::get('/points', [App\Http\Controllers\Admin\ChannelManagementController::class, 'points'])
+                 ->name('points');
+            
+            Route::get('/audit', [App\Http\Controllers\Admin\ChannelManagementController::class, 'audit'])
+                 ->name('audit');
+            
+            Route::get('/reports', [App\Http\Controllers\Admin\ChannelManagementController::class, 'reports'])
+                 ->name('reports');
+            
+            // API 路由
+            Route::post('/adjust-points', [App\Http\Controllers\Admin\ChannelManagementController::class, 'adjustPoints'])
+                 ->name('adjust-points');
+            
+            Route::post('/export-report', [App\Http\Controllers\Admin\ChannelManagementController::class, 'exportReport'])
+                 ->name('export-report');
+            
+            Route::post('/run-audit', [App\Http\Controllers\Admin\ChannelManagementController::class, 'runAudit'])
+                 ->name('run-audit');
+        });
+
+        // 代理管理路由
+        Route::prefix('agents')->name('agents.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\AgentController::class, 'index'])
+                 ->name('index')
+                 ->middleware('can:channels.agents.view');
+            
+            Route::get('/create', [App\Http\Controllers\Admin\AgentController::class, 'create'])
+                 ->name('create')
+                 ->middleware('can:channels.agents.create');
+            
+            Route::get('/{agent}', [App\Http\Controllers\Admin\AgentController::class, 'show'])
+                 ->name('show')
+                 ->middleware(['can:channels.agents.view', 'channel.permission:channels.agents.view,subordinate']);
+            
+            Route::get('/{agent}/edit', [App\Http\Controllers\Admin\AgentController::class, 'edit'])
+                 ->name('edit')
+                 ->middleware(['can:channels.agents.edit', 'channel.permission:channels.agents.edit,subordinate']);
+            
+            Route::get('/{agent}/points', [App\Http\Controllers\Admin\AgentController::class, 'points'])
+                 ->name('points')
+                 ->middleware(['can:channels.points.allocate', 'channel.permission:channels.points.allocate,subordinate']);
+        });
+
+        // 玩家管理路由
+        Route::prefix('players')->name('players.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\PlayerController::class, 'index'])
+                 ->name('index')
+                 ->middleware('can:channels.players.view');
+            
+            Route::get('/create', [App\Http\Controllers\Admin\PlayerController::class, 'create'])
+                 ->name('create')
+                 ->middleware('can:channels.players.create');
+            
+            Route::get('/{player}', [App\Http\Controllers\Admin\PlayerController::class, 'show'])
+                 ->name('show')
+                 ->middleware(['can:channels.players.view', 'channel.permission:channels.players.view,subordinate']);
+            
+            Route::get('/{player}/edit', [App\Http\Controllers\Admin\PlayerController::class, 'edit'])
+                 ->name('edit')
+                 ->middleware(['can:channels.players.edit', 'channel.permission:channels.players.edit,subordinate']);
+        });
+
+        // 點數管理路由
+        Route::prefix('points')->name('points.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\PointController::class, 'index'])
+                 ->name('index')
+                 ->middleware('can:channels.points.view');
+            
+            // 點數統計 API
+            Route::get('/statistics', [App\Http\Controllers\Admin\PointController::class, 'statistics'])
+                 ->name('statistics')
+                 ->middleware('can:channels.points.view');
+            
+            // 點數交易歷史 API
+            Route::get('/transactions', [App\Http\Controllers\Admin\PointController::class, 'transactions'])
+                 ->name('transactions')
+                 ->middleware('can:channels.points.view');
+        });
+
+        // 組織架構圖表路由
+        Route::get('/organization', [App\Http\Controllers\Admin\OrganizationController::class, 'index'])
+             ->name('organization.index')
+             ->middleware('can:channels.agents.view');
+    });
+    
     // 說明中心路由
     Route::get('/help', function () {
         return view('admin.help.index');

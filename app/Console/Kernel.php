@@ -158,6 +158,48 @@ class Kernel extends ConsoleKernel
                  ->withoutOverlapping()
                  ->runInBackground()
                  ->description('每週重新預熱語言快取');
+
+        // 通路管理系統監控排程任務
+        
+        // 每 15 分鐘執行監控檢查
+        $schedule->command('channel:monitoring-check')
+                 ->everyFifteenMinutes()
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('通路管理系統監控檢查');
+
+        // 每 6 小時執行完整性檢查
+        $schedule->command('channel:integrity-check')
+                 ->cron('0 */6 * * *')
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('通路管理系統完整性檢查');
+
+        // 每日凌晨 2:30 建立備份
+        $schedule->command('channel:backup-restore backup --verify')
+                 ->dailyAt('02:30')
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('通路管理系統每日備份');
+
+        // 每週日凌晨 3:30 清理舊監控資料
+        $schedule->command('channel:monitoring-check --cleanup --days-keep=30')
+                 ->weekly()
+                 ->sundays()
+                 ->at('03:30')
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('清理舊的通路監控資料');
+
+        // 每小時執行自動修復（如果啟用）
+        $schedule->command('channel:monitoring-check --auto-repair')
+                 ->hourly()
+                 ->when(function () {
+                     return config('channel.monitoring.auto_repair.enabled', false);
+                 })
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->description('通路管理系統自動修復');
     }
 
     /**

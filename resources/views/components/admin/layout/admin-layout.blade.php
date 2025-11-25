@@ -170,6 +170,54 @@
                 </div>
                 @endcan
                 
+                <!-- 通路管理 -->
+                @canany(['channels.agents.view', 'channels.players.view', 'channels.points.view'])
+                <div x-data="{ open: {{ request()->routeIs('admin.channels.*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open" 
+                            class="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors duration-150">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            通路管理
+                        </div>
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    
+                    <div x-show="open" x-transition class="ml-8 mt-2 space-y-1">
+                        @can('channels.agents.view')
+                        <a href="{{ route('admin.channels.agents.index') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.channels.agents.*') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            代理管理
+                        </a>
+                        @endcan
+                        
+                        @can('channels.players.view')
+                        <a href="{{ route('admin.channels.players.index') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.channels.players.*') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            玩家管理
+                        </a>
+                        @endcan
+                        
+                        @can('channels.points.view')
+                        <a href="{{ route('admin.channels.system.points') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.channels.system.points') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            點數管理
+                        </a>
+                        @endcan
+                        
+                        @can('channels.agents.view')
+                        <a href="{{ route('admin.channels.organization.index') }}" 
+                           class="block px-4 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.channels.organization.*') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900 dark:text-primary-300' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700' }}">
+                            組織架構圖
+                        </a>
+                        @endcan
+                    </div>
+                </div>
+                @endcanany
+                
                 <!-- 系統設定 -->
                 <div x-data="{ open: {{ request()->routeIs('admin.settings.*') ? 'true' : 'false' }} }">
                     <button @click="open = !open" 

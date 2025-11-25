@@ -212,6 +212,7 @@ return [
         App\Providers\SecurityServiceProvider::class,
         App\Providers\MultilingualServiceProvider::class,
         App\Providers\LanguagePerformanceServiceProvider::class,
+        App\Providers\ChannelManagementServiceProvider::class,
     ])->toArray(),
 
     /*

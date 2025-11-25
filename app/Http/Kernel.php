@@ -102,5 +102,7 @@ class Kernel extends HttpKernel
         'api_auth' => \App\Http\Middleware\ApiAuthentication::class,
         'api_rate_limit' => \App\Http\Middleware\ApiRateLimit::class,
         'language.performance' => \App\Http\Middleware\LanguagePerformanceMiddleware::class,
+        'channel.permission' => \App\Http\Middleware\ChannelPermissionMiddleware::class,
+        'agent.auth' => \App\Http\Middleware\AgentAuthMiddleware::class,
     ];
 }

@@ -198,6 +198,43 @@ class NavigationService
                 ],
             ],
         ],
+        [
+            'key' => 'channels',
+            'title' => '通路管理',
+            'icon' => 'users',
+            'permission' => 'channels.agents.view',
+            'order' => 7,
+            'children' => [
+                [
+                    'key' => 'channels.agents.index',
+                    'title' => '代理管理',
+                    'route' => 'admin.channels.agents.index',
+                    'permission' => 'channels.agents.view',
+                    'order' => 1,
+                ],
+                [
+                    'key' => 'channels.agents.create',
+                    'title' => '建立代理',
+                    'route' => 'admin.channels.agents.create',
+                    'permission' => 'channels.agents.create',
+                    'order' => 2,
+                ],
+                [
+                    'key' => 'channels.players.index',
+                    'title' => '玩家管理',
+                    'route' => 'admin.channels.players.index',
+                    'permission' => 'channels.players.view',
+                    'order' => 3,
+                ],
+                [
+                    'key' => 'channels.players.create',
+                    'title' => '建立玩家',
+                    'route' => 'admin.channels.players.create',
+                    'permission' => 'channels.players.create',
+                    'order' => 4,
+                ],
+            ],
+        ],
     ];
 
     /**

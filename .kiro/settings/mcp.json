@@ -1,4 +1,46 @@
 {
   "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "playwright-mcp"
+      ],
+      "env": {
+        "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
+        "PORT": "5175"
+      },
+      "disabled": true,
+      "autoApprove": [
+        "playwright_navigate",
+        "playwright_screenshot",
+        "playwright_get_visible_text",
+        "playwright_get_visible_html",
+        "playwright_fill",
+        "playwright_click",
+        "playwright_select",
+        "playwright_evaluate",
+        "playwright_console_logs",
+        "playwright_close"
+      ]
+    },
+    "mysql": {
+      "command": "mysql-mcp-server",
+      "args": [],
+      "env": {
+        "MYSQL_HOST": "127.0.0.1",
+        "MYSQL_PORT": "3306",
+        "MYSQL_USER": "laravel",
+        "MYSQL_PASSWORD": "secret",
+        "MYSQL_DATABASE": "laravel_admin"
+      },
+      "disabled": true,
+      "autoApprove": [
+        "list_databases",
+        "list_tables",
+        "describe_table",
+        "execute_query"
+      ]
+    }
   }
 }
